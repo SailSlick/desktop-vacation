@@ -14,6 +14,5 @@ Written by The Arduous Aaron, The Lucrative Lucas and The Rickety Ross
 - Share backgrounds across social groups
 - Share backgrounds peer to peer
 
-
 ### Current Features
 - We have a repo (with readme and all) :)
