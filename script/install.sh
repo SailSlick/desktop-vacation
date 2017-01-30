@@ -25,7 +25,8 @@ if lsb_release -a 2> /dev/null | grep -q "Ubuntu"; then
 elif lsb_release -a 2> /dev/null | grep -q "Arch"; then
 
   echo "Installing packages for Arch";
-  sudo pacman -S nodejs npm python python-virtualenv
+  sudo pacman -S --needed nodejs npm python
+  sudo pip install virtualenv
 
 fi;
 
