@@ -1,4 +1,8 @@
-Created by https://www.gitignore.io/api/virtualenv,python,node,linux,windows,android
+# Custom
+
+*.sublime-*
+
+# Created by https://www.gitignore.io/api/virtualenv,python,node,linux,windows,android
 
 ### VirtualEnv ###
 # Virtualenv
