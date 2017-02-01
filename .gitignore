@@ -1,6 +1,7 @@
 # Custom
 
 *.sublime-*
+hidden/
 
 # Created by https://www.gitignore.io/api/virtualenv,python,node,linux,windows,android
 
