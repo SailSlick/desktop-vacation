@@ -25,7 +25,12 @@ Example Document
     ObjectId("2g6c2b97bac0595474108b48")
   ],
   "images": [
-    ObjectId("542c2b97bac0595474138b48")
+    ObjectId("542c2b97bac0595474138b48"),
+    ObjectId("800c2b97bac0595474108b48"),
+    ObjectId("a42c2b97bac0595474138b48"),
+    ObjectId("876c2b97bac0595474108b48"),
+    ObjectId("276c2jghbac0595474108b48"),
+    ObjectId("fg6c2jghbac0595474108b48")
   ]
 },
 {
@@ -34,8 +39,8 @@ Example Document
   "tags": ["oohlaala"],
   "subgallaries": [],
   "images": [
-    ObjectId("876c2b97bac0595474108b48"),
-    ObjectId("876c2jghbac0595474108b48")
+    ObjectId("276c2jghbac0595474108b48"),
+    ObjectId("fg6c2jghbac0595474108b48")
   ]
 },
 {
@@ -44,9 +49,9 @@ Example Document
   "tags": [],
   "subgallaries": [],
   "images": [
-   ObjectId("876c2b97bac0595474108b48"),
-   ObjectId("542c2b97bac0595474138b48"),
-   ObjectId("876c2jghbac0595474108b48")
+    ObjectId("800c2b97bac0595474108b48"),
+    ObjectId("a42c2b97bac0595474138b48"),
+    ObjectId("876c2b97bac0595474108b48")
   ]
 }
 ```
