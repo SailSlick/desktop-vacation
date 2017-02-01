@@ -18,8 +18,8 @@ Example Document
 ```js
 {
  "_id" : ObjectId("542c2b97bac0595474108b48"),
- "username" : "SailSlick" ,
- "email" : "sailslick@vacation.com",
+ "username" : "testuser" ,
+ "email" : "testuser@vacation.com",
  "password" : "$2a$10$oU2WWLC8339f4F.A.bb4/.4hpDH9mZZMkdSZtGUckS7LBC8nGOFsG",
  "gallery" : ObjectId("sj478b97bac0595474108b48"),
  "groups" : ["top50", "cars"]

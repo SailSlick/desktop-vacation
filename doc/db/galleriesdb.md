@@ -18,7 +18,7 @@ Example Document
 ```js
 {
   "_id": ObjectId("2g6c2b97bac0595474108b48"),
-  "name": "SailSlick_all",
+  "name": "testuser_all",
   "tags": ["blam"],
   "subgallaries": [
     ObjectId("hk4c2b97bac0595474108b48"),
