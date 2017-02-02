@@ -10,6 +10,7 @@
   "author": "Aaron Delaney, Lucas Savva, Ross O'Sullivan",
   "license": "UNLICENSED",
   "dependencies": {
+    "body-parser": "^1.16.0",
     "express": "^4.14.1"
   }
 }
