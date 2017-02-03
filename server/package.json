@@ -5,7 +5,8 @@
   "main": "app.js",
   "repository": "https://github.com/cpssd/vacation.git",
   "scripts": {
-    "test": "NODE_ENV=test node ./tests/mongo-test.js"
+    "test": "NODE_ENV=test node ./tests/mongo-test.js",
+    "populate-db": "node ./tests/populate-db.js"
   },
   "author": "Aaron Delaney, Lucas Savva, Ross O'Sullivan",
   "license": "UNLICENSED",

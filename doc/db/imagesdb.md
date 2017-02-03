@@ -17,9 +17,9 @@ Example Document
 ----------------
 ```js
 {
- "_id" : ObjectId("542c2b97bac0595474108b48"),
- "hash" : "34123187ndf9813fhq9348",
- "metadata" : {"rating": 3, "tags": ["winter", "chill"]},
- "location" : "/home/here.png"
+  "_id" : ObjectId("542c2b97bac0595474108b48"),
+  "hash" : "34123187ndf9813fhq9348",
+  "metadata" : {"rating": 3, "tags": ["winter", "chill"]},
+  "location" : "/home/here.png"
 }
 ```

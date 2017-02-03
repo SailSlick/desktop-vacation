@@ -3,7 +3,9 @@ const MongoTools = require("../middleware/mongo");
 function testInsertOne() {
   var testCol = "tests";
   var testData = {"backgrounds": "areLife"};
-  MongoTools.insertOne(testCol, testData);
+  MongoTools.insertOne(testCol, testData, function(cb){
+    console.log(cb);
+  });
 }
 
 function testInsertMany() {
@@ -12,7 +14,9 @@ function testInsertMany() {
     {"screensavers": "areGreat"},
     {"screensavers": "areRest"}
   ];
-  MongoTools.insertMany(testCol, testData);
+  MongoTools.insertMany(testCol, testData, function(cb) {
+    console.log(cb);
+  });
 }
 
 function testFindOne() {
