@@ -24,13 +24,13 @@ if lsb_release -a 2> /dev/null | grep -q "Ubuntu"; then
     sudo apt-get -y install python3-kivy
   fi
 
-  sudo apt-get install -y python3 python-pip python3-dev build-essential
+  sudo apt-get install -y python3 python-pip python3-dev build-essential mongodb
   sudo -H pip install --upgrade pip
   sudo -H pip install --upgrade virtualenv
 
 elif lsb_release -a 2> /dev/null | grep -q "Arch"; then
   echo "Installing packages for Arch";
-  sudo pacman -S --needed nodejs npm python python-kivy
+  sudo pacman -S --needed nodejs npm python python-kivy mongodb
   sudo pip install virtualenv
 fi;
 
