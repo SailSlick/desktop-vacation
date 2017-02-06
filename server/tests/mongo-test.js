@@ -1,71 +1,67 @@
-const MongoTools = require("../middleware/mongo");
+const MongoTools = require("../middleware/db");
+
+const dbConn = new MongoTools("test");
 
 function testInsertOne() {
-  var testCol = "tests";
   var testData = {"backgrounds": "areLife"};
-  MongoTools.insertOne(testCol, testData, function(cb){
+  dbConn.insertOne(testData, cb => {
     console.log(cb);
   });
 }
 
 function testInsertMany() {
-  var testCol = "tests";
   var testData = [
     {"screensavers": "areGreat"},
     {"screensavers": "areRest"}
   ];
-  MongoTools.insertMany(testCol, testData, function(cb) {
+  dbConn.insertMany(testData, cb => {
     console.log(cb);
   });
 }
 
 function testFindOne() {
-  var testCol = "tests";
   var testQuery = {"backgrounds": {$exists:true}};
-  MongoTools.findOne(testCol, testQuery, function(cb) {
+  dbConn.findOne(testQuery, cb => {
     console.log(cb);
   });
 }
 
 function testFindMany() {
-  var testCol = "tests";
   var testQuery = {"screensavers": {$exists:true}};
-  MongoTools.findMany(testCol, testQuery, function(cb) {
+  dbConn.findMany(testQuery, cb => {
     console.log(cb);
   });
 }
 
 function testUpdateOne() {
-  var testCol = "tests";
   var testQuery = {"backgrounds": "areLife"};
   var testData = {"backgrounds": "areFunny"};
-  MongoTools.updateOne(testCol, testQuery, testData);
+  dbConn.updateOne(testQuery, testData);
 }
 
 function testUpdateMany() {
-  var testCol = "tests";
   var testQuery = {"screensavers": {$exists:true}};
   var testData = {"screensavers": "areWorthIt"};
-  MongoTools.updateMany(testCol, testQuery, testData);
+  dbConn.updateMany(testQuery, testData);
 }
 
 function testRemoveOne() {
-  var testCol = "tests";
   var testQuery = {"backgrounds": {$exists:true}};
-  MongoTools.removeOne(testCol, testQuery);
+  dbConn.removeOne(testQuery);
 }
 
 function testRemoveMany() {
-  var testCol = "tests";
   var testQuery = {"screensavers": {$exists:true}};
-  MongoTools.removeMany(testCol, testQuery);
+  dbConn.removeMany(testQuery);
 }
 
-testInsertOne()
-testInsertMany()
-testFindOne()
-testFindMany()
-testUpdateOne()
-testUpdateMany()
-testRemoveOne()
-testRemoveMany()
+dbConn.onLoad = _ => {
+  testInsertOne();
+  testInsertMany();
+  testFindOne();
+  testFindMany();
+  testUpdateOne();
+  testUpdateMany();
+  testRemoveOne();
+  testRemoveMany();
+}
