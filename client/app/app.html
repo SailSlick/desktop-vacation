@@ -1,74 +1,78 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-  <meta charset='utf-8'>
-  <title>Desktop Vacation</title>
+	<meta charset='utf-8'>
+	<title>Desktop Vacation</title>
 
-  <!-- Bootstrap -->
-  <link rel='stylesheet' type='text/css' href='thirdparty/bootstrap/css/bootstrap.css'>
+	<!-- Bootstrap -->
+	<link rel='stylesheet' type='text/css' href='thirdparty/bootstrap/css/bootstrap.css'>
 
-  <link rel='stylesheet' type='text/css' href='stylesheets/main.css'>
+	<link rel='stylesheet' type='text/css' href='stylesheets/main.css'>
 
 </head>
 
 <body>
 
-  <nav class='navbar navbar-inverse bg-inverse navbar-toggleable'>
+	<nav class='navbar navbar-inverse bg-inverse navbar-toggleable'>
 
-    <!-- Nav toggler for small screens -->
-    <button class='navbar-toggler navbar-toggler-right' type='button' data-toggle='collapse' data-target='#main-nav-dropdown' aria-controls='main-nav-dropdown' aria-expanded='false' aria-label='Toggle navigation'>
-      <span class='navbar-toggler-icon'></span>
-    </button>
+		<!-- Nav toggler for small screens -->
+		<button class='navbar-toggler navbar-toggler-right' type='button' data-toggle='collapse' data-target='#main-nav-dropdown' aria-controls='main-nav-dropdown' aria-expanded='false' aria-label='Toggle navigation'>
+			<span class='navbar-toggler-icon'></span>
+		</button>
 
-    <a class='navbar-brand' href='#'>Desktop Vacation</a>
+		<a class='navbar-brand' href='#'>Desktop Vacation</a>
 
-    <div class='collapse navbar-collapse' id='main-nav-dropdown'>
-      <ul class='navbar-nav'>
+		<div class='collapse navbar-collapse' id='main-nav-dropdown'>
+			<ul class='navbar-nav'>
 
-        <!-- Images button -->
-        <li class='nav-item dropdown'>
-          <a class='nav-link dropdown-toggle' href='#' id='images-nav-dropdown' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>Images</a>
+				<!-- Images button -->
+				<li class='nav-item dropdown'>
+					<a class='nav-link dropdown-toggle' href='#' id='images-nav-dropdown' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>Images</a>
 
-          <div class='dropdown-menu' aria-labelledby='images-nav-dropdown'>
-            <a class='dropdown-item' id='btn-view-images' href='#'>View</a>
-            <a class='dropdown-item' id='btn-add-images' href='#'>Add</a>
-          </div>
-        </li>
+					<div class='dropdown-menu' aria-labelledby='images-nav-dropdown'>
+						<a class='dropdown-item' id='btn-view-images' href='#'>View</a>
+						<a class='dropdown-item' id='btn-add-images' href='#'>Add</a>
+					</div>
+				</li>
 
-        <!-- Galleries button -->
-        <li class='nav-item dropdown'>
-          <a class='nav-link dropdown-toggle' href='#' id='galleries-nav-dropdown' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>Galleries</a>
+				<!-- Galleries button -->
+				<li class='nav-item dropdown'>
+					<a class='nav-link dropdown-toggle' href='#' id='galleries-nav-dropdown' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>Galleries</a>
 
-          <div class='dropdown-menu' aria-labelledby='galleries-nav-dropdown'>
-            <a class='dropdown-item' id='btn-view-galleries' href='#'>View</a>
-            <a class='dropdown-item' id='btn-add-gallery' href='#'>Add</a>
-          </div>
-        </li>
-      </ul>
-    </div>
-  </nav>
+					<div class='dropdown-menu' aria-labelledby='galleries-nav-dropdown'>
+						<a class='dropdown-item' id='btn-view-galleries' href='#'>View</a>
+						<a class='dropdown-item' id='btn-add-gallery' href='#'>Add</a>
+					</div>
+				</li>
+			</ul>
+		</div>
+	</nav>
 
-  <br>
+	<br>
 
-  <main id='main-content' class='container-fluid'>
+	<main id='main-content' class='container-fluid'>
 
-  </main>
+	</main>
 
-  <!-- Import fix part 1 -->
-  <!-- Source: http://stackoverflow.com/questions/32621988/electron-jquery-is-not-defined -->
-  <script type='text/javascript'>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+	<div id='hover-content' class='container-fluid'>
 
-  <!-- JQuery, Tether, Bootstrap -->
-  <script type='text/javascript' src='thirdparty/jquery/jquery.min.js'></script>
-  <script type='text/javascript' src='thirdparty/tether/js/tether.min.js'></script>
-  <script type='text/javascript' src='thirdparty/bootstrap/js/bootstrap.min.js'></script>
+	</div>
 
-  <!-- Electron -->
-  <script type='text/javascript' src='helpers/context_menu.js'></script>
-  <script type='text/javascript' src='app.js'></script>
+	<!-- Import fix part 1 -->
+	<!-- Source: http://stackoverflow.com/questions/32621988/electron-jquery-is-not-defined -->
+	<script type='text/javascript'>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
 
-  <!-- Import fix part 2 -->
-  <script type='text/javascript'>if (window.module) module = window.module;</script>
+	<!-- JQuery, Tether, Bootstrap -->
+	<script type='text/javascript' src='thirdparty/jquery/jquery.min.js'></script>
+	<script type='text/javascript' src='thirdparty/tether/js/tether.min.js'></script>
+	<script type='text/javascript' src='thirdparty/bootstrap/js/bootstrap.min.js'></script>
+
+	<!-- Electron -->
+	<script type='text/javascript' src='helpers/context_menu.js'></script>
+	<script type='text/javascript' src='app.js'></script>
+
+	<!-- Import fix part 2 -->
+	<script type='text/javascript'>if (window.module) module = window.module;</script>
 
 </body>
 </html>

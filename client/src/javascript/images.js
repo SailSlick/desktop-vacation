@@ -14,21 +14,38 @@ const Images = {
     image_db.push(path);
   },
 
+  remove: path => {
+    image_db.splice(image_db.findIndex(val => val == path), 1);
+    console.log('Removed image ' + path);
+
+    // Redraw
+    Images.view();
+  },
+
   view: _ => {
  
     // Replace the main content
     $('#main-content').html(Templates.generate('image-gallery', {}));
 
-    let i = 0;
-    image_db.forEach(path => {
-      $('#gallery-col-' + i).append(Templates.generate('image', {src: path}));
-      i = (i + 1) % 3;
+    image_db.forEach((path, index) => {
+      $('#gallery-col-' + (index % 3)).append(Templates.generate('image-gallery-item', {src: path, id: index}));
+      $('#gallery-col-' + (index % 3) + ' .img-card:last-child img').click(_ => Images.open(path));
+      $('#gallery-col-' + (index % 3) + ' .img-card:last-child .btn-img-remove').click(_ => Images.remove(path));
     });
+  },
+
+  open: path => {
+    $('#hover-content').html(Templates.generate('image-expanded', {src: path})).show();
+    $('#hover-content>*').click(Images.close);
+  },
+
+  close: _ => {
+    $('#hover-content').html('').hide();
   }
 }
 
 // Events
-document.addEventListener('templates_loaded', Images.view, false);
+$(document).on('templates_loaded', Images.view);
 
 // IPC Calls
 ipc.on('selected-directory', (event, files) => {
