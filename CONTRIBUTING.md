@@ -5,6 +5,7 @@ Code Standards
 --------------
 
 - Python: [Pep8](https://www.python.org/dev/peps/pep-0008/)
+- Javascript [Airbnb](https://github.com/airbnb/javascript)
 
 Committing
 ----------
