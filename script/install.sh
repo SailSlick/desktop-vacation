@@ -18,20 +18,9 @@ if lsb_release -a 2> /dev/null | grep -q "Ubuntu"; then
     fi
   fi
 
-  if ! 'python3 -c "import kivy"' 2> /dev/null; then
-    sudo add-apt-repository -y ppa:kivy-team/kivy
-    sudo apt-get update
-    sudo apt-get -y install python3-kivy
-  fi
-
-  sudo apt-get install -y python3 python-pip python3-dev build-essential
-  sudo -H pip install --upgrade pip
-  sudo -H pip install --upgrade virtualenv
-
 elif lsb_release -a 2> /dev/null | grep -q "Arch"; then
   echo "Installing packages for Arch";
-  sudo pacman -S --needed nodejs npm python python-kivy
-  sudo pip install virtualenv
+  sudo pacman -S --needed nodejs npm
 fi;
 
 # NOTE The following line requires that install.sh is one dir under the project
@@ -40,12 +29,8 @@ fi;
 IR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BASEDIR=`cd "$IR/.."; pwd` # Provides absoloute directory, just in case.
 
-cd $BASEDIR/server && npm install
-
-if [ ! -d "$BASEDIR/venv" ]; then
-  virtualenv -p python3 -q $BASEDIR/venv --no-site-packages
-  echo "Virtualenv created."
-fi
-
-source $BASEDIR/venv/bin/activate
-pip install -r $BASEDIR/requirements.txt
+echo "Installing server dependencies..."
+cd "$BASEDIR/server" && npm install
+echo "Installing client dependencies..."
+cd "$BASEDIR/client" && npm install
+echo "Done!"
