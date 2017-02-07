@@ -1,4 +1,6 @@
+// Part of the boilerplate, generates coverage reports
 var istanbul = require('istanbul');
+var mocha = require('mocha');
 
 module.exports = function (runner, options) {
     mocha.reporters.Base.call(this, runner);
@@ -12,7 +14,7 @@ module.exports = function (runner, options) {
     if (options.reportDir) reporterOpts.dir = options.reportDir;
     if (process.env.ISTANBUL_REPORT_DIR) reporterOpts.dir = process.env.ISTANBUL_REPORT_DIR;
 
-    runner.on('end', function(){
+    runner.on('end', function() {
         var cov = global.__coverage__ || {},
             collector = new istanbul.Collector();
 

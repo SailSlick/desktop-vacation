@@ -1,5 +1,6 @@
 import { ipcRenderer as ipc } from 'electron';
 import Templates from './templates';
+import $ from 'jquery';
 
 let image_db = [];
 
