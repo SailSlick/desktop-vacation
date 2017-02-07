@@ -6,6 +6,10 @@ let image_db = [];
 // Exported methods
 const Images = {
 
+  getAll: _ => {
+    return image_db;
+  },
+
   getNew: _ => {
     ipc.send('open-file-dialog');
   },
@@ -23,7 +27,7 @@ const Images = {
   },
 
   view: _ => {
- 
+
     // Replace the main content
     $('#main-content').html(Templates.generate('image-gallery', {}));
 
