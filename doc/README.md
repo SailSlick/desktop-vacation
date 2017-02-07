@@ -1,3 +1,4 @@
 # Documentation
 
-- [REST API](/doc/API.md) 
+### API
+- [Users API](/doc/API/users.md)

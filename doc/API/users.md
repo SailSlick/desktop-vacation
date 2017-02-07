@@ -9,12 +9,13 @@ The version will be included in all responses.x
 
 ## Status codes
 
-| Code | Text         | Description                     |
-|------|--------------|---------------------------------|
-| 200  | OK           | Operation Succeeded             |
-| 400  | Bad Request  | The request was malformed. See `error` in the response for details |
-| 401  | Unauthorized | Missing or incorect session_key |
-| 404  | Not Found    | The endpoint could not be found |
+| Code | Text           | Description                     |
+|------|----------------|---------------------------------|
+| 200  | OK             | Operation succeeded             |
+| 400  | Bad Request    | The request was malformed. See `error` in the response for details |
+| 401  | Unauthorized   | Missing or incorect session_key |
+| 404  | Not Found      | The url seems to be incorrect   |
+| 500  | Internal Error | The server made a mistake       |
 
 
 ## User Login
