@@ -12,7 +12,7 @@ module.exports = {
 
   add: (username, hash, cb) => {
     if (username in db) {
-      return cb("Error, account already logged in :(");
+      return cb("username taken.");
     }
     db[username] = hash;
     cb();
@@ -27,5 +27,11 @@ module.exports = {
       return cb(d);
     }
     return cb({});
+  },
+
+  delete: (username, cb) => {
+    if (! username in db) return cb("username not found.")
+    delete db[username];
+    cb();
   }
 };
