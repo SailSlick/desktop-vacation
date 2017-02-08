@@ -1,4 +1,5 @@
 // All includes from src should be done here
+import $ from 'jquery';
 import Images from './javascript/images';
 
 // Link DOM events to functions
