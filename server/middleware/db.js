@@ -1,11 +1,20 @@
 const MongoClient = require("mongodb");
+const fs = require('fs');
 
 // url for the db
-var url = 'mongodb://localhost:27017/vacation';
+fs.readFile('../hidden/mongo/mongo-user-pw', 'utf8', function (err,data) {
+  if (err) {
+    return console.log(err);
+  }
+  var pw = data;
+  console.log(data);
+});
+
+var url = "mongodb://vaca:vacationsAreAtScreens@localhost:18765/vacation??authMechanism=SCRAM-SHA-1"
 
 function errCheck(error, cb) {
   if (error) {
-    throw error;
+    console.log(error);
   }
   return cb();
 }
@@ -33,6 +42,7 @@ class DbConn {
           cb(result.insertedId)
         } else {
           console.log("Did not insert one document");
+          cb(false)
         }
       });
     });
@@ -49,6 +59,7 @@ class DbConn {
           cb(result.insertedIds)
         } else {
           console.log("Did not insert more than one document");
+          cb(false)
         }
       });
     });
@@ -78,13 +89,15 @@ class DbConn {
 
   // updateOne: update one doc in the collection (e.g. add email to user)
   // query in {x:y} format, data in {x:y} format
-  updateOne(query, data) {
+  updateOne(query, data, cb) {
     return this.col.updateOne(query, { $set: data }, (err, result) => {
       errCheck(err, _ => {
         if (result.matchedCount == 1 & result.modifiedCount == 1) {
           console.log("Updated one doc");
+          cb(true);
         } else {
           console.log("Did not update one document");
+          cb(false);
         }
       });
     });
@@ -92,13 +105,15 @@ class DbConn {
 
   // updateMany: add data to all docs that match the query (e.g. add tags to multiple images)
   // query in {x:y} format, data in {x:y} format
-  updateMany(query, data) {
+  updateMany(query, data, cb) {
     return this.col.updateMany(query, { $set: data }, (err, result) => {
       errCheck(err, _ => {
         if (result.matchedCount >= 1 & result.modifiedCount >= 1) {
           console.log("Updated all docs that match query");
+          cb(true);
         } else {
           console.log("Did not update more than one document");
+          cb(false);
         }
       });
     });
@@ -106,13 +121,15 @@ class DbConn {
 
   // removeOne: delete one item from collection (e.g. delete user)
   // query in {x:y} format
-  removeOne(query) {
+  removeOne(query, cb) {
     return this.col.deleteOne(query, (err, result) => {
       errCheck(err, _ => {
         if (result.deletedCount == 1) {
           console.log("Removed 1 doc");
+          cb(true);
         } else {
           console.log("Did not delete one document");
+          cb(false);
         }
       });
     });
@@ -120,13 +137,15 @@ class DbConn {
 
   // removeMany: remove all docs matching query from collection (e.g. delete gallery)
   // query in {x:y} format
-  removeMany(query) {
+  removeMany(query, cb) {
     return this.col.deleteMany(query, (err, result) => {
       errCheck(err, _ => {
          if (result.deletedCount >= 1) {
           console.log("Removed all docs that match the query");
+          cb(true);
         } else {
           console.log("Did not remove more than one document");
+          cb(false);
         }
       });
     });

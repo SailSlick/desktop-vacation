@@ -1,4 +1,4 @@
-conn = new Mongo("localhost:27017");
+conn = new Mongo("localhost:18765");
 db = conn.getDB("vacation");
 print("all dbs", db.adminCommand('listDatabases'));
 print("removing old collections and replacing with sample data.")
