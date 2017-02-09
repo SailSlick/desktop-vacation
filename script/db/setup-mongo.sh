@@ -3,7 +3,6 @@
 # Must be run from project root
 # change the default conf
 VDIR=`pwd`
-echo VDIR
 
 # add a user to mongo
 cd hidden/mongo
@@ -11,12 +10,12 @@ mongo create-mongo-user.js
 
 # update the conf file
 sudo mv /etc/mongod.conf /etc/mongod.conf.orig
-sudo cp ${VDIR}/script/db/mongod.conf /etc/mongod.conf
+sudo cp "${VDIR}/script/db/mongod.conf" /etc/mongod.conf
 
 # make ssl cert for mongo
 sudo mkdir /etc/ssl/mongodb/
-sudo cp ${VDIR}/hidden/mongo/ssl-pw-client /etc/ssl/mongodb/ssl-pw-client
-sudo cp ${VDIR}/hidden/mongo/ssl-pw-server /etc/ssl/mongodb/ssl-pw-server
+sudo cp "${VDIR}/hidden/mongo/ssl-pw-client" /etc/ssl/mongodb/ssl-pw-client
+sudo cp "${VDIR}/hidden/mongo/ssl-pw-server" /etc/ssl/mongodb/ssl-pw-server
 
 cd ../../server
 npm run populate-db
