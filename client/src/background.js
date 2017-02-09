@@ -1,31 +1,26 @@
 import path from 'path';
 import url from 'url';
+import minimist from 'minimist';
 import { app, Menu, ipcMain, dialog } from 'electron';
 import { devMenuTemplate } from './menu/dev_menu_template';
-import { editMenuTemplate } from './menu/edit_menu_template';
 import createWindow from './helpers/window';
-import env from './helpers/env';
+
+const argv = minimist(process.argv);
 
 let mainWindow;
-
-function setApplicationMenu() {
-  const menus = [editMenuTemplate];
-  if (env.name !== 'production') {
-    menus.push(devMenuTemplate);
-  }
-  Menu.setApplicationMenu(Menu.buildFromTemplate(menus));
-}
 
 // Save userData in separate folders for each environment.
 // Thanks to this you can use production and development versions of the app
 // on same machine like those are two separate apps.
-if (env.name !== 'production') {
+if (argv.env !== 'production') {
   const userDataPath = app.getPath('userData');
-  app.setPath('userData', `${userDataPath} (${env.name})`);
+  app.setPath('userData', `${userDataPath} (${argv.env})`);
 }
 
 app.on('ready', () => {
-  setApplicationMenu();
+  if (argv.env !== 'production') {
+    Menu.setApplicationMenu(Menu.buildFromTemplate([devMenuTemplate]));
+  }
 
   mainWindow = createWindow('main', {
     width: 800,
@@ -38,7 +33,7 @@ app.on('ready', () => {
     slashes: true
   }));
 
-  if (env.name === 'development') {
+  if (argv.env === 'development') {
     mainWindow.openDevTools();
   }
 });

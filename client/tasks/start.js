@@ -1,3 +1,4 @@
+// Boilerplate file
 'use strict';
 
 var childProcess = require('child_process');

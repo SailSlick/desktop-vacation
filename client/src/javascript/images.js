@@ -32,19 +32,19 @@ const Images = {
     image_db.forEach((path, index) => {
       const col = index % 3;
       $(`#gallery-col-${col}`).append(Templates.generate('image-gallery-item', { src: path, id: index }));
-      $(`#gallery-col-${col} .img-card:last-child img`).click(() => Images.open(path));
+      $(`#gallery-col-${col} .img-card:last-child img`).click(() => Images.expand(path));
       $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Images.remove(path));
     });
   },
 
-  open: (path) => {
+  expand: (path) => {
     $('#hover-content').html(Templates.generate('image-expanded', { src: path })).show();
-    $('#hover-content>*').click(Images.close);
+    $('#hover-content>*').click(Images.collapse);
   },
 
-  close: () => {
+  collapse: () => {
     $('#hover-content').html('').hide();
-  },
+  }
 };
 
 // Events

@@ -1,3 +1,4 @@
+// Boilerplate file
 'use strict';
 
 var gulp = require('gulp');
@@ -7,7 +8,6 @@ var batch = require('gulp-batch');
 var plumber = require('gulp-plumber');
 var jetpack = require('fs-jetpack');
 var bundle = require('./bundle');
-var utils = require('./utils');
 
 var projectDir = jetpack;
 var srcDir = jetpack.cwd('./src');
@@ -27,16 +27,11 @@ gulp.task('less', function () {
         .pipe(gulp.dest(destDir.path('stylesheets')));
 });
 
-gulp.task('environment', function () {
-    var configFile = 'config/env_' + utils.getEnvName() + '.json';
-    projectDir.copy(configFile, destDir.path('env.json'), { overwrite: true });
-});
-
 gulp.task('watch', function () {
     var beepOnError = function (done) {
         return function (err) {
             if (err) {
-                utils.beepSound();
+                process.stdout.write('\u0007'); // Beep
             }
             done(err);
         };
@@ -50,4 +45,4 @@ gulp.task('watch', function () {
     }));
 });
 
-gulp.task('build', ['bundle', 'less', 'environment']);
+gulp.task('build', ['bundle', 'less']);

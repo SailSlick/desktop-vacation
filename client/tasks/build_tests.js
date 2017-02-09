@@ -1,3 +1,4 @@
+// Boilerplate file
 'use strict';
 
 var gulp = require('gulp');
@@ -23,7 +24,7 @@ var generateEntryFile = function (dir, destFileName, filePattern) {
     });
 };
 
-gulp.task('build-unit', ['environment'], function () {
+gulp.task('build-unit', [], function () {
     var srcDir = jetpack.cwd('src');
     var destDir = jetpack.cwd('app');
 
