@@ -1,4 +1,3 @@
-"use strict";
 const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
@@ -14,10 +13,11 @@ app.use(session({
 }));
 app.use('/', routes);
 
-app.use(function(err, req, res, next) {
-  console.error(err);
-  res.status(err.status || 500);
-  res.send(err);
+app.use((err, req, res, _next) => {
+  if (typeof (err) === 'string') {
+    return res.status(500).send(err);
+  }
+  return res.status(err.status).json(err);
 });
 
 app.listen(3000, () => {

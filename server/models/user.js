@@ -1,37 +1,39 @@
-"use strict";
-const db = {}; //totally a db
+const db = {}; // totally a db
 
 module.exports = {
-  verifyPassword: (password) => {
-    return typeof password === 'string' && password.length > 6 && password.length < 256;
-  },
+  verifyPassword: password =>
+    typeof password === 'string' && password.length > 6 && password.length < 256,
 
-  verifyUsername: (username) => {
-    return typeof username === 'string' && username.indexOf(' ') == -1;
-  },
+  verifyUsername: username =>
+    typeof username === 'string' && username.indexOf(' ') === -1,
 
   add: (username, hash, cb) => {
     if (username in db) {
-      return cb("username taken.");
+      return cb('username taken.');
     }
     db[username] = hash;
-    cb();
+    return cb();
   },
 
   get: (username, cb) => {
     if (username in db) {
-      let p = db[username];
-      let d = {
+      const p = db[username];
+      const d = {
         password: p
       };
       return cb(d);
     }
-    return cb({});
+    return cb();
+  },
+
+  update: (username, password, cb) => {
+    db[username] = password;
+    return cb();
   },
 
   delete: (username, cb) => {
-    if (! username in db) return cb("username not found.")
+    if (!(username in db)) return cb('username not found.'); // XXX
     delete db[username];
-    cb();
+    return cb();
   }
 };
