@@ -1,0 +1,5 @@
+<div clas='row' id='img-expanded'>
+	<div class='col-12'>
+		<img src='{{ src }}' alt='Current Image'>
+	</div>
+</div>
