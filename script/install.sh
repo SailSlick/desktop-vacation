@@ -18,11 +18,19 @@ if lsb_release -a 2> /dev/null | grep -q "Ubuntu"; then
     fi
   fi
 
+  if ! mongo --version | grep -q "3.4"; then
+    # mongo
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+    echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+    sudo apt-get update
+    sudo apt-get install -y mongodb-org
+  fi
+
   sudo apt-get install -y xorriso
 
 elif lsb_release -a 2> /dev/null | grep -q "Arch"; then
   echo "Installing packages for Arch";
-  sudo pacman -S --needed nodejs npm xorriso
+  sudo pacman -S --needed nodejs npm xorriso mongodb
 fi;
 
 # NOTE The following line requires that install.sh is one dir under the project
