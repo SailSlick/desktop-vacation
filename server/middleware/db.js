@@ -1,16 +1,6 @@
 const MongoClient = require("mongodb");
 const fs = require('fs');
-
-// url for the db
-fs.readFile('../hidden/mongo/mongo-user-pw', 'utf8', function (err,data) {
-  if (err) {
-    return console.log(err);
-  }
-  var pw = data;
-  console.log(data);
-});
-
-var url = "mongodb://vaca:vacationsAreAtScreens@localhost:18765/vacation??authMechanism=SCRAM-SHA-1"
+const url = require('../../hidden/mongo/mongo-url.js');
 
 function errCheck(error, cb) {
   if (error) {
