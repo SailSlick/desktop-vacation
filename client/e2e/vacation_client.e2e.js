@@ -38,4 +38,13 @@ describe('application launch', function () {
            .click('#main-content img')
            .element('#img-expanded').should.eventually.exist;
   });
+
+// This cannot be properly tested due to an open issue with
+// asynchronous IPC calls
+// See: https://github.com/electron/spectron/issues/98
+  it('can set the desktop background', function () {
+    return this.app.client.waitUntilWindowLoaded()
+           .electron.ipcRenderer.send('set-wallpaper', test_image_path)
+           .element('#notification p').should.eventually.be.not.empty;
+  });
 });
