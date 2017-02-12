@@ -35,7 +35,7 @@ export default [
   {
     path: 'C:/windows/system32/rundll32.exe',
     args: () => [
-      'user32.dll,UpdatePerUserSystemParameters'
+      'user32.dll,UpdatePerUserSystemParameters 1, True'
     ]
   }
 ];
