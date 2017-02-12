@@ -1,11 +1,15 @@
 import fs from 'fs';
+import { platform } from 'os';
 import { reduce } from 'async';
-import { spawn } from 'child_process';
+import { exec } from 'child_process';
 import { ipcMain as ipc } from 'electron';
 import setters from '../config/wp_setters';
 
 function escapePath(path) {
-  return path.replace(/(["\s'$`\\])/g, '\\$1');
+  if (platform() !== 'win32') {
+    return path.replace(/(["\s'$`])/g, '\\$1');
+  }
+  return path;
 }
 
 ipc.on('set-wallpaper', (event, path) => {
@@ -15,7 +19,9 @@ ipc.on('set-wallpaper', (event, path) => {
     if (fs.existsSync(command.path)) {
       console.log(`Attempting to set wallpaper with ${command.path}`);
 
-      const setter_process = spawn(command.path, command.args(escapePath(path)));
+      const args = command.args(escapePath(path)).join(' ');
+
+      const setter_process = exec(`${command.path} ${args}`);
       setter_process.on('exit', (code) => {
         console.log(`Setter finished with exit code ${code}`);
 

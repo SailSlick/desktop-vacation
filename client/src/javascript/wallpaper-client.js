@@ -11,11 +11,11 @@ ipc.on('set-wallpaper-done', (event, exitCode) => {
   console.log(`Background set. exit code ${exitCode}`);
   if (exitCode === 0) {
     $('#notification p')
-      .append('Background set!')
+      .html('Background set!')
       .parent().attr('class', 'alert-success');
   } else {
     $('#notification p')
-      .append(`Failed to set background, exit code ${exitCode}`)
+      .html(`Failed to set background, exit code ${exitCode}`)
       .parent().attr('class', 'alert-danger');
   }
   $('#notification').addClass('alert alert-dismissable fade show');
