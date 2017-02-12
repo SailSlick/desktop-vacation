@@ -42,6 +42,10 @@ elif lsb_release -a 2> /dev/null | grep -q "Arch"; then
   sudo pip install virtualenv
 fi;
 
+echo "Adding MongoDB to systemd"
+sudo systemctl enable mongodb
+sudo systemctl start mongodb
+
 # NOTE The following line requires that install.sh is one dir under the project
 # root.
 

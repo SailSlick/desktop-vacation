@@ -13,10 +13,9 @@ module.exports = {
     const username = req.body.username;
     const password = req.body.password;
 
-    userModel.get(username, (data, err) => {
+    userModel.get(username, (err, data) => {
       if (err) return next({ status: 500, error: err });
-      if (!data) return next({ status: 401, error: 'incorrect credentials' }); // XXX
-
+      if (!data) return next({ status: 401, error: 'incorrect credentials' });
       return bcrypt.compare(password, data.password, (bcrypt_err, correct) => {
         if (err) return next({ status: 500, error: bcrypt_err });
         if (correct) {
@@ -36,16 +35,20 @@ module.exports = {
   },
 
   update: (req, res, next) => {
-    const password = req.body.password;
+    const { password } = req.body;
 
     // XXX: since password is the only current option changed, just check that
-    // Will likely be replaced by null checks
+    // Will likely be replaced by something more sophisticated later
     if (!userModel.verifyPassword(password)) {
       return next({ status: 400, error: 'invalid password' });
     }
-    return userModel.update(req.session.username, req.body, (err) => {
-      if (err) return next({ status: 500, error: err });
-      return res.status(200).json({ message: 'user updated' });
+
+    return bcrypt.hash(password, SALT_N, (bcrypt_err, hash) => {
+      if (bcrypt_err) return next({ status: 500, error: bcrypt_err });
+      return userModel.update(req.session.username, { password: hash }, (err) => {
+        if (err) return next({ status: 500, error: err });
+        return res.status(200).json({ message: 'user updated' });
+      });
     });
   },
 

@@ -1,4 +1,7 @@
-const db = {}; // totally a db
+const DBTools = require('../middleware/db');
+const galleryModel = require('./gallery');
+
+const db = new DBTools('users');
 
 module.exports = {
   verifyPassword: password =>
@@ -7,33 +10,35 @@ module.exports = {
   verifyUsername: username =>
     typeof username === 'string' && username.indexOf(' ') === -1,
 
-  add: (username, hash, cb) => {
-    if (username in db) {
-      return cb('username taken.');
-    }
-    db[username] = hash;
-    return cb();
+  add: (username, password, cb) => {
+    db.findOne({ username }, (data) => {
+      if (data) return cb('username taken');
+      const gallery = galleryModel.initalize_user(username);
+      return db.insertOne({ username, password, gallery, groups: [] }, (added) => {
+        if (added) return cb();
+        return cb('database communication error');
+      });
+    });
   },
 
   get: (username, cb) => {
-    if (username in db) {
-      const p = db[username];
-      const d = {
-        password: p
-      };
-      return cb(d);
-    }
-    return cb();
+    db.findOne({ username }, (data) => {
+      if (!data) return cb('user not found', {});
+      return cb(null, data);
+    });
   },
 
-  update: (username, password, cb) => {
-    db[username] = password;
-    return cb();
+  update: (username, data, cb) => {
+    db.updateOne({ username }, data, (res) => {
+      if (!res) return cb('no data changed');
+      return cb(null);
+    });
   },
 
   delete: (username, cb) => {
-    if (!(username in db)) return cb('username not found.'); // XXX
-    delete db[username];
-    return cb();
+    db.removeOne({ username }, (res) => {
+      if (!res) return cb('database communication error');
+      return cb(null);
+    });
   }
 };
