@@ -1,15 +1,17 @@
 {
-	"extends": "airbnb",
-	"env": {
-		"browser": true,
-		"node": true,
-		"mocha": true
-	},
-	"rules": {
-		"no-plusplus": "off",
-		"no-console": "off",
-		"camelcase": "off",
-		"comma-dangle": "off",
-		"import/no-extraneous-dependencies": "off"
-	}
+  "extends": "airbnb",
+  "env": {
+    "browser": true,
+    "node": true,
+    "mocha": true
+  },
+  "rules": {
+    "no-plusplus": "off",
+    "no-console": "off",
+    "camelcase": "off",
+    "comma-dangle": "off",
+    "no-param-reassign": "off",
+    "import/no-extraneous-dependencies": "off",
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
+  }
 }
