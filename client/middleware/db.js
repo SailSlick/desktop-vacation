@@ -1,16 +1,19 @@
 const Loki = require('lokijs');
 
-const db = new Loki('./vacation.json', { autoload: true });
+const db = new Loki('./vacation.json');
 
 class DbConn {
   constructor(colName) {
-    this.col = db.getCollection(colName);
-    console.log('Collection found.');
+    this.onLoad = () => true;
+    db.loadDatabase({}, () => {
+      this.col = db.getCollection(colName);
+      this.onLoad();
+    });
   }
 
   static close() {
-    db.saveDatabase((cb) => {
-      console.log('Saving db, return:', cb);
+    db.saveDatabase(() => {
+      console.log('Saving db, return:');
       db.quit();
     });
   }
@@ -18,34 +21,34 @@ class DbConn {
   // insertOne: insert a single document into selected collection
   // data in {x:y} format
   // returns the inserted document
-  insert(data, cb) {
-    cb(this.col.insert(data));
+  insert(data) {
+    return this.col.insert(data);
   }
 
   // findOne: find single item in collection that matches query
   // query in {x:y} format
   // returns the found document or null
-  findOne(query, cb) {
-    cb(this.col.findOne(query));
+  findOne(query) {
+    return this.col.findOne(query);
   }
 
   // findMany: find all items in collection that matches query
   // query in {x:y} format
   // returns the found documents or an empty array
-  findMany(query, cb) {
-    cb(this.col.find(query));
+  findMany(query) {
+    return this.col.find(query);
   }
 
   // findIndex: finds item in collection at index starting at 1
   // index is an int
   // returns the found document or null
-  findIndex(index, cb) {
-    cb(this.col.get(index));
+  findIndex(index) {
+    return this.col.get(index);
   }
 
   // updateOne: update one doc in the collection
   // query in {x:y} format, data in {x:y} format
-  updateOne(query, data, cb) {
+  updateOne(query, data) {
     const doc = this.col.findOne(query);
     for (const key in data) {
       if (doc[key]) {
@@ -53,7 +56,7 @@ class DbConn {
       }
     }
     this.col.update(doc);
-    cb(doc);
+    return doc;
   }
 
   // updateMany: add data to all docs that match the query
