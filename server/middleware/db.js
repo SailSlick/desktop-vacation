@@ -1,9 +1,10 @@
 const MongoClient = require('mongodb');
+const debug = require('debug')('vacation');
 const url = require('../../hidden/mongo/mongo-url.js');
 
 function errCheck(error, cb) {
   if (error) {
-    console.log(error);
+    console.ERROR(error);
   }
   return cb();
 }
@@ -14,7 +15,7 @@ class DbConn {
     MongoClient.connect(url, (err, db) => {
       errCheck(err, () => {
         this.col = db.collection(colName);
-        console.log('Connected to Mongo');
+        debug('Connected to Mongo');
         this.onLoad();
       });
     });
@@ -27,10 +28,10 @@ class DbConn {
     return this.col.insertOne(data, (err, result) => {
       errCheck(err, () => {
         if (result.insertedCount === 1) {
-          console.log('Inserted one');
+          debug('Inserted one');
           cb(result.insertedId);
         } else {
-          console.log('Did not insert one document');
+          debug('Did not insert one document');
           cb(false);
         }
       });
@@ -44,10 +45,10 @@ class DbConn {
     return this.col.insertMany(data, (err, result) => {
       errCheck(err, () => {
         if (result.insertedCount >= 1) {
-          console.log('Inserted more than one document');
+          debug('Inserted more than one document');
           cb(result.insertedIds);
         } else {
-          console.log('Did not insert more than one document');
+          debug('Did not insert more than one document');
           cb(false);
         }
       });
@@ -59,7 +60,7 @@ class DbConn {
   findOne(query, cb) {
     return this.col.find(query).limit(1).next((err, doc) => {
       errCheck(err, () => {
-        console.log('Found one doc');
+        debug('Found one doc');
         return cb(doc);
       });
     });
@@ -70,7 +71,7 @@ class DbConn {
   findMany(query, cb) {
     return this.col.find(query).toArray((err, doc) => {
       errCheck(err, () => {
-        console.log('Found all docs that match query');
+        debug('Found all docs that match query');
         return cb(doc);
       });
     });
@@ -82,10 +83,10 @@ class DbConn {
     return this.col.updateOne(query, { $set: data }, (err, result) => {
       errCheck(err, () => {
         if (result.matchedCount === 1 && result.modifiedCount === 1) {
-          console.log('Updated one doc');
+          debug('Updated one doc');
           cb(true);
         } else {
-          console.log('Did not update one document');
+          debug('Did not update one document');
           cb(false);
         }
       });
@@ -98,10 +99,10 @@ class DbConn {
     return this.col.updateMany(query, { $set: data }, (err, result) => {
       errCheck(err, () => {
         if (result.matchedCount >= 1 && result.modifiedCount >= 1) {
-          console.log('Updated all docs that match query');
+          debug('Updated all docs that match query');
           cb(true);
         } else {
-          console.log('Did not update more than one document');
+          debug('Did not update more than one document');
           cb(false);
         }
       });
@@ -114,10 +115,10 @@ class DbConn {
     return this.col.deleteOne(query, (err, result) => {
       errCheck(err, () => {
         if (result.deletedCount === 1) {
-          console.log('Removed 1 doc');
+          debug('Removed 1 doc');
           cb(true);
         } else {
-          console.log('Did not delete one document');
+          debug('Did not delete one document');
           cb(false);
         }
       });
@@ -130,10 +131,10 @@ class DbConn {
     return this.col.deleteMany(query, (err, result) => {
       errCheck(err, () => {
         if (result.deletedCount >= 1) {
-          console.log('Removed all docs that match the query');
+          debug('Removed all docs that match the query');
           cb(true);
         } else {
-          console.log('Did not remove more than one document');
+          debug('Did not remove more than one document');
           cb(false);
         }
       });
