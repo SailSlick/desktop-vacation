@@ -15,6 +15,7 @@ function users(mainGal) {
   };
   dbConnU.insertOne(galData, (cb) => {
     console.log('User added, ref:', cb);
+    process.exit(0);
   });
 }
 

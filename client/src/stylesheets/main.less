@@ -1,0 +1,58 @@
+html, body, main {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.img-card {
+	position: relative;
+	margin-bottom: 1em;
+	padding: 4px;
+	border: 1px solid lightgray;
+	cursor: pointer;
+}
+
+.img-card figcaption {
+	width: 1em;
+	height: 1em;
+	margin: 8px;
+	padding-left: 1px;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	background-color: #292b2c;
+	color: white;
+	font-size: 1em;
+	font-weight: bold;
+	line-height: 0.4em;
+}
+
+.img-card figcaption:hover .img-menu {
+	display: inline-block;
+	top: 0;
+}
+
+.img-card .img-menu * { height: 1em; }
+
+#hover-content {
+	width: 100%;
+	height: 100%;
+	padding-top: 15px;
+	padding-bottom: 15px;
+	position: fixed;
+	top: 0;
+	left: 0;
+	background-color: rgba(80, 80, 80, 0.5);
+	display: none;
+}
+
+#img-expanded, #img-expanded>* {
+	height: 100%;
+	text-align: center;
+}
+
+#img-expanded img {
+	max-width: 100%;
+	max-height: 100%;
+}

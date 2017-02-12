@@ -18,12 +18,6 @@ if lsb_release -a 2> /dev/null | grep -q "Ubuntu"; then
     fi
   fi
 
-  if ! 'python3 -c "import kivy"' 2> /dev/null; then
-    #sudo add-apt-repository -y ppa:kivy-team/kivy
-    sudo apt-get update
-    #sudo apt-get -y install python3-kivy
-  fi
-
   if ! mongo --version | grep -q "3.4"; then
     # mongo
     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
@@ -32,14 +26,11 @@ if lsb_release -a 2> /dev/null | grep -q "Ubuntu"; then
     sudo apt-get install -y mongodb-org
   fi
 
-  #sudo apt-get install -y python3 python-pip python3-dev build-essential
-  sudo -H pip install --upgrade pip
-  sudo -H pip install --upgrade virtualenv
+  sudo apt-get install -y xorriso
 
 elif lsb_release -a 2> /dev/null | grep -q "Arch"; then
   echo "Installing packages for Arch";
-  sudo pacman -S --needed nodejs npm python python-kivy mongodb
-  sudo pip install virtualenv
+  sudo pacman -S --needed nodejs npm xorriso mongodb
 fi;
 
 echo "Adding MongoDB to systemd"
@@ -52,12 +43,27 @@ sudo systemctl start mongodb
 IR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BASEDIR=`cd "$IR/.."; pwd` # Provides absoloute directory, just in case.
 
-cd $BASEDIR/server && npm install
+echo "Installing server dependencies..."
+cd "$BASEDIR/server" && npm install
+echo "Installing client dependencies..."
+cd "$BASEDIR/client" && npm install
 
-if [ ! -d "$BASEDIR/venv" ]; then
-  virtualenv -p python3 -q $BASEDIR/venv --no-site-packages
-  echo "Virtualenv created."
-fi
+# Add (relative) symlinks for client HTML javascript/css dependencies
+echo "Creating symlinks for client dependencies"
+cd $BASEDIR/client/app
+mkdir thirdparty
+cd thirdparty
+ln -s ../../node_modules/jquery/dist jquery
+ln -s ../../node_modules/tether/dist tether
+ln -s ../../node_modules/bootstrap/dist bootstrap
 
-source $BASEDIR/venv/bin/activate
-pip install -r $BASEDIR/requirements.txt
+echo "Creating symlinks for build system"
+echo "Running build system to create cache folders"
+cd $BASEDIR/client
+npm run release
+echo "Fixing above error"
+
+# Uses find to determine where to put the symlink (survives new versions)
+ln -fs /usr/bin/xorriso "$(find ~/.cache/electron-builder -name 'xorriso')"
+
+echo "Done!"
