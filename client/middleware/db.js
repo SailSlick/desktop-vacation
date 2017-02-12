@@ -1,10 +1,18 @@
 const Loki = require('lokijs');
 
+const db = new Loki('./vacation.json', { autoload: true });
+
 class DbConn {
   constructor(colName) {
-    const db = new Loki('vacation.db');
-    this.col = db.collection(colName);
+    this.col = db.getCollection(colName);
     console.log('Collection found.');
+  }
+
+  static close() {
+    db.saveDatabase((cb) => {
+      console.log('Saving db, return:', cb);
+      db.quit();
+    });
   }
 
   // insertOne: insert a single document into selected collection
