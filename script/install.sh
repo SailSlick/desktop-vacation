@@ -33,6 +33,10 @@ elif lsb_release -a 2> /dev/null | grep -q "Arch"; then
   sudo pacman -S --needed nodejs npm xorriso mongodb
 fi;
 
+echo "Adding MongoDB to systemd"
+sudo systemctl enable mongodb
+sudo systemctl start mongodb
+
 # NOTE The following line requires that install.sh is one dir under the project
 # root.
 
