@@ -97,6 +97,11 @@ Upon successful request, logs user out. User must be logged in.
 ```
 Status: 200 OK
 ```
+```json
+{
+  "message": "user logged out"
+}
+```
 
 ## User Update
 
@@ -142,4 +147,9 @@ Upon successful request, deletes the users account. They must be logged in.
 
 ```
 Status: 200 OK
+```
+```json
+{
+  "message": "user deleted"
+}
 ```

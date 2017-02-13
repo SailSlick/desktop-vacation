@@ -14,8 +14,10 @@ module.exports = {
     const password = req.body.password;
 
     userModel.get(username, (err, data) => {
-      if (err) return next({ status: 500, error: err });
-      if (!data) return next({ status: 401, error: 'incorrect credentials' });
+      if (err === 'user not found') {
+        return next({ status: 401, error: 'incorrect credentials' });
+      } else if (err) return next({ status: 500, error: err });
+
       return bcrypt.compare(password, data.password, (bcrypt_err, correct) => {
         if (err) return next({ status: 500, error: bcrypt_err });
         if (correct) {
@@ -61,8 +63,8 @@ module.exports = {
       create_err = create_err.concat('invalid username');
     }
     if (!userModel.verifyPassword(password)) {
-      if (create_err.length !== 0) create_err.concat(' and ');
-      create_err = create_err.concat('invalid password.');
+      if (create_err.length !== 0) create_err = create_err.concat(' and ');
+      create_err = create_err.concat('invalid password');
     }
     if (create_err.length !== 0) {
       return next({ status: 400, error: create_err });
