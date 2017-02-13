@@ -1,4 +1,6 @@
-# Client
+# Desktop Vacation Client
+Electron-based cross platform frontend. Allows users to manage their
+background collection on their computer.
 
 All the following commands should be run from the `client` folder
 
@@ -11,6 +13,7 @@ All the following commands should be run from the `client` folder
 | jquery               | production  | Javascript DOM manipulation      |
 | fs-jetpack           | production  | Ease of use FS API               |
 | mustache             | production  | Simple templating engine         |
+| async                | dev         | Better handling of async tasks   |
 | chai                 | dev         | Lovely testing library           |
 | chai-as-promised     | dev         | Promise support for chai         |
 | electron             | dev         | API for building desktop webapps |

@@ -4,6 +4,7 @@ import minimist from 'minimist';
 import { app, Menu, ipcMain, dialog } from 'electron';
 import { devMenuTemplate } from './menu/dev_menu_template';
 import createWindow from './helpers/window';
+import './javascript/wallpaper-server';
 
 const argv = minimist(process.argv);
 

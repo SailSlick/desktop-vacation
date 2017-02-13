@@ -37,6 +37,7 @@
     "tether": "^1.4.0"
   },
   "devDependencies": {
+    "async": "^2.1.4",
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
     "electron": "^1.6.0",
