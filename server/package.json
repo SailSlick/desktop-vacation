@@ -5,6 +5,7 @@
   "main": "app.js",
   "repository": "https://github.com/cpssd/vacation.git",
   "scripts": {
+    "start": "node app.js",
     "test": "NODE_ENV=test node ./node_modules/mocha/bin/mocha ./tests/**/*.test.js",
     "populate-db": "node ./tests/populate-db.js"
   },

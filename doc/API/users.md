@@ -3,7 +3,7 @@
 The API uses the MIME type `application/json` for both parameters and response
 unless otherwise noted, as in the case for images.
 
-**Version:** 0.1.1
+**Version:** 0.1.22
 
 ## Status codes
 

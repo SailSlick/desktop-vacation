@@ -4,12 +4,12 @@ const app = require('../app');
 const MongoTools = require('../middleware/db');
 
 const userDB = new MongoTools('users');
-const should = chai.should();
+chai.should();
 chai.use(chaiHttp);
 
 describe('User API', () => {
-  const username = 'test_poopfeast420_never_use_plz';
-  const password = 'chrishansenwashere';
+  const username = 'relevantxkcd_dot_appspot_dot_com';
+  const password = 'xkcd____936___dot_meme';
   describe('/user/create', () => {
     it('should reject username with space', (done) => {
       const user = {

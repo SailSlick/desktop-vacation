@@ -4,7 +4,7 @@ const url = require('../../hidden/mongo/mongo-url.js');
 
 function errCheck(error, cb) {
   if (error) {
-    console.ERROR(error);
+    console.error(error);
   }
   return cb();
 }
