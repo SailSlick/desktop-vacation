@@ -7,7 +7,7 @@ const expect = chai.expect;
 
 describe('Db tools', () => {
   dbConn.onLoad = () => {
-    describe('#insertOne()', () => {
+    describe('db#insertOne()', () => {
       it('Can insert into Db', (done) => {
         const testData = { backgrounds: 'areLife' };
         dbConn.insertOne(testData, (cb) => {
@@ -17,7 +17,7 @@ describe('Db tools', () => {
       });
     });
 
-    describe('#insertMany()', () => {
+    describe('db#insertMany()', () => {
       it('Can insert multiple items at once', (done) => {
         const testData = [
           { screensavers: 'areGreat' },
@@ -30,7 +30,7 @@ describe('Db tools', () => {
       });
     });
 
-    describe('#findOne()', () => {
+    describe('db#findOne()', () => {
       it('Can find one item in db through query', (done) => {
         const testQuery = { backgrounds: { $exists: true } };
         dbConn.findOne(testQuery, (cb) => {
@@ -48,7 +48,7 @@ describe('Db tools', () => {
       });
     });
 
-    describe('#findMany()', () => {
+    describe('db#findMany()', () => {
       it('Can find multiple items in db that match query', (done) => {
         const testQuery = { screensavers: { $exists: true } };
         dbConn.findMany(testQuery, (cb) => {
@@ -58,7 +58,7 @@ describe('Db tools', () => {
       });
     });
 
-    describe('#updateOne()', () => {
+    describe('db#updateOne()', () => {
       it('Can update one item in db', (done) => {
         const testQuery = { backgrounds: 'areLife' };
         const testData = { backgrounds: 'areFunny' };
@@ -78,7 +78,7 @@ describe('Db tools', () => {
       });
     });
 
-    describe('#updateMany()', () => {
+    describe('db#updateMany()', () => {
       it('Can update multiple items', (done) => {
         const testQuery = { screensavers: { $exists: true } };
         const testData = { screensavers: 'areWorthIt' };
@@ -89,7 +89,7 @@ describe('Db tools', () => {
       });
     });
 
-    describe('#removeOne()', () => {
+    describe('db#removeOne()', () => {
       it('Can remove item from db', (done) => {
         const testQuery = { backgrounds: { $exists: true } };
         dbConn.removeOne(testQuery, (cb) => {
@@ -107,7 +107,7 @@ describe('Db tools', () => {
       });
     });
 
-    describe('#removeMany()', () => {
+    describe('db#removeMany()', () => {
       it('Can remove multiple items that match query', (done) => {
         const testQuery = { screensavers: { $exists: true } };
         dbConn.removeMany(testQuery, (cb) => {
