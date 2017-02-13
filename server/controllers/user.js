@@ -19,7 +19,7 @@ module.exports = {
       } else if (err) return next({ status: 500, error: err });
 
       return bcrypt.compare(password, data.password, (bcrypt_err, correct) => {
-        if (err) return next({ status: 500, error: bcrypt_err });
+        if (bcrypt_err) return next({ status: 500, error: bcrypt_err });
         if (correct) {
           req.session.username = username;
           return res.status(200).json({ message: 'user logged in' });
@@ -31,7 +31,7 @@ module.exports = {
 
   logout: (req, res, next) => {
     req.session.destroy((err) => {
-      if (err) return next({ status: 500, message: err });
+      if (err) return next({ status: 500, error: err });
       return res.status(200).json({ message: 'user logged out' });
     });
   },
