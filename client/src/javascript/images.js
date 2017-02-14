@@ -1,26 +1,33 @@
 import $ from 'jquery';
 import { ipcRenderer as ipc } from 'electron';
 import Templates from './templates';
+import DbConn from './db';
 
-const image_db = [];
+//const DbConn = require('./db');
+
+const image_db = new DbConn('images');
 
 // Exported methods
 const Images = {
 
-  getAll: () => image_db,
+  getAll: () => image_db.findMany({ location: { $gte: 0 } }, cb => cb),
 
   getNew: () => {
     ipc.send('open-file-dialog');
   },
 
   add: (path) => {
-    image_db.push(path);
+    const doc = {
+      hash: '',
+      metadata: { rating: 0, tags: [] },
+      location: path
+    };
+    image_db.insert(doc, () => {});
   },
 
   remove: (path) => {
-    image_db.splice(image_db.findIndex(val => val === path), 1);
+    image_db.removeOne({ location: path });
     console.log(`Removed image ${path}`);
-
     // Redraw
     Images.view();
   },
@@ -29,11 +36,15 @@ const Images = {
     // Replace the main content
     $('#main-content').html(Templates.generate('image-gallery', {}));
 
-    image_db.forEach((path, index) => {
-      const col = index % 3;
-      $(`#gallery-col-${col}`).append(Templates.generate('image-gallery-item', { src: path, id: index }));
-      $(`#gallery-col-${col} .img-card:last-child img`).click(() => Images.expand(path));
-      $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Images.remove(path));
+    image_db.findMany({ location: { $gte: 0 } }, (cb) => {
+      for (const index in cb) {
+        const path = cb.location;
+        console.error(index, path);
+        const col = index % 3;
+        $(`#gallery-col-${col}`).append(Templates.generate('image-gallery-item', { src: path, id: index }));
+        $(`#gallery-col-${col} .img-card:last-child img`).click(() => Images.expand(path));
+        $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Images.remove(path));
+      }
     });
   },
 
