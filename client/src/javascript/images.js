@@ -4,14 +4,20 @@ import Templates from './templates';
 import DbConn from './db';
 import Wallpaper from './wallpaper-client';
 
-//const DbConn = require('./db');
-
 const image_db = new DbConn('images');
 
 // Exported methods
 const Images = {
 
-  getAll: () => image_db.findMany({ location: { $gte: 0 } }, cb => cb),
+  firstLoad: () => {
+    image_db.onLoad = Images.view;
+  },
+
+  getAll: (cb) => {
+    image_db.findMany({ location: { $gte: '' } }, (cb2) => {
+      cb(cb2);
+    });
+  },
 
   getNew: () => {
     ipc.send('open-file-dialog');
@@ -23,12 +29,19 @@ const Images = {
       metadata: { rating: 0, tags: [] },
       location: path
     };
-    image_db.insert(doc, () => {});
+    const query = { location: path };
+    image_db.findOne(query, (cb) => {
+      if (cb === null) {
+        image_db.insert(doc, () => {});
+        image_db.save();
+      }
+    });
   },
 
   remove: (path) => {
     image_db.removeOne({ location: path });
     console.log(`Removed image ${path}`);
+    image_db.save();
     // Redraw
     Images.view();
   },
@@ -36,11 +49,9 @@ const Images = {
   view: () => {
     // Replace the main content
     $('#main-content').html(Templates.generate('image-gallery', {}));
-
-    image_db.findMany({ location: { $gte: 0 } }, (cb) => {
+    image_db.findMany({ location: { $gte: '' } }, (cb) => {
       for (const index in cb) {
-        const path = cb.location;
-        console.error(index, path);
+        const path = cb[index].location;
         const col = index % 3;
         $(`#gallery-col-${col}`).append(Templates.generate('image-gallery-item', { src: path, id: index }));
         $(`#gallery-col-${col} .img-card:last-child img`).click(() => Images.expand(path));
@@ -57,11 +68,11 @@ const Images = {
 
   collapse: () => {
     $('#hover-content').html('').hide();
-  }
+  },
 };
 
 // Events
-$(document).on('templates_loaded', Images.view);
+$(document).on('templates_loaded', Images.firstLoad);
 
 // IPC Calls
 ipc.on('selected-directory', (event, files) => {

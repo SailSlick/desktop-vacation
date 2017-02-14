@@ -4,16 +4,15 @@ const db = new Loki('./vacation.json');
 
 class DbConn {
   constructor(colName) {
+    this.onLoad = () => true;
     db.loadDatabase({}, () => {
       this.col = db.getCollection(colName);
+      this.onLoad();
     });
   }
 
-  close() {
-    db.saveDatabase(() => {
-      console.log('Saving db, return:');
-      db.quit();
-    });
+  save() {
+    db.saveDatabase(() => {});
   }
 
   // insertOne: insert a single document into selected collection
