@@ -16,7 +16,11 @@ function makeHost(mainGal) {
   const userData = {
     username: hostname,
     gallery: mainGal,
-    config: []
+    slideshowConfig: {
+      onstart: false,
+      galleryname: hostname.concat('_all'),
+      timer: 0
+    }
   };
   const hostEntry = host.insert(userData);
   console.log('host added, details:', hostEntry);
