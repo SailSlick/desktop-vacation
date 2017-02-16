@@ -1,6 +1,8 @@
 import path from 'path';
 import { should, assert } from 'chai';
 import Images from './images';
+import DbConn from './db';
+import '../app';
 
 // Use 'should' style chai testing
 should();
@@ -8,7 +10,8 @@ should();
 // Arrow functions not used because the context of 'this' gets lost
 describe('images', () => {
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
-
+  // Events
+  Images.image_db = new DbConn('images');
   it('can add images', (done) => {
     Images.add(test_image_path);
     Images.getAll((cb) => {
