@@ -48,11 +48,7 @@ const Images = {
       data.forEach((obj, index) => {
         const path = obj.location;
         const col = index % 3;
-        $(`#gallery-col-${col}`).append(Templates.generate('image-gallery-item', {
-          src: path,
-          id: index,
-          addgallery: true
-        }));
+        $(`#gallery-col-${col}`).append(Templates.generate('image-gallery-item', { src: path, id: index }));
         $(`#gallery-col-${col} .img-card:last-child img`).click(() => Images.expand(path));
         $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Images.remove(path));
         $(`#gallery-col-${col} .img-card:last-child .btn-img-setwp`).click(() => Wallpaper.set(path));
@@ -90,4 +86,9 @@ ipc.on('selected-directory', (event, files) => {
 });
 
 export default Images;
-Galleries.setImageModule(Images); // XXX: Hacky
+
+/* XXX This is a workaround for a bug Lucas and I couldn't find another way
+ * around. Two modules can't import each other at the moment.
+ * They're bundled up, and one of them is guaranteed to come before another.
+ * Hoping to fix soon. */
+Galleries.setImageModule(Images);

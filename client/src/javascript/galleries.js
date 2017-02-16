@@ -8,7 +8,7 @@ let Images = null;
 // let current_gallery = '';
 
 const Galleries = {
-  baseName: 'Sully_all',
+  baseName: 'Sully'.concat('_all'),
 
   addGalleryName: () => {
     $('#hover-content').html(Templates.generate('gallery-input', {})).show();
@@ -18,7 +18,7 @@ const Galleries = {
 
   add: (name) => {
     $('#hover-content').html('').hide();
-
+    console.log(`Adding gallery ${name}`);
     gallery_db.findOne({ name }, (found_gallery) => {
       if (found_gallery === null) {
         const doc = {
@@ -34,14 +34,9 @@ const Galleries = {
               return;
             }
             base_gallery.subgallaries.push(inserted_gallery.$loki);
-            console.log(base_gallery.subgallaries);
-            console.log(base_gallery);
             gallery_db.updateOne(
               { name: Galleries.baseName },
-              base_gallery, (updated) => {
-                console.log(`Updated ${updated.name}, [${updated.subgallaries}]`);
-                Galleries.view();
-              }
+              base_gallery, () => { Galleries.view(); }
             );
           });
         });
@@ -52,24 +47,33 @@ const Galleries = {
   },
 
   addItem: (name, image_id) => {
-    console.log(`Adding ${image_id} to gallery${name}`);
+    console.log(`Adding image_id ${image_id} to gallery ${name}`);
     gallery_db.findOne({ name }, (gallery) => {
       if (gallery === null) {
         console.error('Cannot find gallery');
         return;
       }
-      gallery.images.push(image_id);
-      gallery_db.updateOne({ name }, gallery, () => {
-        Galleries.view();
-      });
+      if ($.inArray(image_id, gallery.images) === -1) {
+        gallery.images.push(image_id);
+        gallery_db.updateOne({ name }, gallery, () => {});
+      }
+      // Silently ignore duplicate image
     });
   },
 
   forAllSubgalleries: (name, next) => {
     gallery_db.findOne({ name }, (gallery) => {
+      if (gallery === null) {
+        console.error(`${name} is an invalid gallery`);
+        return;
+      }
       gallery.subgallaries.forEach((id, index) => {
         gallery_db.findOne({ $loki: id }, (subGallary) => {
-          next(subGallary, index);
+          if (subGallary !== null) {
+            next(subGallary, index);
+          } else {
+            console.error(`Invalid subgallary in ${id}`);
+          }
         });
       });
     });
@@ -103,8 +107,8 @@ const Galleries = {
               ref.subgallaries,
               r => console.log(`- ${r.name} no longer contains reference to gallery`));
           });
+          Galleries.view();
         });
-        Galleries.view();
         gallery_db.removeOne({ name });
       });
     } else {
@@ -151,7 +155,11 @@ const Galleries = {
     gallery_db.findOne({ name }, (gallery) => {
       gallery.images.forEach((id, index) => {
         Images.image_db.findOne({ $loki: id }, (image) => {
-          next(image, index);
+          if (image !== null) {
+            next(image, index);
+          } else {
+            console.error(`${name} contains an invalid image: ${id}`);
+          }
         });
       });
     });
@@ -179,6 +187,7 @@ const Galleries = {
       $(`#gallery-col-${col}`).append(Templates.generate('image-gallery-item', { src: path, id: index }));
       $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Galleries.removeItem(name, image.$loki));
       $(`#gallery-col-${col} .img-card:last-child .btn-img-setwp`).click(() => Wallpaper.set(path));
+      $(`#gallery-col-${col} .img-card:last-child .btn-img-addtogallery`).click(() => Galleries.pickGallery(image.$loki));
       $(`#gallery-col-${col} .img-card:last-child img`).click(() => Images.expand(path));
     });
   },
