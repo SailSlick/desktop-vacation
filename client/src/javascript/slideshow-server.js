@@ -38,7 +38,7 @@ ipc.on('set-slideshow', (event, hostData) => {
         if (exitCode !== 0) {
           console.log('Failed to set background', exitCode);
         }
-        if (index === slideshow_paths_array.length) {
+        if (index === slideshow_paths_array.length - 1) {
           index = 0;
         } else {
           index += 1;
