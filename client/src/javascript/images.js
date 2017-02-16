@@ -33,7 +33,6 @@ const Images = {
     image_db.findOne(query, (ex_doc) => {
       if (ex_doc === null) {
         image_db.insert(doc, () => {});
-        image_db.save(() => {});
       }
     });
   },
@@ -41,7 +40,6 @@ const Images = {
   remove: (path) => {
     image_db.removeOne({ location: path });
     console.log(`Removed image ${path}`);
-    image_db.save(() => {});
     // Redraw
     Images.view();
   },
@@ -59,6 +57,7 @@ const Images = {
         $(`#gallery-col-${col} .img-card:last-child .btn-img-setwp`).click(() => Wallpaper.set(path));
       }
     });
+    image_db.save(() => {});
   },
 
   expand: (path) => {
