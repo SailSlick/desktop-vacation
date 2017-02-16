@@ -13,6 +13,7 @@ All the following commands should be run from the `client` folder
 | jquery               | production  | Javascript DOM manipulation      |
 | fs-jetpack           | production  | Ease of use FS API               |
 | mustache             | production  | Simple templating engine         |
+| lokijs               | production  | In-memory database               |
 | async                | dev         | Better handling of async tasks   |
 | chai                 | dev         | Lovely testing library           |
 | chai-as-promised     | dev         | Promise support for chai         |

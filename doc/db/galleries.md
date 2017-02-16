@@ -12,6 +12,9 @@ Contains
 | subgallaries | A list of id references to the gallerydb. These  galleries are contained in the current gallery. |
 | images | A list of id references to the imagedb. These images are organised in the current gallery. |
 
+```
+LokiJs uses a $loki field instead of the _id field
+```
 
 Example Document
 ----------------

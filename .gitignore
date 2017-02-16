@@ -14,7 +14,6 @@ hidden/
 [Ll]ib
 [Ll]ib64
 [Ll]ocal
-[Ss]cripts
 pyvenv.cfg
 .venv
 pip-selfcheck.json
@@ -30,6 +29,7 @@ client/app/env.json
 client/app/**/*.map
 client/app/javascript
 client/app/thirdparty
+client/app/userData/vacation.json
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
