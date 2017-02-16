@@ -13,6 +13,10 @@ Contains
 | metadata | This is user generated data about images. e.g. Rating, tags |
 | location | This is the location of the image on our server. |
 
+```
+LokiJs uses a $loki field instead of the _id field
+```
+
 Example Document
 ----------------
 ```js

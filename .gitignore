@@ -29,6 +29,7 @@ client/app/env.json
 client/app/**/*.map
 client/app/javascript
 client/app/thirdparty
+client/app/userData/vacation.json
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
