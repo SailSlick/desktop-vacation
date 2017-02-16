@@ -5,7 +5,7 @@ import Mustache from 'mustache';
 const ready_event = new Event('templates_loaded');
 const template_dir = path.join(__dirname, 'templates');
 
-let template_db = {};
+const template_db = {};
 
 // Exported methods
 const Templates = {
