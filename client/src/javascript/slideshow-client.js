@@ -3,33 +3,57 @@ import $ from 'jquery';
 import DbConn from './db';
 
 let hostCol;
+let imageCol;
+let galleryCol;
 
 const hostname = 'Sully';
 
 export default {
-  setSlideshow: (galName, mTime) => {
-    if (mTime < 1 || isNaN(mTime)) {
-      mTime = 0.5;
-    }
-    if (galName === '' || $.type(mTime) !== 'string') {
-      galName = hostname.concat('_all');
-    }
+  setSlideshow: (galName) => {
+    hostCol.findOne({ username: hostname }, (oldHostData) => {
+      let mTime = oldHostData.timer;
 
-    galName = hostname.concat('_all');
-
-    const msTime = mTime * 60000;
-    const hostData = {
-      slideshowConfig: {
-        onstart: true,
-        galleryName: galName,
-        timer: msTime
+      if (mTime <= 0 || isNaN(mTime)) {
+        mTime = 30;
       }
-    };
-    // puts the config files into the host db
-    hostCol.updateOne({ username: hostname }, hostData, (updated) => {
-      console.log('updated:', updated);
-      ipc.send('set-slideshow', updated);
+      if (galName === '' || $.type(galName) !== 'string') {
+        console.log('Invalid db_name, switching to base db');
+        galName = hostname.concat('_all');
+      }
+
+      const msTime = mTime * 60000;
+      const hostData = {
+        slideshowConfig: {
+          onstart: true,
+          galleryName: galName,
+          timer: msTime
+        }
+      };
+
+      // puts the config files into the host db
+      hostCol.updateOne({ username: hostname }, hostData, (updated) => {
+        console.log('updated:', updated);
+        // array to store filepaths of each image in gallery
+        const slideshow_paths_array = [];
+
+        // gets the named gallery from db
+        galleryCol.findOne({ name: updated.slideshowConfig.galleryName }, (gallery) => {
+          // loop through each image id in the gallery
+          gallery.images.forEach((image_id) => {
+            // find the image in the imagedb using its unique id and add path to array
+            imageCol.findOne({ $loki: image_id }, (image_doc) => {
+              slideshow_paths_array.push(image_doc.location);
+            });
+          });
+          if (slideshow_paths_array.length === 0) {
+            console.error('The gallery has no images');
+            return;
+          }
+          ipc.send('set-slideshow', slideshow_paths_array, updated.slideshowConfig.timer);
+        });
+      });
     });
+    hostCol.save(() => {});
   },
 
   clearSlideshow: () => {
@@ -49,8 +73,12 @@ export default {
 };
 
 // Events
-
-$(document).on('vacation-loaded', () => { hostCol = new DbConn('host'); });
+$(document).on('vacation_loaded', () => {
+  console.log('vac loaded for slideshow client');
+  imageCol = new DbConn('images');
+  galleryCol = new DbConn('galleries');
+  hostCol = new DbConn('host');
+});
 
 ipc.on('set-slideshow-done', (event, exitCode) => {
   console.log(`Slideshow set. exit code ${exitCode}`);

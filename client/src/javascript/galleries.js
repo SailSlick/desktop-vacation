@@ -2,6 +2,7 @@ import $ from 'jquery';
 import Templates from './templates';
 import DbConn from './db';
 import Wallpaper from './wallpaper-client';
+import Slides from './slideshow-client';
 
 let gallery_db;
 let Images = null;
@@ -179,6 +180,7 @@ const Galleries = {
         Galleries.view(subGallary.name);
       });
       $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Galleries.remove(subGallary.name));
+      $(`#gallery-col-${col} .img-card:last-child .btn-img-slideshow`).click(() => Slides.setSlideshow(subGallary.name));
     });
 
     Galleries.forAllImages(name, (image, index) => {
