@@ -2,6 +2,7 @@ import $ from 'jquery';
 import { ipcRenderer as ipc } from 'electron';
 import Templates from './templates';
 import Wallpaper from './wallpaper-client';
+import Galleries from './galleries';
 
 const image_db = [];
 
@@ -32,10 +33,15 @@ const Images = {
 
     image_db.forEach((path, index) => {
       const col = index % 3;
-      $(`#gallery-col-${col}`).append(Templates.generate('image-gallery-item', { src: path, id: index }));
+      $(`#gallery-col-${col}`).append(Templates.generate('image-gallery-item', {
+        src: path,
+        id: index,
+        addgallery: true
+      }));
       $(`#gallery-col-${col} .img-card:last-child img`).click(() => Images.expand(path));
       $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Images.remove(path));
       $(`#gallery-col-${col} .img-card:last-child .btn-img-setwp`).click(() => Wallpaper.set(path));
+      $(`#gallery-col-${col} .img-card:last-child .btn-img-addtogallery`).click(() => Galleries.pickGallery(path));
     });
   },
 
