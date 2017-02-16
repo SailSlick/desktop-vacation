@@ -41,7 +41,7 @@ const Galleries = {
               { name: Galleries.baseName },
               base_gallery, (updated) => {
                 console.log(`Updated ${updated.name}, ${updated.subgallaries}`);
-                gallery_db.save(() => {});
+                Galleries.view();
               }
             );
           });
@@ -62,6 +62,7 @@ const Galleries = {
       gallery.images.push(image_id);
       gallery_db.updateOne({ name }, gallery, (updated) => {
         console.log(`Updated ${name}'s images to include ${updated.images}`);
+        Galleries.view();
       });
     });
   },
@@ -89,15 +90,46 @@ const Galleries = {
   },
 
   remove: (name) => {
-    if (name !== 'all') delete gallery_db[name];
-    Galleries.view();
+    console.log(`Removing gallery: ${name}`);
+    if (name !== Galleries.baseName) {
+      gallery_db.findOne({ name }, (gallery) => {
+        console.log(gallery);
+        if (gallery == null) {
+          console.error('No gallery to delete');
+          return;
+        }
+        gallery_db.findMany({ subgallaries: { $contains: gallery.$loki } }, (references) => {
+          references.forEach((ref, _i) => {
+            ref.subgallaries = ref.subgallaries.filter(i => i !== gallery.$loki);
+            gallery_db.updateOne(
+              { $loki: ref.$loki },
+              ref.subgallaries,
+              r => console.log(`- ${r.name} no longer contains reference to gallery`));
+          });
+        });
+        Galleries.view();
+        gallery_db.removeOne({ name });
+      });
+    } else {
+      console.error('Tried to delete base gallery');
+    }
   },
 
-  removeItem: (name, path) => {
-    if (name !== 'all') {
-      gallery_db[name].splice(gallery_db[name].findIndex(v => v === path), 1);
+  removeItem: (name, id) => {
+    console.log(`Attempting to remove ${id} from ${name}`);
+    if (name !== Galleries.baseName) {
+      gallery_db.findOne({ name }, (gallery) => {
+        if (gallery === null) {
+          console.log(`${name} not found`);
+          Galleries.view();
+          return;
+        }
+        gallery.images = gallery.images.filter(i => i !== id);
+        gallery_db.updateOne({ name }, gallery, () => {
+          Galleries.view();
+        });
+      });
     }
-    Galleries.view();
   },
 
   pickGallery: (path) => {
@@ -129,11 +161,10 @@ const Galleries = {
     });
   },
 
-  isGallery: gallery => gallery[0] !== '/', // XXX: change when real db is used
-
   view: (name) => {
-    if (typeof name.type !== 'undefined' || name.length === 0) {
-      name = 'Sully_all';
+    gallery_db.save(() => {});
+    if (typeof name === 'undefined' || typeof name.type !== 'undefined' || name.length === 0) {
+      name = Galleries.baseName;
     }
     $('#main-content').html(Templates.generate('image-gallery', {}));
 
@@ -150,7 +181,7 @@ const Galleries = {
       const col = index % 3;
       const path = image.location;
       $(`#gallery-col-${col}`).append(Templates.generate('image-gallery-item', { src: path, id: index }));
-      $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Images.removeItem(image, path));
+      $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Galleries.removeItem(name, image.$loki));
       $(`#gallery-col-${col} .img-card:last-child .btn-img-setwp`).click(() => Wallpaper.set(path));
       $(`#gallery-col-${col} .img-card:last-child img`).click(() => Images.expand(path));
     });
