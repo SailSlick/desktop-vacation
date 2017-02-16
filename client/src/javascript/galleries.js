@@ -53,8 +53,28 @@ const Galleries = {
     });
   },
 
-  addItem: (name, path) => {
-    gallery_db[name].push(path);
+  addItem: (name, image_id) => {
+    console.log(`Adding ${image_id} to gallery${name}`);
+    gallery_db.findOne({ name }, (gallery) => {
+      if (gallery === null) {
+        console.log('Cannot find gallery');
+        return;
+      }
+      gallery.images.push(image_id);
+      gallery_db.updateOne({ name }, gallery, (updated) => {
+        console.log(`Updated ${name}'s images to include ${updated.images}`);
+      });
+    });
+  },
+
+  forAllSubgalleries: (name, next) => {
+    gallery_db.findOne({ name }, (gallery) => {
+      gallery.subgallaries.forEach((id, index) => {
+        gallery_db.findOne({ $loki: id }, (subGallary) => {
+          next(subGallary, index);
+        });
+      });
+    });
   },
 
   remove: (name) => {
@@ -70,53 +90,58 @@ const Galleries = {
   },
 
   pickGallery: (path) => {
+    console.log(path);
     $('#hover-content').html(Templates.generate('gallery-chooser', {})).show();
     $('#hover-content').click(() => {
       $('#hover-content').html('').hide();
       $('#hover-content').off('click');
     });
 
-    let i = 0;
-    for (const name in gallery_db) {
-      const col = i % 3;
-      $(`#gallery-pick-${col}`).append(Templates.generate('gallery-chooser-item', { name }));
+    Galleries.forAllSubgalleries(Galleries.baseName, (subGallary, index) => {
+      const col = index % 3;
+      $(`#gallery-pick-${col}`).append(Templates.generate('gallery-chooser-item', { name: subGallary.name }));
       $(`#gallery-pick-${col} .gallery-chooser-item:last-child`).click((ev) => {
         Galleries.addItem($(ev.currentTarget).text(), path);
         $('#hover-content').html('').hide();
         $('#hover-content').off('click');
       });
-      i++;
-    }
+    });
+  },
+
+  forAllImages: (name, next) => {
+    gallery_db.findOne({ name }, (gallery) => {
+      gallery.images.forEach((id, index) => {
+        Images.image_db.findOne({ $loki: id }, (image) => {
+          next(image, index);
+        });
+      });
+    });
   },
 
   isGallery: gallery => gallery[0] !== '/', // XXX: change when real db is used
 
   view: (name) => {
-    Galleries.getByName(name, 'Sully', (gallery) => {
-      $('#main-content').html(Templates.generate('image-gallery', {}));
-      // Populate subgallaries first
-      gallery.subgallaries.forEach((id, index) => {
-        const col = index % 3;
-        $(`#gallery-col-${col}`).append(Templates.generate('gallery-item', { name: id }));
-        $(`#gallery-col-${col}`).click(() => {
-          Galleries.view(id);
-          // current_gallery = id;
-        });
-        $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Galleries.remove(id));
+    if (typeof name.type !== 'undefined' || name.length === 0) {
+      name = 'Sully_all';
+    }
+    $('#main-content').html(Templates.generate('image-gallery', {}));
+
+    Galleries.forAllSubgalleries(name, (subGallary, index) => {
+      const col = index % 3;
+      $(`#gallery-col-${col}`).append(Templates.generate('gallery-item', { name: subGallary.name }));
+      $(`#gallery-col-${col}`).click(() => {
+        Galleries.view(subGallary.name);
       });
-      // Populate images now
-      gallery.images.forEach((id, index) => {
-        const col = index % 3;
-        if (Images !== null) {
-          Images.image_db.findOne({ $loki: id }, (image) => {
-            const path = image.location;
-            $(`#gallery-col-${col}`).append(Templates.generate('image-gallery-item', { src: path, id: index }));
-            $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Galleries.removeItem(gallery, path));
-            $(`#gallery-col-${col} .img-card:last-child .btn-img-setwp`).click(() => Wallpaper.set(path));
-            $(`#gallery-col-${col} .img-card:last-child img`).click(() => Images.expand(path));
-          });
-        }
-      });
+      $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Galleries.remove(subGallary.name));
+    });
+
+    Galleries.forAllImages(name, (image, index) => {
+      const col = index % 3;
+      const path = image.location;
+      $(`#gallery-col-${col}`).append(Templates.generate('image-gallery-item', { src: path, id: index }));
+      $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Images.removeItem(image, path));
+      $(`#gallery-col-${col} .img-card:last-child .btn-img-setwp`).click(() => Wallpaper.set(path));
+      $(`#gallery-col-${col} .img-card:last-child img`).click(() => Images.expand(path));
     });
   },
 

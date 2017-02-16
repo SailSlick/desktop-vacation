@@ -61,7 +61,7 @@ const Images = {
         $(`#gallery-col-${col} .img-card:last-child img`).click(() => Images.expand(path));
         $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Images.remove(path));
         $(`#gallery-col-${col} .img-card:last-child .btn-img-setwp`).click(() => Wallpaper.set(path));
-        $(`#gallery-col-${col} .img-card:last-child .btn-img-addtogallery`).click(() => Galleries.pickGallery(path));
+        $(`#gallery-col-${col} .img-card:last-child .btn-img-addtogallery`).click(() => Galleries.pickGallery(obj.$loki));
       });
     });
     image_db.save(() => {});
