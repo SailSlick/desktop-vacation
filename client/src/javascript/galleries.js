@@ -28,10 +28,9 @@ const Galleries = {
           images: []
         };
         gallery_db.insert(doc, (inserted_gallery) => {
-          console.log(`Added ${inserted_gallery.name}, id: ${inserted_gallery.$loki}`);
           gallery_db.findOne({ name: Galleries.baseName }, (base_gallery) => {
             if (base_gallery === null) {
-              console.log(`${Galleries.baseName} not found.`);
+              console.error(`${Galleries.baseName} not found.`);
               return;
             }
             base_gallery.subgallaries.push(inserted_gallery.$loki);
@@ -40,7 +39,7 @@ const Galleries = {
             gallery_db.updateOne(
               { name: Galleries.baseName },
               base_gallery, (updated) => {
-                console.log(`Updated ${updated.name}, ${updated.subgallaries}`);
+                console.log(`Updated ${updated.name}, [${updated.subgallaries}]`);
                 Galleries.view();
               }
             );
@@ -56,12 +55,11 @@ const Galleries = {
     console.log(`Adding ${image_id} to gallery${name}`);
     gallery_db.findOne({ name }, (gallery) => {
       if (gallery === null) {
-        console.log('Cannot find gallery');
+        console.error('Cannot find gallery');
         return;
       }
       gallery.images.push(image_id);
-      gallery_db.updateOne({ name }, gallery, (updated) => {
-        console.log(`Updated ${name}'s images to include ${updated.images}`);
+      gallery_db.updateOne({ name }, gallery, () => {
         Galleries.view();
       });
     });
@@ -93,7 +91,6 @@ const Galleries = {
     console.log(`Removing gallery: ${name}`);
     if (name !== Galleries.baseName) {
       gallery_db.findOne({ name }, (gallery) => {
-        console.log(gallery);
         if (gallery == null) {
           console.error('No gallery to delete');
           return;
@@ -120,7 +117,7 @@ const Galleries = {
     if (name !== Galleries.baseName) {
       gallery_db.findOne({ name }, (gallery) => {
         if (gallery === null) {
-          console.log(`${name} not found`);
+          console.error(`${name} not found`);
           Galleries.view();
           return;
         }
@@ -133,7 +130,6 @@ const Galleries = {
   },
 
   pickGallery: (path) => {
-    console.log(path);
     $('#hover-content').html(Templates.generate('gallery-chooser', {})).show();
     $('#hover-content').click(() => {
       $('#hover-content').html('').hide();
