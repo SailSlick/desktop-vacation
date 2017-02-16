@@ -1,6 +1,7 @@
-const Loki = require('lokijs');
+import path from 'path';
+import Loki from 'lokijs';
 
-const db = new Loki('./userData/vacation.json');
+const db = new Loki(path.join(__dirname, '/userData/vacation.json'));
 
 class DbConn {
   constructor(colName) {

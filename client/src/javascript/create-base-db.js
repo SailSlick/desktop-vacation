@@ -1,6 +1,8 @@
+const path = require('path');
 const Loki = require('lokijs');
 
-const db = new Loki('./userData/vacation.json');
+const db = new Loki(path.join(__dirname, '../../app/userData/vacation.json'));
+console.log(__dirname);
 
 const galleries = db.addCollection('galleries');
 const host = db.addCollection('host');
