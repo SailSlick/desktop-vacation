@@ -2,24 +2,22 @@ import { ipcRenderer as ipc } from 'electron';
 import $ from 'jquery';
 import DbConn from './db';
 
-const hostCol = new DbConn('host');
+let hostCol;
 
 const hostname = 'Sully';
 
 export default {
   setSlideshow: (galName, mTime) => {
-    if (mTime < 1) {
-      mTime = 30;
+    if (mTime < 1 || isNaN(mTime)) {
+      mTime = 0.5;
     }
-    if (galName === '') {
+    if (galName === '' || $.type(mTime) !== 'string') {
       galName = hostname.concat('_all');
     }
 
-    mTime = 30;
     galName = hostname.concat('_all');
 
-    console.log('setting slideshow:', galName, mTime);
-    const msTime = mTime * 3600;
+    const msTime = mTime * 60000;
     const hostData = {
       slideshowConfig: {
         onstart: true,
@@ -46,11 +44,16 @@ export default {
     hostCol.updateOne({ username: hostname }, hostData, () => {
       ipc.send('clearSlideshow');
     });
+    hostCol.save();
   }
 };
 
+// Events
+
+$(document).on('vacation-loaded', () => { hostCol = new DbConn('host'); });
+
 ipc.on('set-slideshow-done', (event, exitCode) => {
-  console.log(`Background set. exit code ${exitCode}`);
+  console.log(`Slideshow set. exit code ${exitCode}`);
   if (exitCode === 0) {
     $('#notification sst')
       .html('Slideshow set!')
