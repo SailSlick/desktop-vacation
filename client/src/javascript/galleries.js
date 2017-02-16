@@ -141,7 +141,7 @@ const Galleries = {
       title: 'Pick a gallery',
       hint: 'Click elsewhere to cancel'
     })).show();
-    $('#hover-content .row').addClass('inverted centered');
+    $('#hover-content .row').addClass('inverted centered padded');
     $('#hover-content').click(() =>
       $('#hover-content').html('').hide()
     );

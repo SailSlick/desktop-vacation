@@ -1,5 +1,5 @@
 <figure class='figure img-card gallery-card rounded'>
-	<img class='img-fluid' src='{{ thumbnail }}' alt='MISSING IMAGE'>
+	<img class='img-fluid' src='{{ thumbnail }}'>
 	<h2 class='rounded'>{{ name }}</h2>
 	<figcaption class='figure-caption rounded-circle'>
 		...

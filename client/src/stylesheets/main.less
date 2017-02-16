@@ -11,13 +11,18 @@ h3, h4 { color: lightgray; }
 
 .centered h1, .centered h2, .centered h3, .centered h4 { text-align: center; }
 
+.padded { padding: 0 1em; }
+
 .img-card {
-	position: relative;
+	min-width: 100%;
+	min-height: 100px;
 	margin-bottom: 1em;
 	padding: 4px;
 	border: 1px solid lightgray;
-	cursor: pointer;
+	box-sizing: border-box;
+	position: relative;
 	text-align: center;
+	cursor: pointer;
 }
 
 .img-card figcaption {
@@ -75,12 +80,12 @@ h3, h4 { color: lightgray; }
 #hover-content {
 	width: 100%;
 	height: 100%;
-	padding-top: 15px;
+	padding-top: 56px;
 	padding-bottom: 15px;
 	position: fixed;
 	top: 0;
 	left: 0;
-	background-color: rgba(80, 80, 80, 0.5);
+	background-color: rgba(61, 62, 62, 0.95);
 	display: none;
 }
 
