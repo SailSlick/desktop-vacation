@@ -1,6 +1,6 @@
 # DB Information
 
-## Server -> MongoDB
+### Server -> MongoDB
 We decided to use [MongoDB](https://docs.mongodb.com/manual/introduction/),
 a NOSQL database for this project for it's performance and the fact it's
 open-sourced, well documented and has lovely drivers.
@@ -11,7 +11,7 @@ be found at the following links.
 - [Galleries](/doc/db/galleries.md)
 - [Images](/doc/db/Images)
 
-## Client -> LokiJS
+### Client -> LokiJS
 We decided to use [LokiJs](http://lokijs.org/#/), a javascript in-memory
 database due to it's performance, documentation and active community
 

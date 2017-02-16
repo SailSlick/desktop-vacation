@@ -14,8 +14,8 @@ const Images = {
   },
 
   getAll: (cb) => {
-    image_db.findMany({ location: { $gte: '' } }, (cb2) => {
-      cb(cb2);
+    image_db.findMany({ location: { $gte: '' } }, (doc_array) => {
+      cb(doc_array);
     });
   },
 
@@ -33,7 +33,7 @@ const Images = {
     image_db.findOne(query, (cb) => {
       if (cb === null) {
         image_db.insert(doc, () => {});
-        image_db.save();
+        image_db.save(() => {});
       }
     });
   },
@@ -41,7 +41,7 @@ const Images = {
   remove: (path) => {
     image_db.removeOne({ location: path });
     console.log(`Removed image ${path}`);
-    image_db.save();
+    image_db.save(() => {});
     // Redraw
     Images.view();
   },

@@ -12,7 +12,7 @@ describe('images', () => {
   it('can add images', (done) => {
     Images.add(test_image_path);
     Images.getAll((cb) => {
-      assert.equal(cb[0].location, test_image_path, 'Correct image added');
+      assert.equal(cb[0].location, test_image_path, 'Image not added');
       done();
     });
   });
@@ -21,7 +21,9 @@ describe('images', () => {
     Images.remove(test_image_path);
     Images.getAll((cb) => {
       if (cb.length) {
-        assert.notEqual(cb[0].location, test_image_path, 'Last image is not the test one.');
+        assert.notEqual(cb[0].location,
+          test_image_path,
+          'Last image is the test. It hasn\'t been removed');
       }
       done();
     });

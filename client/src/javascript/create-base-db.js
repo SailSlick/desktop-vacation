@@ -1,0 +1,39 @@
+const Loki = require('lokijs');
+
+const db = new Loki('./userData/vacation.json');
+
+const galleries = db.addCollection('galleries');
+const host = db.addCollection('host');
+db.addCollection('images');
+
+const hostname = 'Sully';
+
+
+function makeHost(mainGal) {
+  // insert users
+  const userData = {
+    username: hostname,
+    gallery: mainGal,
+    config: []
+  };
+  const hostEntry = host.insert(userData);
+  console.log('host added, details:', hostEntry);
+  console.log('dbsave');
+  db.saveDatabase(() => process.exit(0));
+}
+
+function makeGallery() {
+  // insert users
+  const galname = hostname.concat('_all');
+  const galleryData = {
+    name: galname,
+    tags: [],
+    subgallaries: [],
+    images: []
+  };
+  const mainGal = galleries.insert(galleryData);
+  console.log('Gallery added, details:', mainGal);
+  makeHost(mainGal.$loki);
+}
+
+makeGallery();

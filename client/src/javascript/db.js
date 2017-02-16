@@ -1,6 +1,6 @@
 const Loki = require('lokijs');
 
-const db = new Loki('./vacation.json');
+const db = new Loki('./userData/vacation.json');
 
 class DbConn {
   constructor(colName) {
@@ -11,8 +11,8 @@ class DbConn {
     });
   }
 
-  save() {
-    db.saveDatabase(() => {});
+  save(cb) {
+    db.saveDatabase(() => cb());
   }
 
   // insertOne: insert a single document into selected collection
