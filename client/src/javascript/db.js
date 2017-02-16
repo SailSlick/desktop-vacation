@@ -12,7 +12,7 @@ class DbConn {
   }
 
   save(cb) {
-    db.saveDatabase(() => cb());
+    db.saveDatabase(cb);
   }
 
   // insertOne: insert a single document into selected collection

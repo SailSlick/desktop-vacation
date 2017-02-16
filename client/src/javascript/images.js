@@ -30,8 +30,8 @@ const Images = {
       location: path
     };
     const query = { location: path };
-    image_db.findOne(query, (cb) => {
-      if (cb === null) {
+    image_db.findOne(query, (ex_doc) => {
+      if (ex_doc === null) {
         image_db.insert(doc, () => {});
         image_db.save(() => {});
       }
