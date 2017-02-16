@@ -2,21 +2,24 @@ import path from 'path';
 import Loki from 'lokijs';
 
 const db = new Loki(path.join(__dirname, '/userData/vacation.json'));
+const ready_event = new Event('database_loaded');
+
+// Load the database now
+db.loadDatabase({}, () => {
+  console.log('Database loaded');
+  document.dispatchEvent(ready_event);
+});
 
 class DbConn {
   constructor(colName) {
-    this.onLoad = () => true;
-    db.loadDatabase({}, () => {
-      this.col = db.getCollection(colName);
-      this.onLoad();
-    });
+    this.col = db.getCollection(colName);
   }
 
   save(cb) {
     db.saveDatabase(cb);
   }
 
-  // insertOne: insert a single document into selected collection
+  // insert: insert a single document into selected collection
   // data in {x:y} format
   // returns the inserted document
   insert(data, cb) {

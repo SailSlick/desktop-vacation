@@ -3,15 +3,12 @@ import { ipcRenderer as ipc } from 'electron';
 import Templates from './templates';
 import DbConn from './db';
 import Wallpaper from './wallpaper-client';
+import Galleries from './galleries';
 
-const image_db = new DbConn('images');
+let image_db;
 
 // Exported methods
 const Images = {
-
-  firstLoad: () => {
-    image_db.onLoad = Images.view;
-  },
 
   getAll: (cb) => {
     image_db.findMany({ location: { $gte: '' } }, (doc_array) => {
@@ -47,15 +44,16 @@ const Images = {
   view: () => {
     // Replace the main content
     $('#main-content').html(Templates.generate('image-gallery', {}));
-    image_db.findMany({ location: { $gte: '' } }, (cb) => {
-      for (const index in cb) {
-        const path = cb[index].location;
+    image_db.findMany({ location: { $gte: '' } }, (data) => {
+      data.forEach((obj, index) => {
+        const path = obj.location;
         const col = index % 3;
         $(`#gallery-col-${col}`).append(Templates.generate('image-gallery-item', { src: path, id: index }));
         $(`#gallery-col-${col} .img-card:last-child img`).click(() => Images.expand(path));
         $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Images.remove(path));
         $(`#gallery-col-${col} .img-card:last-child .btn-img-setwp`).click(() => Wallpaper.set(path));
-      }
+        $(`#gallery-col-${col} .img-card:last-child .btn-img-addtogallery`).click(() => Galleries.pickGallery(obj.$loki));
+      });
     });
     image_db.save(() => {});
   },
@@ -71,7 +69,11 @@ const Images = {
 };
 
 // Events
-$(document).on('templates_loaded', Images.firstLoad);
+$(document).on('vacation_loaded', () => {
+  image_db = new DbConn('images');
+  Images.image_db = image_db;
+  Images.view();
+});
 
 // IPC Calls
 ipc.on('selected-directory', (event, files) => {
@@ -84,3 +86,9 @@ ipc.on('selected-directory', (event, files) => {
 });
 
 export default Images;
+
+/* XXX This is a workaround for a bug Lucas and I couldn't find another way
+ * around. Two modules can't import each other at the moment.
+ * They're bundled up, and one of them is guaranteed to come before another.
+ * Hoping to fix soon. */
+Galleries.setImageModule(Images);

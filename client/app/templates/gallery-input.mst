@@ -1,0 +1,8 @@
+<div id="quit-btn">
+  X
+</div>
+
+<div id="gallery-input">
+  <input id='gallery-input-box' type='text' placeholder='gallery name', id='gallery'/>
+  <button id="gallery-input-confirm"></button>
+</div>
