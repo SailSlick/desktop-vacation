@@ -3,7 +3,7 @@ import Templates from './templates';
 import DbConn from './db';
 import Wallpaper from './wallpaper-client';
 
-const gallery_db = new DbConn('galleries');
+let gallery_db;
 let Images = null;
 // let current_gallery = '';
 
@@ -41,6 +41,7 @@ const Galleries = {
               { name: Galleries.baseName },
               base_gallery, (updated) => {
                 console.log(`Updated ${updated.name}, ${updated.subgallaries}`);
+                gallery_db.save(() => {});
               }
             );
           });
@@ -49,7 +50,6 @@ const Galleries = {
         console.log(`Error adding ${name}, gallery already exists`);
       }
 
-      gallery_db.save(() => {});
     });
   },
 
@@ -147,5 +147,10 @@ const Galleries = {
 
   setImageModule: (images_module) => { Images = images_module; }
 };
+
+// Events
+$(document).on('vacation_loaded', () => {
+  gallery_db = new DbConn('galleries');
+});
 
 export default Galleries;

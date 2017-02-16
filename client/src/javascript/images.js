@@ -5,15 +5,10 @@ import DbConn from './db';
 import Wallpaper from './wallpaper-client';
 import Galleries from './galleries';
 
-const image_db = new DbConn('images');
+let image_db;
 
 // Exported methods
 const Images = {
-  image_db,
-
-  firstLoad: () => {
-    image_db.onLoad = Images.view;
-  },
 
   getAll: (cb) => {
     image_db.findMany({ location: { $gte: '' } }, (doc_array) => {
@@ -78,7 +73,11 @@ const Images = {
 };
 
 // Events
-$(document).on('templates_loaded', Images.firstLoad);
+$(document).on('vacation_loaded', () => {
+  image_db = new DbConn('images');
+  Images.image_db = image_db;
+  Images.view();
+});
 
 // IPC Calls
 ipc.on('selected-directory', (event, files) => {
