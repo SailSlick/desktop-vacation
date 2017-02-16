@@ -1,0 +1,7 @@
+<div class='row'>
+	<h2 class='col-12'>{{ title }}</h2>
+	<h4 class='col-12'>{{ hint }}</h4>
+	<div class='col-4 view-col-0'></div>
+	<div class='col-4 view-col-1'></div>
+	<div class='col-4 view-col-2'></div>
+</div>
