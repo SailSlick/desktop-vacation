@@ -22,7 +22,7 @@ const Galleries = {
     gallery_db.findOne({ name }, (found_gallery) => {
       if (found_gallery === null) {
         const doc = {
-          name: name,
+          name,
           tags: [],
           subgallaries: [],
           images: []
@@ -49,7 +49,6 @@ const Galleries = {
       } else {
         console.log(`Error adding ${name}, gallery already exists`);
       }
-
     });
   },
 
@@ -74,6 +73,18 @@ const Galleries = {
           next(subGallary, index);
         });
       });
+    });
+  },
+
+  getThumbnail: (name, next) => {
+    gallery_db.findOne({ name }, (gallery) => {
+      if (gallery.images !== 0) {
+        Images.image_db.findOne(
+          { $loki: gallery.images[0] },
+          image => next(image.location)
+        );
+      }
+      return next();
     });
   },
 
