@@ -1,12 +1,15 @@
 import $ from 'jquery';
 import Templates from './templates';
+import DbConn from './db';
 import Wallpaper from './wallpaper-client';
 
-const gallery_db = { };
+const gallery_db = new DbConn('galleries');
 let Images = null;
-let current_gallery = '';
+// let current_gallery = '';
 
 const Galleries = {
+  baseName: 'Sully_all',
+
   addGalleryName: () => {
     $('#hover-content').html(Templates.generate('gallery-input', {})).show();
     $('#gallery-input-confirm').click(() => Galleries.add($('#gallery-input-box').val()));
@@ -16,21 +19,38 @@ const Galleries = {
   add: (name) => {
     $('#hover-content').html('').hide();
 
-    if (current_gallery.length === 0) {
-      if (name in gallery_db) {
-        console.log('show an error dude');
-        return;
+    gallery_db.findOne({ name }, (found_gallery) => {
+      if (found_gallery === null) {
+        const doc = {
+          name: name,
+          tags: [],
+          subgallaries: [],
+          images: []
+        };
+        gallery_db.insert(doc, (inserted_gallery) => {
+          console.log(`Added ${inserted_gallery.name}, id: ${inserted_gallery.$loki}`);
+          gallery_db.findOne({ name: Galleries.baseName }, (base_gallery) => {
+            if (base_gallery === null) {
+              console.log(`${Galleries.baseName} not found.`);
+              return;
+            }
+            base_gallery.subgallaries.push(inserted_gallery.$loki);
+            console.log(base_gallery.subgallaries);
+            console.log(base_gallery);
+            gallery_db.updateOne(
+              { name: Galleries.baseName },
+              base_gallery, (updated) => {
+                console.log(`Updated ${updated.name}, ${updated.subgallaries}`);
+              }
+            );
+          });
+        });
+      } else {
+        console.log(`Error adding ${name}, gallery already exists`);
       }
-      gallery_db[name] = [];
-    } else {
-      if (!(name in gallery_db)) {
-        gallery_db[name] = [];
-      }
-      gallery_db[current_gallery].push(name);
-    }
 
-    console.log(`Added ${name}`);
-    Galleries.view();
+      gallery_db.save(() => {});
+    });
   },
 
   addItem: (name, path) => {
@@ -48,7 +68,6 @@ const Galleries = {
     }
     Galleries.view();
   },
-
 
   pickGallery: (path) => {
     $('#hover-content').html(Templates.generate('gallery-chooser', {})).show();
@@ -72,38 +91,32 @@ const Galleries = {
 
   isGallery: gallery => gallery[0] !== '/', // XXX: change when real db is used
 
-  view: (gallery) => {
-    let items = [];
-    if (typeof gallery === 'undefined' || typeof gallery_db[gallery] === 'undefined') {
-      for (const name in gallery_db) {
-        items.push(name);
-        current_gallery = '';
-      }
-    } else {
-      items = gallery_db[gallery];
-    }
-    $('#main-content').html(Templates.generate('image-gallery', {}));
-    // XXX below method is not allowed in linter however, keys is missing from
-    // an object, so this is the way I'll do it atm
-    items.forEach((path, index) => {
-      const col = index % 3;
-      if (Galleries.isGallery(path)) {
-        $(`#gallery-col-${col}`).append(Templates.generate('gallery-item', { name: path }));
+  view: (name) => {
+    Galleries.getByName(name, 'Sully', (gallery) => {
+      $('#main-content').html(Templates.generate('image-gallery', {}));
+      // Populate subgallaries first
+      gallery.subgallaries.forEach((id, index) => {
+        const col = index % 3;
+        $(`#gallery-col-${col}`).append(Templates.generate('gallery-item', { name: id }));
         $(`#gallery-col-${col}`).click(() => {
-          Galleries.view(path);
-          current_gallery = path;
+          Galleries.view(id);
+          // current_gallery = id;
         });
-        $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Galleries.remove(path));
-      } else {
-        // The item is an image, render it as such
-        $(`#gallery-col-${col}`).append(Templates.generate('image-gallery-item', { src: path, id: index }));
-        // XXX Apparently you can't modules import recursivly..?
+        $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Galleries.remove(id));
+      });
+      // Populate images now
+      gallery.images.forEach((id, index) => {
+        const col = index % 3;
         if (Images !== null) {
-          $(`#gallery-col-${col} .img-card:last-child img`).click(() => Images.expand(path));
+          Images.image_db.findOne({ $loki: id }, (image) => {
+            const path = image.location;
+            $(`#gallery-col-${col}`).append(Templates.generate('image-gallery-item', { src: path, id: index }));
+            $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Galleries.removeItem(gallery, path));
+            $(`#gallery-col-${col} .img-card:last-child .btn-img-setwp`).click(() => Wallpaper.set(path));
+            $(`#gallery-col-${col} .img-card:last-child img`).click(() => Images.expand(path));
+          });
         }
-        $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Galleries.removeItem(gallery, path));
-        $(`#gallery-col-${col} .img-card:last-child .btn-img-setwp`).click(() => Wallpaper.set(path));
-      }
+      });
     });
   },
 

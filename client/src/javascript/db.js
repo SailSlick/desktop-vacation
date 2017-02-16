@@ -16,7 +16,7 @@ class DbConn {
     db.saveDatabase(cb);
   }
 
-  // insertOne: insert a single document into selected collection
+  // insert: insert a single document into selected collection
   // data in {x:y} format
   // returns the inserted document
   insert(data, cb) {

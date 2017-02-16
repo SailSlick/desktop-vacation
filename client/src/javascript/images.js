@@ -9,6 +9,7 @@ const image_db = new DbConn('images');
 
 // Exported methods
 const Images = {
+  image_db,
 
   firstLoad: () => {
     image_db.onLoad = Images.view;
@@ -49,7 +50,6 @@ const Images = {
     // Replace the main content
     $('#main-content').html(Templates.generate('image-gallery', {}));
     image_db.findMany({ location: { $gte: '' } }, (data) => {
-      console.log(data);
       data.forEach((obj, index) => {
         const path = obj.location;
         const col = index % 3;
