@@ -1,9 +1,9 @@
 import $ from 'jquery';
 import Templates from './templates';
-// import Images from './images';
 import Wallpaper from './wallpaper-client';
 
 const gallery_db = { };
+let Images = null;
 let current_gallery = '';
 
 const Galleries = {
@@ -98,12 +98,16 @@ const Galleries = {
         // The item is an image, render it as such
         $(`#gallery-col-${col}`).append(Templates.generate('image-gallery-item', { src: path, id: index }));
         // XXX Apparently you can't modules import recursivly..?
-        // $(`#gallery-col-${col} .img-card:last-child img`).click(() => Images.expand(path));
+        if (Images !== null) {
+          $(`#gallery-col-${col} .img-card:last-child img`).click(() => Images.expand(path));
+        }
         $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Galleries.removeItem(gallery, path));
         $(`#gallery-col-${col} .img-card:last-child .btn-img-setwp`).click(() => Wallpaper.set(path));
       }
     });
   },
+
+  setImageModule: (images_module) => { Images = images_module; }
 };
 
 export default Galleries;

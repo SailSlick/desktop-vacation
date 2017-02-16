@@ -69,3 +69,4 @@ ipc.on('selected-directory', (event, files) => {
 });
 
 export default Images;
+Galleries.setImageModule(Images); // XXX: Hacky
