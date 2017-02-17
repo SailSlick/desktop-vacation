@@ -4,6 +4,9 @@ import Templates from './templates';
 import DbConn from './db';
 import Wallpaper from './wallpaper-client';
 import Galleries from './galleries';
+import Notification from './notification';
+
+const notify = Notification.show;
 
 let image_db;
 
@@ -36,6 +39,7 @@ const Images = {
 
   remove: (path) => {
     image_db.removeOne({ location: path });
+    notify('Image removed!');
     console.log(`Removed image ${path}`);
     // Redraw
     Images.view();
@@ -43,10 +47,7 @@ const Images = {
 
   view: () => {
     // Replace the main content
-    $('#main-content').html(Templates.generate('3-col-view', {
-      title: 'Viewing all images',
-      hint: 'Click to expand images'
-    }));
+    $('#main-content').html(Templates.generate('3-col-view', {}));
     image_db.findMany({ location: { $gte: '' } }, (data) => {
       data.forEach((obj, index) => {
         const path = obj.location;
