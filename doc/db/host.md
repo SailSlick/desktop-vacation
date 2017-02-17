@@ -17,9 +17,10 @@ Example Document
 {
   "username" : "testuser" ,
   "gallery" : ObjectId("sj478b97bac0595474108b48"),
-  "config" : [
-    { "onstart": true },
-    { "timer": 30 }
-  ]
+  "slideshowConfig" : {
+    "onstart": true ,
+    "galleryName": "",
+    "timer": 30
+  }
 }
 ```
