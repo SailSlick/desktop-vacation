@@ -1,10 +1,11 @@
-<figure class='figure img-card rounded gallery-item' data-id='{{ id }}'>
-	<p>{{ name }}</p>
+<figure class='figure img-card gallery-card rounded'>
+	<img class='img-fluid' src='{{ thumbnail }}'>
+	<h2 class='rounded'>{{ name }}</h2>
 	<figcaption class='figure-caption rounded-circle'>
 		...
 		<div class='dropdown-menu img-menu'>
-			<a class='dropdown-item btn-img-remove' href='#'>Remove</a>
-			<a class='dropdown-item btn-img-slideshow' href='#'>Slideshow</a>
+			<a class='dropdown-item btn-gallery-slideshow' href='#'>Slideshow</a>
+			<a class='dropdown-item btn-gallery-remove' href='#'>Remove</a>
 		</div>
 	</figcaption>
 </figure>
