@@ -23,5 +23,5 @@ $(document).on('database_loaded', checkIfLoaded);
 // Link DOM events to functions
 $('#btn-view-images').click(Images.view);
 $('#btn-add-images').click(Images.getNew);
-$('#btn-view-galleries').click(Galleries.view);
+$('#btn-view-galleries').click(() => Galleries.view(''));
 $('#btn-add-gallery').click(Galleries.addGalleryName);
