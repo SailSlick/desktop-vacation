@@ -20,11 +20,11 @@ timeout(30) {
 
 	try {
 		stage ('Install Dependencies') {
-			sh 'script/install.sh'
+			sh 'sudo script/install.sh'
 		}
 
 		stage ('Set up Mongo Database') {
-      sh 'systemctl start mongod'
+      sh 'sudo systemctl start mongod'
 			sh 'script/db/setup-mongo.sh'
 		}
 
