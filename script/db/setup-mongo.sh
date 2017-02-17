@@ -17,6 +17,9 @@ sudo mkdir /etc/ssl/mongodb/
 sudo cp "${VDIR}/hidden/mongo/ssl-pw-client" /etc/ssl/mongodb/ssl-pw-client
 sudo cp "${VDIR}/hidden/mongo/ssl-pw-server" /etc/ssl/mongodb/ssl-pw-server
 
+sudo systemctl restart mongod
+sudo systemctl enable mongod
+
 cd ../../server
 npm run populate-db
 
