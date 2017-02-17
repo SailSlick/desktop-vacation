@@ -19,6 +19,15 @@ export default [
     ]
   },
   {
+    path: '/usr/bin/qdbus',
+    args: path => [
+      'org.kde.plasmashell',
+      '/PlasmaShell',
+      'org.kde.PlasmaShell.loadScriptInInteractiveConsole',
+      `'var allDesktops = desktops();print (allDesktops);for (i=0;i<allDesktops.length;i++) {d = allDesktops[i];d.wallpaperPlugin = "org.kde.image";d.currentConfigGroup = Array("Wallpaper", "org.kde.image", "General");d.writeConfig("Image", "file://${path}")}'`
+    ]
+  },
+  {
     path: 'C:/windows/system32/reg.exe',
     args: path => [
       'add',
