@@ -41,6 +41,7 @@ const Images = {
     image_db.removeOne({ location: path });
     notify('Image removed!');
     console.log(`Removed image ${path}`);
+    Galleries.removeAllItem(path);
     // Redraw
     Images.view();
   },

@@ -127,12 +127,18 @@ const Galleries = {
   },
 
   getThumbnail: (name, next) => {
-    gallery_db.findOne({ name }, (gallery) => {
-      if (gallery.images.length !== 0) {
-        return Images.image_db.findOne(
-          { $loki: gallery.images[0] },
-          image => next(image.location)
-        );
+    return gallery_db.findOne({ name }, (gallery) => {
+      if (gallery !== null) {
+        if (gallery.images.length !== 0) {
+          return Images.image_db.findOne({ $loki: gallery.images[0] },
+            (image) => {
+              if (image !== null) {
+                return next(image.location);
+              }
+              return next();
+            }
+          );
+        }
       }
       return next();
     });
@@ -181,6 +187,26 @@ const Galleries = {
         });
       });
     }
+  },
+
+  removeAllItem: (path) => {
+    console.log(`Attempting to remove ${path} from all galleries`);
+    Images.image_db.findOne({ location: path }, (image) => {
+      const id = image.$loki;
+      gallery_db.findMany({ subgallaries: { $contains: id } }, (galleries) => {
+        galleries.forEach((gallery) => {
+          if (gallery === null) {
+            console.error(`${name} not found`);
+          } else if (gallery.name !== Galleries.baseName) {
+            gallery.images = gallery.images.filter(i => i !== id);
+            gallery_db.updateOne({ name }, gallery, () => {
+              Galleries.view();
+              notify('Item removed!');
+            });
+          }
+        });
+      });
+    });
   },
 
   pickGallery: (path) => {
