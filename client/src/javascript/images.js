@@ -4,6 +4,9 @@ import Templates from './templates';
 import DbConn from './db';
 import Wallpaper from './wallpaper-client';
 import Galleries from './galleries';
+import Notification from './notification';
+
+const notify = Notification.show;
 
 let image_db;
 
@@ -36,6 +39,7 @@ const Images = {
 
   remove: (path) => {
     image_db.removeOne({ location: path });
+    notify('Image removed!');
     console.log(`Removed image ${path}`);
     // Redraw
     Images.view();
@@ -43,16 +47,17 @@ const Images = {
 
   view: () => {
     // Replace the main content
-    $('#main-content').html(Templates.generate('image-gallery', {}));
+    $('#main-content').html(Templates.generate('3-col-view', {}));
     image_db.findMany({ location: { $gte: '' } }, (data) => {
       data.forEach((obj, index) => {
         const path = obj.location;
         const col = index % 3;
-        $(`#gallery-col-${col}`).append(Templates.generate('image-gallery-item', { src: path, id: index }));
-        $(`#gallery-col-${col} .img-card:last-child img`).click(() => Images.expand(path));
-        $(`#gallery-col-${col} .img-card:last-child .btn-img-remove`).click(() => Images.remove(path));
-        $(`#gallery-col-${col} .img-card:last-child .btn-img-setwp`).click(() => Wallpaper.set(path));
-        $(`#gallery-col-${col} .img-card:last-child .btn-img-addtogallery`).click(() => Galleries.pickGallery(obj.$loki));
+        const selector = `#main-content .view-col-${col}`;
+        $(selector).append(Templates.generate('image-gallery-item', { src: path, id: index }));
+        $(`${selector} .img-card:last-child img`).click(() => Images.expand(path));
+        $(`${selector} .img-card:last-child .btn-img-remove`).click(() => Images.remove(path));
+        $(`${selector} .img-card:last-child .btn-img-setwp`).click(() => Wallpaper.set(path));
+        $(`${selector} .img-card:last-child .btn-img-addtogallery`).click(() => Galleries.pickGallery(obj.$loki));
       });
     });
     image_db.save(() => {});

@@ -1,5 +1,7 @@
 import { ipcRenderer as ipc } from 'electron';
-import $ from 'jquery';
+import Notification from './notification';
+
+const notify = Notification.show;
 
 export default {
   set: path => ipc.send('set-wallpaper', path),
@@ -10,17 +12,8 @@ export default {
 ipc.on('set-wallpaper-done', (event, exitCode) => {
   console.log(`Background set. exit code ${exitCode}`);
   if (exitCode === 0) {
-    $('#notification p')
-      .html('Background set!')
-      .parent().attr('class', 'alert-success');
+    notify('Background set!');
   } else {
-    $('#notification p')
-      .html(`Failed to set background, exit code ${exitCode}`)
-      .parent().attr('class', 'alert-danger');
+    notify(`Failed to set background, exit code ${exitCode}`, 'alert-danger');
   }
-  $('#notification').addClass('alert alert-dismissable fade show');
-  setTimeout(
-    () => $('#notification').attr('class', 'alert fade hide'),
-    3000
-  );
 });
