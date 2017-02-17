@@ -20,6 +20,6 @@ Written by The Arduous Aaron, The Lucrative Lucas and The Rickety Ross
 - [ ] Share backgrounds peer to peer
 
 ### Other Documentation
-- [Server](./server/README.md)
-- [Client](./client/README.md)
-- [Design doc](./doc/README.md)
+- [Server](./server/#desktop-vacation-server)
+- [Client](./client/#desktop-vacation-client)
+- [Design doc](./doc/#desktop-vacation-specs)
