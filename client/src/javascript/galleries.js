@@ -40,30 +40,31 @@ const Galleries = {
             base_gallery.subgallaries.push(inserted_gallery.$loki);
             gallery_db.updateOne(
               { name: Galleries.baseName },
-              base_gallery, () => { Galleries.view(); }
+              base_gallery, () => { }
             );
           });
           if (current_gallery.length !== 0) {
-            Galleries.addSubGallery(inserted_gallery);
+            Galleries.addSubGallery(inserted_gallery, () => Galleries.view(current_gallery));
+          } else {
+            Galleries.view(current_gallery);
           }
         });
       } else if (current_gallery.length === 0) {
         console.error(`Error adding ${name}, gallery already exists`);
       } else {
-        Galleries.addSubGallery(found_gallery);
-        Galleries.view();
+        Galleries.addSubGallery(found_gallery, () => Galleries.view(current_gallery));
       }
     });
   },
 
-  addSubGallery: (child_gallery) => {
+  addSubGallery: (child_gallery, next) => {
     console.log(`Adding ${child_gallery.name} to ${current_gallery}`);
     if (current_gallery === Galleries.baseName) {
       console.error('Parent is baseName');
-      return;
+      return next();
     } else if (current_gallery === child_gallery.name) {
       console.error('Adding child gallery to itself');
-      return;
+      return next();
     }
     gallery_db.findOne({ name: current_gallery }, (parent_gallery) => {
       if (parent_gallery === null) {
@@ -71,11 +72,11 @@ const Galleries = {
       }
       if ($.inArray(child_gallery.$loki, parent_gallery.subgallaries) !== -1) {
         console.error(`${child_gallery.name} is already a subgallery`);
-        return;
       }
       parent_gallery.subgallaries.push(child_gallery.$loki);
-      gallery_db.updateOne({ name: current_gallery }, parent_gallery, () => true);
+      gallery_db.updateOne({ name: current_gallery }, parent_gallery, next);
     });
+    return next();
   },
 
   addItem: (name, image_id) => {
