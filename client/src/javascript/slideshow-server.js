@@ -10,7 +10,14 @@ ipc.on('set-slideshow', (event, slideshow_paths_array, timer) => {
   if (main_loop) {
     clearInterval(main_loop);
   }
-  event.sender.send('set-slideshow-done', 0);
+  Wallpaper.set(slideshow_paths_array[index], (exitCode) => {
+    if (exitCode !== 0) {
+      console.error('Failed to set background', exitCode);
+    } else {
+      event.sender.send('set-slideshow-done', 0);
+      index = (index + 1) % slideshow_paths_array.length;
+    }
+  });
 
   console.log('entering loop');
   main_loop = setInterval(() => {
