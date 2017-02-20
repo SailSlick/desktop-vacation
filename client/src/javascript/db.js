@@ -91,9 +91,8 @@ class DbConn {
   // removeMany: remove all docs matching query from collection
   // query in {x:y} format
   removeMany(query, cb) {
-    const t = cb(this.col.chain().find(query).remove());
-    console.log(t);
-    return t;
+    this.col.chain().find(query).remove();
+    return cb();
   }
 }
 

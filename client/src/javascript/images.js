@@ -38,12 +38,13 @@ const Images = {
   },
 
   remove: (path) => {
-    image_db.removeOne({ location: path });
-    notify('Image removed!');
-    console.log(`Removed image ${path}`);
-    Galleries.removeAllItem(path);
-    // Redraw
-    Images.view();
+    Galleries.removeAllItems(path, () => {
+      image_db.removeOne({ location: path }, () => {
+        notify('Image removed!');
+        console.log(`Removed image ${path}`);
+        Images.view();
+      });
+    });
   },
 
   view: () => {

@@ -74,18 +74,24 @@ const Galleries = {
       console.error('Parent is baseName');
       return next();
     } else if (current_gallery === child_gallery.name) {
-      console.error('Adding child gallery to itself');
+      const msg = `Can't add ${child_gallery.name} to itself`;
+      console.error(msg);
+      notify(msg, 'alert-danger');
       return next();
     }
     gallery_db.findOne({ name: current_gallery }, (parent_gallery) => {
       if (parent_gallery === null) {
         console.err(`${current_gallery} does not exist`);
+        return next();
       }
       if ($.inArray(child_gallery.$loki, parent_gallery.subgallaries) !== -1) {
-        console.error(`${child_gallery.name} is already a subgallery`);
+        const msg = `${child_gallery.name} is already a subgallery`;
+        console.error(msg);
+        notify(msg, 'alert-danger');
+        return next();
       }
       parent_gallery.subgallaries.push(child_gallery.$loki);
-      gallery_db.updateOne({ name: current_gallery }, parent_gallery, next);
+      return gallery_db.updateOne({ name: current_gallery }, parent_gallery, next);
     });
     return next();
   },
@@ -126,8 +132,8 @@ const Galleries = {
     });
   },
 
-  getThumbnail: (name, next) => {
-    return gallery_db.findOne({ name }, (gallery) => {
+  getThumbnail: (name, next) =>
+    gallery_db.findOne({ name }, (gallery) => {
       if (gallery !== null) {
         if (gallery.images.length !== 0) {
           return Images.image_db.findOne({ $loki: gallery.images[0] },
@@ -141,8 +147,7 @@ const Galleries = {
         }
       }
       return next();
-    });
-  },
+    }),
 
   remove: (name) => {
     console.log(`Removing gallery: ${name}`);
@@ -162,7 +167,7 @@ const Galleries = {
           });
           Galleries.view();
         });
-        gallery_db.removeOne({ name });
+        gallery_db.removeOne({ name }, () => notify('Gallery removed!'));
       });
     } else {
       console.error('Tried to delete base gallery');
@@ -189,11 +194,11 @@ const Galleries = {
     }
   },
 
-  removeAllItem: (path) => {
+  removeAllItems: (path, next) => {
     console.log(`Attempting to remove ${path} from all galleries`);
-    Images.image_db.findOne({ location: path }, (image) => {
+    return next(Images.image_db.findOne({ location: path }, (image) => {
       const id = image.$loki;
-      gallery_db.findMany({ subgallaries: { $contains: id } }, (galleries) => {
+      gallery_db.findMany({ images: { $contains: id } }, (galleries) => {
         galleries.forEach((gallery) => {
           if (gallery === null) {
             console.error(`${name} not found`);
@@ -206,7 +211,7 @@ const Galleries = {
           }
         });
       });
-    });
+    }));
   },
 
   pickGallery: (path) => {
