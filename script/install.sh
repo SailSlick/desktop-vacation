@@ -31,7 +31,7 @@ if lsb_release -a 2> /dev/null | grep -q "Ubuntu"; then
     sudo apt-get install -y mongodb-org
   fi
 
-  sudo apt-get install -y xorriso
+  sudo apt-get install -y xorriso libgtkextra-dev libgconf2-dev libnss3 libasound2 libxtst-dev libxss1
 
 elif lsb_release -a 2> /dev/null | grep -q "Arch"; then
   echo "Installing packages for Arch";

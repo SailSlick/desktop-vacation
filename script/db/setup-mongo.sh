@@ -18,6 +18,8 @@ SSL_SRV=$4
 
 # Make sure mongo is running
 sudo systemctl restart mongod
+# Sleep until it is ready
+sleep 2
 
 # Add a user to mongo
 sed "s/PASSWORDHERE/$USERNAME/g" create-mongo-user.js > /tmp/setup_user.js
@@ -39,6 +41,8 @@ sudo mv /etc/mongod.conf /etc/mongod.conf.orig
 sudo cp mongod.conf /etc/mongod.conf
 
 sudo systemctl restart mongod
+# Sleep until it is ready
+sleep 2
 
 cd "$BASEDIR/server"
 npm run populate-db

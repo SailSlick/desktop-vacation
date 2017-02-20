@@ -28,10 +28,12 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 			}
 		}
 
+		stage ('Set up Tingo Database') {
+			sh 'cd $WORKSPACE/client && npm run makeDb'
+		}
+
 		stage ('Run Client E2E Tests') {
-			wrap([$class: 'Xvfb', additionalOptions: '', assignedLabels: '', displayNameOffset: 0, installationName: 'main', screen: '']) {
-				sh 'cd $WORKSPACE/client && npm run e2e'
-			}
+			sh 'cd $WORKSPACE/client && npm run e2e-jenkins'
 		}
 
 		stage ('Test Client') {
@@ -39,12 +41,15 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 		}
 
 		stage ('Report Client Coverage') {
-			sh 'cd $WORKSPACE/client && npm run coverage'
+			sh 'cd $WORKSPACE/client && npm run coverage-jenkins'
 		}
 
 		stage ('Test Server') {
 			sh 'cd $WORKSPACE/server && npm run test'
 		}
+
+		// Delete symlinks now to avoid a crash
+		sh 'rm -rf $WORKSPACE/client/app/thirdparty'
 
 		currentBuild.result = 'SUCCESS'
 
@@ -59,6 +64,9 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 		}
 
 	} catch (err) {
+
+		// Delete symlinks now to avoid a crash
+		sh 'rm -rf $WORKSPACE/client/app/thirdparty'
 
 		currentBuild.result = 'FAILURE'
 
