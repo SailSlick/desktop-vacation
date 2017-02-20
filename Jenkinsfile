@@ -6,7 +6,7 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 
 	stage ('Alert Github and Slack') {
 		step([$class: 'GitHubSetCommitStatusBuilder'])
-		slackSend channel: '#updates', color: '#F6FF00', message: "Build Started: $BRANCH_NAME #$BUILD_NUMBER $BUILD_URL", teamDomain: 'vedi-team', token: "$SLACKTOKEN"
+		slackSend channel: '#github', color: '#F6FF00', message: "Build Started: $BRANCH_NAME #$BUILD_NUMBER $BUILD_URL", teamDomain: 'vedi-team', token: "$SLACKTOKEN"
 	}
 
 	stage('Setup cleanup') {
@@ -19,12 +19,12 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 
 	try {
 		stage ('Install Dependencies') {
-			sh "sudo '$WORKSPACE/script/install.sh'"
+			sh "$WORKSPACE/script/install.sh"
 		}
 
 		stage ('Set up Mongo Database') {
 			withCredentials([string(credentialsId: 'mongo-username', variable: 'DBUSER'), string(credentialsId: 'mongo-password', variable: 'DBPWD'), string(credentialsId: 'mongo-ssl-client', variable: 'DBSSLCLI'), string(credentialsId: 'mongo-ssl-server', variable: 'DBSSLSRV')]) {
-				sh 'script/db/setup-mongo.sh $DBUSER $DBPWD $DBSSLCLI $DBSSLSRV'
+				sh '$WORKSPACE/script/db/setup-mongo.sh $DBUSER $DBPWD $DBSSLCLI $DBSSLSRV'
 			}
 		}
 
@@ -43,6 +43,8 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 		currentBuild.result = 'SUCCESS'
 
 		stage ('Generate Reports') {
+			junit 'tests.xml'
+
 			step([$class: 'GitHubCommitStatusSetter'])
 
 			slackSend channel: '#github', color: '#00FF00', message: "Build Successful: $BRANCH_NAME #$BUILD_NUMBER $BUILD_URL", teamDomain: 'vedi-team', token: "$SLACKTOKEN"
