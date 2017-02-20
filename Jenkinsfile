@@ -29,21 +29,29 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 		}
 
 		stage ('Run Client E2E Tests') {
-			sh 'cd $WORKSPACE/client && npm run e2e'
+			wrap([$class: 'Xvfb', additionalOptions: '', assignedLabels: '', displayNameOffset: 0, installationName: 'main', screen: '']) {
+				sh 'cd $WORKSPACE/client && npm run e2e'
+			}
 		}
 
-		stage ('Test Client and Report Coverage') {
+		stage ('Test Client') {
+			sh 'cd $WORKSPACE/client && npm run test-jenkins'
+		}
+
+		stage ('Report Client Coverage') {
 			sh 'cd $WORKSPACE/client && npm run coverage'
 		}
 
-		stage ('Run Server Tests') {
+		stage ('Test Server') {
 			sh 'cd $WORKSPACE/server && npm run test'
 		}
 
 		currentBuild.result = 'SUCCESS'
 
 		stage ('Generate Reports') {
-			junit 'tests.xml'
+			junit 'client/tests.xml'
+
+			publishHTML([allowMissing: false, alwaysLinkToLastBuild: true, keepAll: true, reportDir: 'client/coverage', reportFiles: 'index.html', reportName: 'Client Coverage'])
 
 			step([$class: 'GitHubCommitStatusSetter'])
 
