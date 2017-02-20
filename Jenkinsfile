@@ -1,7 +1,7 @@
 #!groovy
 
 node {
-timeout(120) {
+timeout(300) {
 withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) {
 
 	stage ('Alert Github and Slack') {
@@ -45,7 +45,9 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 		}
 
 		stage ('Test Server') {
-			sh 'cd $WORKSPACE/server && npm run test'
+			withEnv(['SRVPORT=3001']) {
+				sh 'cd $WORKSPACE/server && npm run test'
+			}
 		}
 
 		// Delete symlinks now to avoid a crash

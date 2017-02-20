@@ -20,8 +20,8 @@ app.use((err, req, res, _next) => {
   return res.status(err.status).json(err);
 });
 
-app.listen(3000, () => {
-  console.log('app listening on port 3k');
+app.listen(process.env.SRVPORT || 3000, () => {
+  console.log('app listening on port ', process.env.SRVPORT || 3000);
 });
 
 module.exports = app;
