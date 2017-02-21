@@ -4,43 +4,35 @@ node {
 timeout(300) {
 withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) {
 
-	stage ('Alert Github and Slack') {
+	stage ('Setup Environment') {
 		step([$class: 'GitHubSetCommitStatusBuilder'])
 		slackSend channel: '#github', color: '#F6FF00', message: "Build Started: $BRANCH_NAME #$BUILD_NUMBER $BUILD_URL", teamDomain: 'vedi-team', token: "$SLACKTOKEN"
-	}
 
-	stage('Setup cleanup') {
 		step([$class: 'WsCleanup', notFailBuild: true])
-	}
 
-	stage ('Clone Repository') {
 		checkout scm
 	}
 
 	try {
-		stage ('Install Dependencies') {
+		stage ('Run Installer') {
 			sh "$WORKSPACE/script/install.sh"
 		}
 
-		stage ('Set up Mongo Database') {
+		stage ('Setup Databases') {
 			withCredentials([string(credentialsId: 'mongo-username', variable: 'DBUSER'), string(credentialsId: 'mongo-password', variable: 'DBPWD'), string(credentialsId: 'mongo-ssl-client', variable: 'DBSSLCLI'), string(credentialsId: 'mongo-ssl-server', variable: 'DBSSLSRV')]) {
 				sh '$WORKSPACE/script/db/setup-mongo.sh $DBUSER $DBPWD $DBSSLCLI $DBSSLSRV'
 			}
-		}
 
-		stage ('Set up Tingo Database') {
 			sh 'cd $WORKSPACE/client && npm run makeDb'
 		}
 
-		stage ('Run Client E2E Tests') {
-			sh 'cd $WORKSPACE/client && npm run e2e-jenkins'
-		}
-
 		stage ('Test Client') {
-			sh 'cd $WORKSPACE/client && npm run test-jenkins'
-		}
+			sh 'cd $WORKSPACE/client && npm run lint'
 
-		stage ('Report Client Coverage') {
+			sh 'cd $WORKSPACE/client && npm run e2e-jenkins'
+
+			sh 'cd $WORKSPACE/client && npm run test-jenkins'
+
 			sh 'cd $WORKSPACE/client && npm run coverage-jenkins'
 		}
 
@@ -50,15 +42,17 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 			}
 		}
 
-		// Delete symlinks now to avoid a crash
+		// Delete symlinks now to avoid a cleanup crash
 		sh 'rm -rf $WORKSPACE/client/app/thirdparty'
 
 		currentBuild.result = 'SUCCESS'
 
 		stage ('Generate Reports') {
-			junit 'client/tests.xml'
+			junit 'client/*-tests.xml'
 
-			publishHTML([allowMissing: false, alwaysLinkToLastBuild: true, keepAll: true, reportDir: 'client/coverage', reportFiles: 'index.html', reportName: 'Client Coverage'])
+			step([$class: 'CheckStylePublisher', canComputeNew: false, defaultEncoding: '', healthy: '30', pattern: '', unHealthy: '200'])
+
+			step([$class: 'CloverPublisher', cloverReportDir: 'client/coverage', cloverReportFileName: 'clover.xml', failingTarget: [conditionalCoverage: 45, methodCoverage: 25, statementCoverage: 45], healthyTarget: [conditionalCoverage: 80, methodCoverage: 70, statementCoverage: 80], unhealthyTarget: [conditionalCoverage: 55, methodCoverage: 40, statementCoverage: 55]])
 
 			step([$class: 'GitHubCommitStatusSetter'])
 
@@ -67,7 +61,7 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 
 	} catch (err) {
 
-		// Delete symlinks now to avoid a crash
+		// Delete symlinks now to avoid a cleanup crash
 		sh 'rm -rf $WORKSPACE/client/app/thirdparty'
 
 		currentBuild.result = 'FAILURE'

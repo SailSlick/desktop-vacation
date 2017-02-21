@@ -6,7 +6,7 @@ module.exports = function (runner, options) {
     mocha.reporters.Base.call(this, runner);
 
     var reporterOpts = { dir: 'coverage' },
-        reporters = ['text-summary', 'html'];
+        reporters = ['text-summary', 'html', 'clover'];
 
     options = options || {};
     if (options.reporters) reporters = options.reporters.split(',');
