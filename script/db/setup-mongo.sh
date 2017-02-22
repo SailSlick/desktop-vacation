@@ -22,8 +22,8 @@ sudo systemctl restart mongod
 sleep 2
 
 # Add a user to mongo
-sed "s/PASSWORDHERE/$USERNAME/g" create-mongo-user.js > /tmp/setup_user.js
-sed "s/USERNAMEHERE/$PASSWORD/g" /tmp/setup_user.js > /tmp/setup.js
+sed "s/PASSWORDHERE/$PASSWORD/g" create-mongo-user.js > /tmp/setup_user.js
+sed "s/USERNAMEHERE/$USERNAME/g" /tmp/setup_user.js > /tmp/setup.js
 mongo /tmp/setup.js
 if [ $? -ne 0 ]; then
   echo "WARNING: Mongo already set up or not running"
@@ -32,8 +32,8 @@ rm /tmp/setup.js
 rm /tmp/setup_user.js
 
 # Update connection string
-sed "s/PASSWORDHERE/$USERNAME/g" mongo-url.js > /tmp/conn_str.js
-sed "s/USERNAMEHERE/$PASSWORD/g" /tmp/conn_str.js > mongo-url.js
+sed "s/PASSWORDHERE/$PASSWORD/g" mongo-url-template.js > /tmp/conn_str.js
+sed "s/USERNAMEHERE/$USERNAME/g" /tmp/conn_str.js > mongo-url.js
 rm /tmp/conn_str.js
 
 # update the conf file

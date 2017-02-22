@@ -1,5 +1,7 @@
 # Desktop Vacation
 
+[![Build Status](http://jenkins.m1cr0man.com/buildStatus/icon?job=Desktop Vacation/master)](http://jenkins.m1cr0man.com/job/Desktop%20Vacation/job/master/)
+
 “Desktop Vacation is an application suite to manage your backgrounds with a cloud storage service and social options.”
 
 Written by The Arduous Aaron, The Lucrative Lucas and The Rickety Ross
