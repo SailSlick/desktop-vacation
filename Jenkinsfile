@@ -19,26 +19,12 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 		}
 
 		stage ('Setup Databases') {
-			withCredentials([
-				string(credentialsId: 'mongo-username', variable: 'DBUSER'),
-				string(credentialsId: 'mongo-password', variable: 'DBPWD'),
-				string(credentialsId: 'mongo-ssl-client', variable: 'DBSSLCLI'),
-				string(credentialsId: 'mongo-ssl-server', variable: 'DBSSLSRV')
+			withCredentials([string(credentialsId: 'mongo-username', variable: 'DBUSER'), string(credentialsId: 'mongo-password', variable: 'DBPWD'), string(credentialsId: 'mongo-ssl-client', variable: 'DBSSLCLI'), string(credentialsId: 'mongo-ssl-server', variable: 'DBSSLSRV')
 			]) {
 				sh '$WORKSPACE/script/db/setup-mongo.sh $DBUSER $DBPWD $DBSSLCLI $DBSSLSRV'
 			}
 
 			sh 'cd $WORKSPACE/client && npm run makeDb'
-		}
-
-		stage ('Test Client') {
-			sh 'cd $WORKSPACE/client && npm run lint'
-
-			sh 'cd $WORKSPACE/client && npm run e2e-jenkins'
-
-			sh 'cd $WORKSPACE/client && npm run test-jenkins'
-
-			sh 'cd $WORKSPACE/client && npm run coverage-jenkins'
 		}
 
 		stage ('Test Server') {
@@ -48,6 +34,18 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 				// Coverage runs tests
 				sh 'cd $WORKSPACE/server && npm run coverage'
 			}
+		}
+
+		stage ('Test Client') {
+			sh 'cd $WORKSPACE/client && npm run lint'
+
+			sh 'cd $WORKSPACE/client && npm run e2e-jenkins'
+
+			sh 'cd $WORKSPACE/client && npm run test-jenkins'
+
+			sh 'cd $WORKSPACE/client && npm run coverage'
+
+			sh 'cd $WORKSPACE/client && npm run coverage-all'
 		}
 
 		// Delete symlinks now to avoid a cleanup crash
@@ -60,9 +58,7 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 
 			step([$class: 'CheckStylePublisher', canComputeNew: false, defaultEncoding: '', healthy: '30', pattern: '', unHealthy: '200'])
 
-			step([$class: 'CloverPublisher', cloverReportDir: 'client/coverage', cloverReportFileName: 'clover.xml', failingTarget: [conditionalCoverage: 45, methodCoverage: 25, statementCoverage: 45], healthyTarget: [conditionalCoverage: 80, methodCoverage: 70, statementCoverage: 80], unhealthyTarget: [conditionalCoverage: 55, methodCoverage: 40, statementCoverage: 55]])
-
-			step([$class: 'CloverPublisher', cloverReportDir: 'server/coverage', cloverReportFileName: 'clover.xml', failingTarget: [conditionalCoverage: 45, methodCoverage: 25, statementCoverage: 45], healthyTarget: [conditionalCoverage: 80, methodCoverage: 70, statementCoverage: 80], unhealthyTarget: [conditionalCoverage: 55, methodCoverage: 40, statementCoverage: 55]])
+			step([$class: 'CloverPublisher', cloverReportDir: 'coverage', cloverReportFileName: 'clover.xml', failingTarget: [conditionalCoverage: 45, methodCoverage: 25, statementCoverage: 45], healthyTarget: [conditionalCoverage: 80, methodCoverage: 70, statementCoverage: 80], unhealthyTarget: [conditionalCoverage: 55, methodCoverage: 40, statementCoverage: 55]])
 
 			step([$class: 'GitHubCommitStatusSetter'])
 
