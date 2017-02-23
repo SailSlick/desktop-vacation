@@ -9,10 +9,10 @@ const notify = Notification.show;
 
 let gallery_db;
 let Images = null;
-let current_gallery = '';
 
 const Galleries = {
   baseName: 'Sully'.concat('_all'),
+  currentGallery: '',
 
   addGalleryName: () => {
     $('#hover-content').html(Templates.generate('gallery-get-name', {})).show();
@@ -27,7 +27,9 @@ const Galleries = {
   add: (name) => {
     console.log(`Adding gallery ${name}`);
     if (name.length === 0) {
-      console.error('Zero length name');
+      const msg = 'Empty name';
+      console.error(msg);
+      notify(msg, 'alert-danger');
       return;
     }
     gallery_db.findOne({ name }, (found_gallery) => {
@@ -53,45 +55,44 @@ const Galleries = {
             );
             notify('Gallery added!');
           });
-          if (current_gallery.length !== 0) {
-            Galleries.addSubGallery(inserted_gallery, () => Galleries.view(current_gallery));
+          if (Galleries.currentGallery.length !== 0) {
+            Galleries.addSubGallery(inserted_gallery,
+              () => Galleries.view(Galleries.currentGallery)
+            );
           } else {
-            Galleries.view(current_gallery);
+            Galleries.view(Galleries.currentGallery);
           }
         });
-      } else if (current_gallery.length === 0) {
+      } else if (Galleries.currentGallery.length === 0) {
         console.log(`Error adding ${name}, gallery already exists`);
         notify(`${name} already exists!`, 'alert-danger');
       } else {
-        Galleries.addSubGallery(found_gallery, () => Galleries.view(current_gallery));
+        Galleries.addSubGallery(found_gallery, () => Galleries.view(Galleries.currentGallery));
       }
     });
   },
 
   addSubGallery: (child_gallery, next) => {
-    console.log(`Adding ${child_gallery.name} to ${current_gallery}`);
-    if (current_gallery === Galleries.baseName) {
+    console.log(`Adding ${child_gallery.name} to ${Galleries.currentGallery}`);
+    if (Galleries.currentGallery === Galleries.baseName) {
       console.error('Parent is baseName');
       return next();
-    } else if (current_gallery === child_gallery.name) {
-      const msg = `Can't add ${child_gallery.name} to itself`;
-      console.error(msg);
-      notify(msg, 'alert-danger');
-      return next();
+    } else if (Galleries.currentGallery === child_gallery.name) {
+      console.error('Adding child gallery to itself');
     }
-    gallery_db.findOne({ name: current_gallery }, (parent_gallery) => {
+    gallery_db.findOne({ name: Galleries.currentGallery }, (parent_gallery) => {
       if (parent_gallery === null) {
-        console.err(`${current_gallery} does not exist`);
+        console.err(`${Galleries.currentGallery} does not exist`);
         return next();
       }
       if ($.inArray(child_gallery.$loki, parent_gallery.subgallaries) !== -1) {
-        const msg = `${child_gallery.name} is already a subgallery`;
+        const msg = `${child_gallery.name} is already `;
         console.error(msg);
-        notify(msg, 'alert-danger');
+        notify(msg);
         return next();
       }
       parent_gallery.subgallaries.push(child_gallery.$loki);
-      return gallery_db.updateOne({ name: current_gallery }, parent_gallery, next);
+      return gallery_db.updateOne({ name: Galleries.currentGallery }, parent_gallery, next);
     });
     return next();
   },
@@ -109,8 +110,11 @@ const Galleries = {
         gallery.images.push(image_id);
         gallery_db.updateOne({ name }, gallery, () => {});
         notify('Item added!');
+      } else {
+        const msg = 'Can\'t add a duplicate image';
+        console.error(msg);
+        notify(msg, 'alert-danger');
       }
-      // Silently ignore duplicate image
     });
   },
 
@@ -259,7 +263,7 @@ const Galleries = {
     if (typeof name === 'undefined' || typeof name.type !== 'undefined' || name.length === 0) {
       name = Galleries.baseName;
     } else {
-      current_gallery = name;
+      Galleries.currentGallery = name;
     }
     let col = -1;
     $('#main-content').html(Templates.generate('3-col-view', {}));
