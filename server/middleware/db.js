@@ -1,6 +1,6 @@
 const MongoClient = require('mongodb');
 const debug = require('debug')('vacation');
-const url = require('../../hidden/mongo/mongo-url.js');
+const url = require('../../script/db/mongo-url.js');
 
 function errCheck(error, cb) {
   if (error) {

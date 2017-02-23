@@ -6,7 +6,9 @@
   "repository": "https://github.com/cpssd/vacation.git",
   "scripts": {
     "start": "node app.js",
-    "test": "NODE_ENV=test node ./node_modules/mocha/bin/mocha ./tests/**/*.test.js",
+    "test": "JUNIT_REPORT_PATH=unit-tests.xml NODE_ENV=test mocha ./tests/**/*.test.js -R mocha-jenkins-reporter",
+    "coverage": "nyc --reporter=text-summary --reporter=json npm test",
+    "lint": "eslint -f checkstyle -o checkstyle-result.xml src ; exit 0",
     "populate-db": "node ./tests/populate-db.js"
   },
   "author": "Aaron Delaney, Lucas Savva, Ross O'Sullivan",
@@ -28,6 +30,8 @@
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^4.0.0",
     "eslint-plugin-react": "^6.9.0",
-    "mocha": "^3.2.0"
+    "mocha": "^3.2.0",
+    "mocha-jenkins-reporter": "^0.3.7",
+    "nyc": "^10.1.2"
   }
 }
