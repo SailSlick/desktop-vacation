@@ -18,3 +18,16 @@ Written by The Arduous Aaron, The Lucrative Lucas and The Rickety Ross
 
 ### Current Features
 - We have a repo (with readme and all) :)
+
+### Installation
+```bash
+cd client
+npm install
+npm run makeDb
+
+cd ../server
+npm install
+cd ..
+
+script/db/setup-mongo.sh <USERNAME> <PASSWORD> <SSL_CLI_PASSWORD> <SSL_SRV_PASSWORD>
+```

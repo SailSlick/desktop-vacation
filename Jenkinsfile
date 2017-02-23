@@ -49,7 +49,7 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 		}
 
 		// Delete symlinks now to avoid a cleanup crash
-		sh 'rm -rf $WORKSPACE/client/app/thirdparty'
+		sh 'sudo rm -rvf $WORKSPACE/client/app/thirdparty'
 
 		currentBuild.result = 'SUCCESS'
 
@@ -68,7 +68,7 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 	} catch (err) {
 
 		// Delete symlinks now to avoid a cleanup crash
-		sh 'rm -rf $WORKSPACE/client/app/thirdparty'
+		sh 'sudo rm -rvf $WORKSPACE/client/app/thirdparty'
 
 		currentBuild.result = 'FAILURE'
 
