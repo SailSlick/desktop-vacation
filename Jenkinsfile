@@ -8,8 +8,6 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 		step([$class: 'GitHubSetCommitStatusBuilder'])
 		slackSend channel: '#github', color: '#F6FF00', message: "Build Started: $BRANCH_NAME #$BUILD_NUMBER $BUILD_URL", teamDomain: 'vedi-team', token: "$SLACKTOKEN"
 
-		step([$class: 'WsCleanup', notFailBuild: true])
-
 		checkout scm
 	}
 
@@ -48,9 +46,6 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 			sh 'cd $WORKSPACE/client && npm run coverage-all'
 		}
 
-		// Delete symlinks now to avoid a cleanup crash
-		sh 'sudo rm -rvf $WORKSPACE/client/app/thirdparty'
-
 		currentBuild.result = 'SUCCESS'
 
 		stage ('Generate Reports') {
@@ -65,14 +60,21 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 			slackSend channel: '#github', color: '#00FF00', message: "Build Successful: $BRANCH_NAME #$BUILD_NUMBER $BUILD_URL", teamDomain: 'vedi-team', token: "$SLACKTOKEN"
 		}
 
-	} catch (err) {
-
 		// Delete symlinks now to avoid a cleanup crash
 		sh 'sudo rm -rvf $WORKSPACE/client/app/thirdparty'
+
+		step([$class: 'WsCleanup', notFailBuild: true])
+
+	} catch (err) {
 
 		currentBuild.result = 'FAILURE'
 
 		slackSend channel: '#github', color: '#FF0000', message: "Build FAILED: $BRANCH_NAME #$BUILD_NUMBER $BUILD_URL", teamDomain: 'vedi-team', token: "$SLACKTOKEN"
+
+		// Delete symlinks now to avoid a cleanup crash
+		sh 'sudo rm -rvf $WORKSPACE/client/app/thirdparty'
+
+		step([$class: 'WsCleanup', notFailBuild: true])
 
 		throw err
 	}

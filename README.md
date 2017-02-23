@@ -6,18 +6,20 @@
 
 Written by The Arduous Aaron, The Lucrative Lucas and The Rickety Ross
 
-### Planned Features
-- Ability to change background on supported platforms
-- Customisable slideshow feature
-- Organise backgrounds into galleries
-- Sync backgrounds to the cloud
-- Image comparison to not store duplicates on server
-- Image compression to save space on the server
-- Share backgrounds across social groups
-- Share backgrounds peer to peer
-
 ### Current Features
-- We have a repo (with readme and all) :)
+- [x] We have a repo (with readmes and all) :)
+- [x] User friendly UI
+- [x] Ability to change background on supported platforms
+- [x] Customisable slideshow feature
+- [x] Organise backgrounds into galleries
+- [x] Very portable client-side database
+
+### Planned Features
+- [ ] Sync backgrounds to the cloud
+- [ ] Image comparison to not store duplicates on server
+- [ ] Image compression to save space on the server
+- [ ] Share backgrounds across social groups
+- [ ] Share backgrounds peer to peer
 
 ### Installation
 ```bash
@@ -31,3 +33,8 @@ cd ..
 
 script/db/setup-mongo.sh <USERNAME> <PASSWORD> <SSL_CLI_PASSWORD> <SSL_SRV_PASSWORD>
 ```
+
+### Other Documentation
+- [Server](./server/#desktop-vacation-server)
+- [Client](./client/#desktop-vacation-client)
+- [Design doc](./doc/#desktop-vacation-specs)

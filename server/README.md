@@ -1,6 +1,6 @@
-# Client
+# Desktop Vacation Server
 
-All the following commands should be run from the `client` folder
+All the following commands should be run from the `server` folder
 
 # Dependencies Table
 

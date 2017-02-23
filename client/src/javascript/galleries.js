@@ -2,6 +2,7 @@ import $ from 'jquery';
 import Templates from './templates';
 import DbConn from './db';
 import Wallpaper from './wallpaper-client';
+import Slides from './slideshow-client';
 import Notification from './notification';
 
 const notify = Notification.show;
@@ -208,6 +209,7 @@ const Galleries = {
           Galleries.view(subGallary.name);
         });
         $(`${selector} .img-card:last-child .btn-gallery-remove`).click(() => Galleries.remove(subGallary.name));
+        $(`${selector} .img-card:last-child .btn-gallery-slideshow`).click(() => Slides.setSlideshow(subGallary.name));
       });
     });
 
