@@ -10,7 +10,7 @@ Contains
 | username | The Username of the user. |
 | password | A salt and the hashed password will be stored. These are stored in the same string in bcrypt. |
 | gallery | This is a document id for the user's root gallery in the gallerydb  |
-| groups | This is a list of groups that the user is a member of. |
+| groups | This is a list of group ids that the user is a member of. |
 
 Example Document
 ----------------
@@ -20,6 +20,12 @@ Example Document
   "username" : "testuser" ,
   "password" : "$2a$10$oU2WWLC8339f4F.A.bb4/.4hpDH9mZZMkdSZtGUckS7LBC8nGOFsG",
   "gallery" : ObjectId("sj478b97bac0595474108b48"),
-  "groups" : ["top50", "cars"]
+  "invites" : [
+    ObjectId("klle8b97bac0595474108b48")
+  ],
+  "groups" : [
+    ObjectId("qj478b97bac0595474108b48"),
+    ObjectId("spd78b97bac0595474108b48")
+  ]
 }
 ```
