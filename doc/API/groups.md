@@ -19,9 +19,9 @@ Upon successful request, creates a new group gallery.
 
 ### Parameters
 
-| Name      | Type   | Description                                |
-|-----------|--------|--------------------------------------------|
-| groupname | string | The name of the gallery to make into group |
+| Name      | Type   | Description                   s|
+|-----------|--------|-------------------------------|
+| groupname | string | The name of the group to make |
 
 ### Response
 
@@ -37,6 +37,32 @@ Upon successful request, creates a new group gallery.
 | `'creation failed'`                     |   500  |
 | `'invalid groupname'`                   |   400  |
 | `'user already has group of same name'` |   400  |
+| `'gallery doesn't exist'`               |   404  |
+
+## Switch Group
+
+`POST /group/switch`
+
+Upon successful request, turns a gallery into a group.
+
+### Parameters
+
+| Name      | Type   | Description                                |
+|-----------|--------|--------------------------------------------|
+| groupname | string | The name of the gallery to make into group |
+
+### Response
+
+` Status: 200 OK `
+```json
+{ "message": "gallery switched" }
+```
+
+### Expected Errors
+
+| Error Message                           | Status |
+|-----------------------------------------|--------|
+| `'switch failed'`                       |   500  |
 | `'gallery doesn't exist'`               |   404  |
 
 ## Delete Group

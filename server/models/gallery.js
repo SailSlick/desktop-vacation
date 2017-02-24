@@ -21,22 +21,22 @@ module.exports = {
     });
   },
 
-  get: (galleryname, uid, cb) => {
-    db.findOne({ name: galleryname, uid }, (doc) => {
-      if (doc) return cb(doc);
-      return cb('gallery not found');
+  get: (galleryname, id, cb) => {
+    db.findOne({ name: galleryname, id }, (doc) => {
+      if (doc) return cb(null, doc);
+      return cb('gallery not found', null);
     });
   },
 
-  remove: (galleryname, uid, cb) => {
-    db.removeOne({ name: galleryname, uid }, (res) => {
+  remove: (galleryname, id, cb) => {
+    db.removeOne({ name: galleryname, id }, (res) => {
       if (res) return cb('gallery deleted');
       return cb('deletion failed');
     });
   },
 
-  update: (galleryname, uid, data, cb) => {
-    db.updateOne({ name: galleryname, uid }, data, (res) => {
+  update: (galleryname, id, data, cb) => {
+    db.updateOne({ name: galleryname, id }, data, (res) => {
       if (res) return cb('updated one gallery');
       return cb('gallery not updated');
     });

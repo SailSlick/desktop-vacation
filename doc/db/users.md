@@ -21,7 +21,8 @@ Example Document
   "password" : "$2a$10$oU2WWLC8339f4F.A.bb4/.4hpDH9mZZMkdSZtGUckS7LBC8nGOFsG",
   "gallery" : ObjectId("sj478b97bac0595474108b48"),
   "invites" : [
-    {"coolthings": ObjectId("klle8b97bac0595474108b48")}
+    { "groupname": "coolthings" ,
+    "gid": ObjectId("klle8b97bac0595474108b48")}
   ],
   "groups" : [
     ObjectId("qj478b97bac0595474108b48"),
