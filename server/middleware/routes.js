@@ -17,9 +17,10 @@ routes.post('/user/delete', user.delete);
 routes.use('/group/*', user.requireAuth);
 routes.post('/group/create', gallery.create);
 routes.post('/group/delete', gallery.delete);
-routes.get('/group/', gallery.getList);
+routes.get('/group/', user.getGroupList);
 
 // group user functionality
+routes.get('/group/user/', user.getInviteList);
 routes.post('/group/user/invite', gallery.inviteUser);
 routes.post('/group/user/remove', gallery.removeUser);
 routes.post('/group/user/join', gallery.join);

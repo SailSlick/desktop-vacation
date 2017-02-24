@@ -32,11 +32,12 @@ Upon successful request, creates a new group gallery.
 
 ### Expected Errors
 
-| Error Message             | Status |
-|---------------------------|--------|
-| `'creation failed'`       |   500  |
-| `'invalid groupname'`     |   400  |
-| `'gallery doesn't exist'` |   404  |
+| Error Message                           | Status |
+|-----------------------------------------|--------|
+| `'creation failed'`                     |   500  |
+| `'invalid groupname'`                   |   400  |
+| `'user already has group of same name'` |   400  |
+| `'gallery doesn't exist'`               |   404  |
 
 ## Delete Group
 
@@ -195,6 +196,22 @@ Upon successful request, refuse an invitation you have received to a group.
 | Error Message                       | Status |
 |-------------------------------------|--------|
 | `'invitation doesn't exist'`        |   404  |
+
+## Get all your Invites
+
+`GET /group/user`
+
+Upon successful request, returns a list of the user's invites to groups.
+
+### Response
+
+` Status: 200 OK `
+```json
+{
+  "message": "user groups found",
+  "data": [ObjectId("2g6c2b97bac0595474108b48")]
+}
+```
 
 ## Get Group data
 

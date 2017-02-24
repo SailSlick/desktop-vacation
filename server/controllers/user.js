@@ -80,6 +80,32 @@ module.exports = {
     });
   },
 
+  getGroupList: (req, res, next) => {
+    // get list from userDB
+    const username = req.session.username;
+
+    userModel.get(username, (err, data) => {
+      next({
+        status: 200,
+        message: 'user groups found',
+        data: data.groups
+      });
+    });
+  },
+
+  getInviteList: (req, res, next) => {
+    // get list from userDB
+    const username = req.session.username;
+
+    userModel.get(username, (err, data) => {
+      next({
+        status: 200,
+        message: 'user groups found',
+        data: data.invites
+      });
+    });
+  },
+
   delete: (req, res, next) => {
     userModel.delete(req.session.username, (err) => {
       if (err) return next({ status: 500, error: err });
