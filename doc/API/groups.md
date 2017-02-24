@@ -35,7 +35,7 @@ Upon successful request, creates a new group gallery.
 | Error Message             | Status |
 |---------------------------|--------|
 | `'creation failed'`       |   500  |
-| `'invalid name'`          |   400  |
+| `'invalid groupname'`     |   400  |
 | `'gallery doesn't exist'` |   404  |
 
 ## Delete Group
@@ -112,6 +112,7 @@ Upon successful request, invites a user to join the group.
 | Error Message                       | Status |
 |-------------------------------------|--------|
 | `'group doesn't exist'`             |   404  |
+| `'user doesn't exist'`              |   404  |
 | `'incorrect permissions for group'` |   401  |
 
 ## Remove user from group

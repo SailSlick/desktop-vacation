@@ -13,10 +13,23 @@ module.exports = {
   add: (username, password, cb) => {
     db.findOne({ username }, (data) => {
       if (data) return cb('username taken');
-      const gallery = galleryModel.initalize_user(username);
-      return db.insertOne({ username, password, gallery, groups: [] }, (added) => {
-        if (added) return cb();
-        return cb('database communication error');
+      const userData = {
+        username,
+        password,
+        gallery: '',
+        invites: [],
+        groups: []
+      };
+      return db.insertOne(userData, (added) => {
+        if (added) {
+          galleryModel.create(username.concat('_all'), added, (g_id) => {
+            userData.gallery = g_id;
+            return db.updateOne({ _id: added }, userData, (res) => {
+              if (res) return cb();
+              return cb('database communication error');
+            });
+          });
+        }
       });
     });
   },
