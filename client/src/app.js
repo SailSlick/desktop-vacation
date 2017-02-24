@@ -1,8 +1,10 @@
 // All includes from src should be done here
-import $ from 'jquery';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import Images from './javascript/images';
 import Slides from './javascript/slideshow-client';
 import Galleries from './javascript/galleries';
+import Main from './javascript/main-page';
 
 // Store number of pending events for application loading
 let waiting_events = 2;
@@ -20,6 +22,9 @@ function checkIfLoaded() {
 // Events
 $(document).on('templates_loaded', checkIfLoaded);
 $(document).on('database_loaded', checkIfLoaded);
+
+// Setup React rendering
+ReactDOM.render(Main);
 
 // Link DOM events to functions
 $('#btn-view-images').click(Images.view);

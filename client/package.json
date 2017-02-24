@@ -35,15 +35,19 @@
     "e2e-jenkins": "JUNIT_REPORT_PATH=e2e-tests.xml xvfb-maybe npm run e2e -- -R mocha-jenkins-reporter"
   },
   "dependencies": {
+    "async": "^2.1.4",
     "bootstrap": "^4.0.0-alpha.6",
     "fs-jetpack": "^0.10.2",
     "jquery": "^3.1.1",
+    "lokijs": "^1.4.2",
+    "minimist": "^1.2.0",
     "mustache": "^2.3.0",
-    "tether": "^1.4.0",
-    "lokijs": "^1.4.2"
+    "react": "^15.4.2",
+    "react-bootstrap": "^0.30.7",
+    "react-dom": "^15.4.2",
+    "tether": "^1.4.0"
   },
   "devDependencies": {
-    "async": "^2.1.4",
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
     "electron": "^1.6.0",
@@ -61,11 +65,11 @@
     "gulp-util": "^3.0.8",
     "gulp-watch": "^4.3.11",
     "istanbul": "^0.4.5",
-    "minimist": "^1.2.0",
     "mocha": "^3.2.0",
     "mocha-jenkins-reporter": "^0.3.7",
     "rollup": "^0.41.4",
     "rollup-plugin-istanbul": "^1.1.0",
+    "rollup-plugin-jsx": "^1.0.3",
     "source-map-support": "^0.4.11",
     "spectron": "^3.6.0",
     "xvfb-maybe": "^0.1.3"

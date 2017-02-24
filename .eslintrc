@@ -3,7 +3,7 @@
   "env": {
     "browser": true,
     "node": true,
-    "mocha": true
+    "mocha": true,
   },
   "rules": {
     "no-plusplus": "off",
@@ -14,5 +14,13 @@
     "guard-for-in": "off",
     "import/no-extraneous-dependencies": "off",
     "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
+  },
+  "plugins": [
+    "react"
+  ],
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    }
   }
 }
