@@ -8,16 +8,15 @@ module.exports = {
     const uid = req.session.uid;
     const groupname = req.body.groupname;
 
-    if (groupname.length > 20) {
+    if (!galleryModel.verGroupname(groupname)) {
       next({ status: 400, error: 'invalid groupname' });
     }
-
     galleryModel.create(groupname, uid, (ret) => {
       if (ret === 'user already has db of that name') {
         next({ status: 400, error: ret });
       } else if (ret === 'gallery could not be inserted') {
-        next({ status: 400, error: ret });
-      } else if (!isNaN(ret)) {
+        next({ status: 403, error: ret });
+      } else if (isNaN(ret)) {
         next({ status: 200, message: 'group created' });
       } else {
         next({ status: 500, message: 'creation failed' });

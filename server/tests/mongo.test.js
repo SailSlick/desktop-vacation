@@ -7,6 +7,7 @@ const expect = chai.expect;
 
 describe('Db tools', () => {
   dbConn.onLoad = () => {
+    console.log('mongo', dbConn.col.s.name);
     describe('db#insertOne()', () => {
       it('Can insert into Db', (done) => {
         const testData = { backgrounds: 'areLife' };

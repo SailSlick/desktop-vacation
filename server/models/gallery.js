@@ -3,6 +3,11 @@ const DBTools = require('../middleware/db');
 const db = new DBTools('galleries');
 
 module.exports = {
+  verGroupname: groupname =>
+    typeof groupname === 'string' && groupname.length <= 20 && groupname.length >= 3,
+
+  verGid: gid => typeof gid === 'string' && gid.length === 24,
+
   create: (galleryname, uid, cb) => {
     db.findOne({ name: galleryname, uid }, (doc) => {
       if (doc) return cb('user already has db of that name');
@@ -28,8 +33,8 @@ module.exports = {
     });
   },
 
-  remove: (galleryname, id, cb) => {
-    db.removeOne({ name: galleryname, id }, (res) => {
+  remove: (galleryname, uid, cb) => {
+    db.removeOne({ name: galleryname, uid }, (res) => {
       if (res) return cb('gallery deleted');
       return cb('deletion failed');
     });

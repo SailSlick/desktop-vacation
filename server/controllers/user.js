@@ -22,6 +22,7 @@ module.exports = {
         if (bcrypt_err) return next({ status: 500, error: bcrypt_err });
         if (correct) {
           req.session.username = username;
+          req.session.uid = data._id;
           return res.status(200).json({ message: 'user logged in' });
         }
         return next({ status: 401, error: 'incorrect credentials' });
