@@ -24,7 +24,7 @@ $(document).on('templates_loaded', checkIfLoaded);
 $(document).on('database_loaded', checkIfLoaded);
 
 // Setup React rendering
-ReactDOM.render(Main);
+ReactDOM.render(<Main />, document.getElementById('react-content'));
 
 // Link DOM events to functions
 $('#btn-view-images').click(Images.view);

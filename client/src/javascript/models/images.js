@@ -5,6 +5,9 @@ let image_db;
 
 // Exported methods
 const Images = {
+  get: (id, cb) => {
+    image_db.findOne({ $loki: id }, cb);
+  },
 
   getAll: (cb) => {
     image_db.findMany({ location: { $gte: '' } }, (doc_array) => {

@@ -88,8 +88,12 @@ const Galleries = {
     });
   },
 
-  get: (id, next) => {
-    gallery_db.findOne({ $loki: id }, next);
+  get: (id, cb) => {
+    gallery_db.findOne({ $loki: id }, cb);
+  },
+
+  getByName: (name, cb) => {
+    gallery_db.findOne({ name }, cb);
   },
 
   remove: (name) => {

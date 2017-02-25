@@ -1,11 +1,12 @@
 import React from 'react';
+import { ObjectId } from 'lokijs';
 import { Button, Modal } from 'react-bootstrap';
 import Wallpaper from '../helpers/wallpaper-client';
 import Images from '../models/images';
 import Galleries from '../models/galleries';
 import SimpleGalleryCard from './gallerycard-simple';
 
-export class Image extends React.Component {
+class Image extends React.Component {
   getInitialState() {
     return {
       expanded: false,
@@ -36,7 +37,8 @@ export class Image extends React.Component {
   expand() {
     return this.setState({
       expanded: true,
-      gallerySelector: false
+      gallerySelector: false,
+      subgalleries: []
     });
   }
 
@@ -46,6 +48,7 @@ export class Image extends React.Component {
 
   remove() {
     Images.remove(this.props.src);
+    this.props.onRemove();
   }
 
   render() {
@@ -114,8 +117,9 @@ export class Image extends React.Component {
 }
 
 Image.propTypes = {
-  id: React.PropTypes.number.isRequired,
-  src: React.PropTypes.string.isRequired
+  id: React.PropTypes.objectOf(ObjectId).isRequired,
+  src: React.PropTypes.string.isRequired,
+  onRemove: React.PropTypes.func.isRequired
 };
 
 export default { Image };
