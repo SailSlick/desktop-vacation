@@ -18,18 +18,25 @@ const Galleries = {
     $('#hover-content').html(Templates.generate('gallery-get-name', {})).show();
     $('#hover-content form').submit((event) => {
       event.preventDefault();
-      Galleries.add($('#gallery-name').val());
+      Galleries.add($('#gallery-name').val(), () => true);
       $('#hover-content').html('').hide();
     });
     $('#hover-content .btn-danger').one('click', () => $('#hover-content').html('').hide());
   },
 
-  add: (name) => {
+  add: (name, next) => {
     console.log(`Adding gallery ${name}`);
     if (name.length === 0) {
       const msg = 'Empty name';
       console.error(msg);
       notify(msg, 'alert-danger');
+      next(msg);
+      return;
+    } else if (name === Galleries.baseName) {
+      const msg = 'Attempting to add base gallery';
+      console.error(msg);
+      notify(msg, 'alert-danger');
+      next(msg);
       return;
     }
     gallery_db.findOne({ name }, (found_gallery) => {
@@ -46,28 +53,37 @@ const Galleries = {
               const msg = `${Galleries.baseName} not found.`;
               console.error(msg);
               notify(msg, 'alert-danger');
+              next(msg);
               return;
             }
             base_gallery.subgallaries.push(inserted_gallery.$loki);
             gallery_db.updateOne(
               { name: Galleries.baseName },
-              base_gallery, () => { }
+              base_gallery, () => {}
             );
-            notify('Gallery added!');
+            notify('Gallery created!');
           });
           if (Galleries.currentGallery.length !== 0) {
-            Galleries.addSubGallery(inserted_gallery,
-              () => Galleries.view(Galleries.currentGallery)
-            );
+            Galleries.addSubGallery(inserted_gallery, () => {
+              next();
+              Galleries.view(Galleries.currentGallery);
+            });
           } else {
+            next();
             Galleries.view(Galleries.currentGallery);
           }
         });
       } else if (Galleries.currentGallery.length === 0) {
-        console.log(`Error adding ${name}, gallery already exists`);
-        notify(`${name} already exists!`, 'alert-danger');
+        const msg = `Error adding ${name}, gallery already exists`;
+        console.log(msg);
+        notify(msg, 'alert-danger');
+        next(msg);
       } else {
-        Galleries.addSubGallery(found_gallery, () => Galleries.view(Galleries.currentGallery));
+        Galleries.addSubGallery(found_gallery, (err) => {
+          if (err) console.error(err);
+          Galleries.view(Galleries.currentGallery);
+          next(err);
+        });
       }
     });
   },
@@ -75,45 +91,47 @@ const Galleries = {
   addSubGallery: (child_gallery, next) => {
     console.log(`Adding ${child_gallery.name} to ${Galleries.currentGallery}`);
     if (Galleries.currentGallery === Galleries.baseName) {
-      console.error('Parent is baseName');
-      return next();
+      next('Parent is baseName');
     } else if (Galleries.currentGallery === child_gallery.name) {
-      console.error('Adding child gallery to itself');
+      next('Adding child gallery to itself');
+    } else {
+      gallery_db.findOne({ name: Galleries.currentGallery }, (parent_gallery) => {
+        if (parent_gallery === null) {
+          next(`${Galleries.currentGallery} does not exist`);
+          return;
+        }
+        if ($.inArray(child_gallery.$loki, parent_gallery.subgallaries) !== -1) {
+          const msg = `${child_gallery.name} is already a subgallery!`;
+          notify(msg);
+          next(msg);
+          return;
+        }
+        parent_gallery.subgallaries.push(child_gallery.$loki);
+        gallery_db.updateOne({ name: Galleries.currentGallery }, parent_gallery, () => {
+          next();
+        });
+      });
     }
-    gallery_db.findOne({ name: Galleries.currentGallery }, (parent_gallery) => {
-      if (parent_gallery === null) {
-        console.err(`${Galleries.currentGallery} does not exist`);
-        return next();
-      }
-      if ($.inArray(child_gallery.$loki, parent_gallery.subgallaries) !== -1) {
-        const msg = `${child_gallery.name} is already `;
-        console.error(msg);
-        notify(msg);
-        return next();
-      }
-      parent_gallery.subgallaries.push(child_gallery.$loki);
-      return gallery_db.updateOne({ name: Galleries.currentGallery }, parent_gallery, next);
-    });
-    return next();
   },
 
-  addItem: (name, image_id) => {
+  addItem: (name, image_id, next) => {
     console.log(`Adding image_id ${image_id} to gallery ${name}`);
     gallery_db.findOne({ name }, (gallery) => {
       if (gallery === null) {
         const msg = 'Cannot find gallery';
         console.error(msg);
         notify(msg, 'alert-danger');
-        return;
-      }
-      if ($.inArray(image_id, gallery.images) === -1) {
+        next(msg);
+      } else if ($.inArray(image_id, gallery.images) === -1) {
         gallery.images.push(image_id);
         gallery_db.updateOne({ name }, gallery, () => {});
         notify('Item added!');
+        next();
       } else {
         const msg = 'Can\'t add a duplicate image';
         console.error(msg);
         notify(msg, 'alert-danger');
+        next(msg);
       }
     });
   },
@@ -153,47 +171,62 @@ const Galleries = {
       return next();
     }),
 
-  remove: (name) => {
+  remove: (name, next) => {
     console.log(`Removing gallery: ${name}`);
     if (name !== Galleries.baseName) {
       gallery_db.findOne({ name }, (gallery) => {
         if (gallery == null) {
-          console.error('No gallery to delete');
-          return;
-        }
-        gallery_db.findMany({ subgallaries: { $contains: gallery.$loki } }, (references) => {
-          references.forEach((ref, _i) => {
-            ref.subgallaries = ref.subgallaries.filter(i => i !== gallery.$loki);
+          next('Gallery does not exist');
+        } else if (Galleries.currentGallery.length !== 0) {
+          gallery_db.findOne(
+            {
+              name: Galleries.currentGallery,
+              subgallaries: { $contains: gallery.$loki }
+            }, (ref) => {
+            ref.subgallaries = ref.subgallaries.filter(v => v !== gallery.$loki);
             gallery_db.updateOne(
               { $loki: ref.$loki },
               ref.subgallaries,
-              r => console.log(`- ${r.name} no longer contains reference to gallery`));
+              r => console.log(`- ${r.name} no longer contains reference to gallery`)
+            );
+            next();
           });
-          Galleries.view();
-        });
-        gallery_db.removeOne({ name }, () => notify('Gallery removed!'));
+        } else {
+          gallery_db.findMany({ subgallaries: { $contains: gallery.$loki } }, (references) => {
+            references.forEach((ref, _i) => {
+              ref.subgallaries = ref.subgallaries.filter(v => v !== gallery.$loki);
+              gallery_db.updateOne(
+                { $loki: ref.$loki },
+                ref.subgallaries,
+                r => console.log(`- ${r.name} no longer contains reference to gallery`)
+              );
+            });
+          });
+          gallery_db.removeOne({ name }, () => {
+            notify('Gallery removed!');
+            next();
+          });
+        }
       });
     } else {
-      console.error('Tried to delete base gallery');
+      next('Tried to delete base gallery');
     }
   },
 
-  removeItem: (name, id) => {
-    console.log(`Attempting to remove ${id} from ${name}`);
+  removeItem: (name, id, next) => {
     if (name !== Galleries.baseName) {
       gallery_db.findOne({ name }, (gallery) => {
         if (gallery === null) {
           const msg = `${name} not found`;
-          console.error(msg);
           notify(msg, 'alert-danger');
-          Galleries.view();
-          return;
+          next(msg);
+        } else {
+          gallery.images = gallery.images.filter(i => i !== id);
+          gallery_db.updateOne({ name }, gallery, () => {
+            notify('Item removed!');
+            next();
+          });
         }
-        gallery.images = gallery.images.filter(i => i !== id);
-        gallery_db.updateOne({ name }, gallery, () => {
-          Galleries.view();
-          notify('Item removed!');
-        });
       });
     }
   },
@@ -234,8 +267,9 @@ const Galleries = {
           thumbnail
         }));
         $(`${selector} .gallery-card:last-child`).one('click', () => {
-          Galleries.addItem(subGallery.name, path);
-          $('#hover-content').html('').hide();
+          Galleries.addItem(subGallery.name, path, () => {
+            $('#hover-content').html('').hide();
+          });
         });
 
         // Remove the ... menus
@@ -246,15 +280,19 @@ const Galleries = {
 
   forAllImages: (name, next) => {
     gallery_db.findOne({ name }, (gallery) => {
-      gallery.images.forEach((id, index) => {
-        Images.image_db.findOne({ $loki: id }, (image) => {
-          if (image !== null) {
-            next(image, index);
-          } else {
-            console.error(`${name} contains an invalid image: ${id}`);
-          }
+      if (gallery === null) {
+        console.error(`${name} is an invalid gallery`);
+      } else {
+        gallery.images.forEach((id, index) => {
+          Images.image_db.findOne({ $loki: id }, (image) => {
+            if (image !== null) {
+              next(image, index);
+            } else {
+              console.error(`${name} contains an invalid image: ${id}`);
+            }
+          });
         });
-      });
+      }
     });
   },
 
@@ -279,7 +317,10 @@ const Galleries = {
         $(selector).click(() => {
           Galleries.view(subGallery.name);
         });
-        $(`${selector} .img-card:last-child .btn-gallery-remove`).click(() => Galleries.remove(subGallery.name));
+        $(`${selector} .img-card:last-child .btn-gallery-remove`).click(() => Galleries.remove(subGallery.name, (err) => {
+          if (err) console.err(err);
+          Galleries.view(Galleries.currentGallery);
+        }));
         $(`${selector} .img-card:last-child .btn-gallery-slideshow`).click(() => Slides.setSlideshow(subGallery.name));
       });
     });
@@ -293,7 +334,10 @@ const Galleries = {
       const path = image.location;
       const selector = `#main-content .view-col-${col}`;
       $(selector).append(Templates.generate('image-gallery-item', { src: path, id: index }));
-      $(`${selector} .img-card:last-child .btn-img-remove`).click(() => Galleries.removeItem(name, image.$loki));
+      $(`${selector} .img-card:last-child .btn-img-remove`).click(() => Galleries.removeItem(name, image.$loki, (err) => {
+        if (err) console.error(err);
+        Galleries.view();
+      }));
       $(`${selector} .img-card:last-child .btn-img-setwp`).click(() => Wallpaper.set(path));
       $(`${selector} .img-card:last-child .btn-img-addtogallery`).click(() => Galleries.pickGallery(image.$loki));
       $(`${selector} .img-card:last-child img`).click(() => Images.expand(path));
