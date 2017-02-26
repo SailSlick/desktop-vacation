@@ -2,6 +2,8 @@
 
 *.sublime-*
 hidden/
+*.xml
+mongo-url.js
 
 # Created by https://www.gitignore.io/api/virtualenv,python,node,linux,windows,android
 

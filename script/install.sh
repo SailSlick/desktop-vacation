@@ -18,15 +18,20 @@ if lsb_release -a 2> /dev/null | grep -q "Ubuntu"; then
     fi
   fi
 
-  if ! mongo --version | grep -q "3.4"; then
+  if ! mongo --version | grep -q "3"; then
     # mongo
     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
-    echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+    if (( $(lsb_release -rs | cut -d'.' -f1) > 15 )); then
+      echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+    else
+      echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+    fi
+
     sudo apt-get update
     sudo apt-get install -y mongodb-org
   fi
 
-  sudo apt-get install -y xorriso
+  sudo apt-get install -y xorriso libgtkextra-dev libgconf2-dev libnss3 libasound2 libxtst-dev libxss1
 
 elif lsb_release -a 2> /dev/null | grep -q "Arch"; then
   echo "Installing packages for Arch";
