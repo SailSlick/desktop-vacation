@@ -1,6 +1,6 @@
 import React from 'react';
 import { ObjectId } from 'lokijs';
-import { Button, Modal, Image as BsImage } from 'react-bootstrap';
+import { Button, Modal, MenuItem, Image as BsImage } from 'react-bootstrap';
 import Wallpaper from '../helpers/wallpaper-client';
 import Images from '../models/images';
 import Galleries from '../models/galleries';
@@ -69,27 +69,16 @@ class Image extends React.Component {
         <figcaption className="figure-caption rounded-circle">
           ...
           <div className="dropdown-menu img-menu">
-            <button
-              className="dropdown-item btn-img-setwp"
-              type="button"
-              onClick={this.setAsWallpaper}
-            >
+            <MenuItem onClick={this.setAsWallpaper}>
               Set as Wallpaper
-            </button>
-            <button
-              className="dropdown-item btn-img-addtogallery"
-              type="button"
-              onClick={this.showGallerySelector}
-            >
+            </MenuItem>
+            <MenuItem onClick={this.showGallerySelector}>
               Add to gallery
-            </button>
-            <button
-              className="dropdown-item btn-img-remove"
-              type="button"
-              onClick={this.remove}
-            >
+            </MenuItem>
+            <MenuItem divider />
+            <MenuItem onClick={this.remove}>
               Remove
-            </button>
+            </MenuItem>
           </div>
         </figcaption>
 
