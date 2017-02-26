@@ -26,8 +26,17 @@ module.exports = {
     });
   },
 
-  get: (galleryname, id, cb) => {
-    db.findOne({ name: galleryname, id }, (doc) => {
+  get: (galleryname, uid, cb) => {
+    db.findOne({ name: galleryname, uid }, (doc) => {
+      if (doc) return cb(null, doc);
+      return cb('gallery not found', null);
+    });
+  },
+
+  getGid: (gid, cb) => {
+    console.error('model:', gid);
+    console.error('modeltype:', typeof gid);
+    db.findOne({ _id: gid }, (doc) => {
       if (doc) return cb(null, doc);
       return cb('gallery not found', null);
     });
@@ -40,7 +49,14 @@ module.exports = {
     });
   },
 
-  update: (galleryname, id, data, cb) => {
+  update: (galleryname, uid, data, cb) => {
+    db.updateOne({ name: galleryname, uid }, data, (res) => {
+      if (res) return cb('updated one gallery');
+      return cb('gallery not updated');
+    });
+  },
+
+  updateGid: (galleryname, id, data, cb) => {
     db.updateOne({ name: galleryname, id }, data, (res) => {
       if (res) return cb('updated one gallery');
       return cb('gallery not updated');

@@ -6,21 +6,29 @@ module.exports = {
 
   create: (req, res, next) => {
     const uid = req.session.uid;
+    const username = req.session.username;
     const groupname = req.body.groupname;
 
     if (!galleryModel.verGroupname(groupname)) {
-      next({ status: 400, error: 'invalid groupname' });
+      return next({ status: 400, error: 'invalid groupname' });
     }
-    galleryModel.create(groupname, uid, (ret) => {
+    return galleryModel.create(groupname, uid, (ret) => {
       if (ret === 'user already has db of that name') {
-        next({ status: 400, error: ret });
+        return next({ status: 400, error: ret });
       } else if (ret === 'gallery could not be inserted') {
-        next({ status: 403, error: ret });
+        return next({ status: 403, error: ret });
       } else if (isNaN(ret)) {
-        next({ status: 200, message: 'group created' });
-      } else {
-        next({ status: 500, message: 'creation failed' });
+        return galleryModel.get(groupname, uid, (cb, doc) => {
+          userModel.get(username, (err, data) => {
+            if (err) return next({ status: 500, message: 'creation failed' });
+            data.groups.push(doc._id);
+            return userModel.update(username, data, () => {
+              next({ status: 200, message: 'group created' });
+            });
+          });
+        });
       }
+      return next({ status: 500, message: 'creation failed' });
     });
   },
 
@@ -29,15 +37,15 @@ module.exports = {
     const groupname = req.body.groupname;
 
     galleryModel.get(groupname, uid, (error, doc) => {
-      if (error) next({ status: 404, error: 'gallery doesn\'t exist' });
+      if (error) return next({ status: 404, error: 'gallery doesn\'t exist' });
 
       // add gallery to groups in userdb
-      userModel.get(uid, (err, uData) => {
-        if (err) next({ status: 500, error: 'switch failed' });
-        uData.groups.push(doc._id);
-        userModel.update(uid, doc, (ret) => {
-          if (ret) next({ status: 500, error: 'switch failed' });
-          next({ status: 200, message: 'gallery switched' });
+      return userModel.get(uid, (err, uData) => {
+        if (err) return next({ status: 500, error: 'switch failed' });
+        uData.groups.push(doc.id);
+        return userModel.update(uid, doc, (ret) => {
+          if (ret) return next({ status: 500, error: 'switch failed' });
+          return next({ status: 200, message: 'gallery switched' });
         });
       });
     });
@@ -45,23 +53,23 @@ module.exports = {
 
   delete: (req, res, next) => {
     const uid = req.session.uid;
-    const groupname = req.body.groupname;
+    const gid = req.body.gid;
 
     // check if gallery exists
-    galleryModel.get(groupname, uid, (err, doc) => {
-      if (err) next({ status: 404, error: 'group doesn\'t exist' });
-
-      if (doc.uid !== uid) {
-        next({ status: 401, error: 'incorrect permissions for group' });
-      } else {
-        galleryModel.remove(groupname, uid, (ret) => {
-          if (ret === 'gallery deleted') {
-            next({ status: 200, message: ret });
-          } else {
-            next({ status: 500, error: ret });
-          }
-        });
+    return galleryModel.getGid(gid, (err, doc) => {
+      if (err) {
+        console.error(err);
+        return next({ status: 404, error: 'group doesn\'t exist' });
       }
+      if (doc.uid !== uid) {
+        return next({ status: 401, error: 'incorrect permissions for group' });
+      }
+      return galleryModel.remove(doc.name, uid, (ret) => {
+        if (ret === 'gallery deleted') {
+          return next({ status: 200, message: ret });
+        }
+        return next({ status: 500, error: ret });
+      });
     });
   },
 
@@ -69,7 +77,8 @@ module.exports = {
     const username = req.session.username;
 
     // get list from userDB
-    userModel.get(username, (err, data) => {
+    return userModel.get(username, (err, data) => {
+      console.error('control glist:', data.groups);
       next({
         status: 200,
         message: 'user groups found',
@@ -82,7 +91,7 @@ module.exports = {
     const username = req.session.username;
 
     // get list from userDB
-    userModel.get(username, (err, data) => {
+    return userModel.get(username, (err, data) => {
       next({
         status: 200,
         message: 'user groups found',
@@ -93,26 +102,25 @@ module.exports = {
 
   inviteUser: (req, res, next) => {
     const uid = req.session.uid;
-    const groupname = req.body.groupname;
     const toAddName = req.body.username;
+    const gid = req.body.gid;
 
     // check to see if user exists
-    userModel.get(toAddName, (err, result) => {
-      if (err) next({ status: 404, message: 'user doesn\'t exist' });
+    return userModel.get(toAddName, (err, result) => {
+      if (err) return next({ status: 404, message: 'user doesn\'t exist' });
       // check if gallery exists
-      galleryModel.get(groupname, uid, (error, doc) => {
-        if (error) next({ status: 404, error: 'group doesn\'t exist' });
+      return galleryModel.getGid(gid, (error, doc) => {
+        if (error) return next({ status: 404, error: 'group doesn\'t exist' });
 
         if (doc.uid !== uid) {
-          next({ status: 401, error: 'incorrect permissions for group' });
-        } else {
-          // add invite to user list
-          result.invites.push({ groupname, gid: doc._id });
-          userModel.update(toAddName, result, (check) => {
-            if (check) next({ status: 500, message: 'invite failed' });
-            next({ status: 200, message: 'user invited to group' });
-          });
+          return next({ status: 401, error: 'incorrect permissions for group' });
         }
+        // add invite to user list
+        result.invites.push({ groupname: doc.name, gid: doc.id });
+        return userModel.update(toAddName, result, (check) => {
+          if (check) return next({ status: 500, message: 'invite failed' });
+          return next({ status: 200, message: 'user invited to group' });
+        });
       });
     });
   },
@@ -120,51 +128,45 @@ module.exports = {
   removeUser: (req, res, next) => {
     const uid = req.session.uid;
     const username = req.session.username;
-    const groupname = req.body.groupname;
     const toRemoveName = req.body.username;
     const gid = req.body.gid;
 
     if (username === toRemoveName) {
-      next({ status: 400, error: 'user is owner of group' });
+      return next({ status: 400, error: 'user is owner of group' });
     }
 
     // check to see if user exists
-    userModel.get(toRemoveName, (err, result) => {
-      if (err) next({ status: 404, message: 'user doesn\'t exist' });
+    return userModel.get(toRemoveName, (err, result) => {
+      if (err) return next({ status: 404, message: 'user doesn\'t exist' });
 
       // update the user's group list
       const userListIndex = result.groups.indexOf(toRemoveName);
       if (userListIndex === -1) {
-        next({ status: 400, error: 'user isn\'t member of group' });
-      } else {
-        result.groups.remove(userListIndex);
-        userModel.update(toRemoveName, result, (cb) => {
-          if (cb) next({ status: 500, error: cb });
-        });
+        return next({ status: 400, error: 'user isn\'t member of group' });
       }
+      result.groups.remove(userListIndex);
+      return userModel.update(toRemoveName, result, (cb) => {
+        if (cb) return next({ status: 500, error: cb });
+        // check if gallery exists
+        return galleryModel.getGid(gid, (error, doc) => {
+          if (error) return next({ status: 404, error: 'group doesn\'t exist' });
 
-      // check if gallery exists
-      galleryModel.get(groupname, gid, (error, doc) => {
-        if (error) next({ status: 404, error: 'group doesn\'t exist' });
-
-        if (doc.uid !== uid) {
-          next({ status: 401, error: 'incorrect permissions for group' });
-        } else {
+          if (doc.uid !== uid) {
+            return next({ status: 401, error: 'incorrect permissions for group' });
+          }
           // remove user from group
           const groupListIndex = doc.users.indexOf(toRemoveName);
           if (groupListIndex === -1) {
-            next({ status: 400, error: 'user isn\'t member of group' });
-          } else {
-            doc.users.remove(groupListIndex);
-            galleryModel.update(groupname, uid, doc, (ret) => {
-              if (ret === 'updated one gallery') {
-                next({ status: 200, message: 'user removed from group' });
-              } else {
-                next({ status: 500, error: ret });
-              }
-            });
+            return next({ status: 400, error: 'user isn\'t member of group' });
           }
-        }
+          doc.users.remove(groupListIndex);
+          return galleryModel.update(doc.name, uid, doc, (ret) => {
+            if (ret === 'updated one gallery') {
+              return next({ status: 200, message: 'user removed from group' });
+            }
+            return next({ status: 500, error: ret });
+          });
+        });
       });
     });
   },
@@ -175,34 +177,31 @@ module.exports = {
     const gid = req.body.gid;
 
     // check to see if user has invite for group
-    userModel.get(username, (err, result) => {
+    return userModel.get(username, (err, result) => {
       const inviteData = { groupname, gid };
       if (result.invites.indexOf(inviteData) === -1) {
-        next({ status: 400, error: 'user isn\'t invited to group' });
+        return next({ status: 400, error: 'user isn\'t invited to group' });
       }
       result.groups.push(gid);
       result.invites.remove(result.invites.indexOf(inviteData));
-      userModel.update(username, result, (cb) => {
-        if (cb) next({ status: 500, error: cb });
-      });
-    });
+      return userModel.update(username, result, (cb) => {
+        if (cb) return next({ status: 500, error: cb });
+        // check if gallery exists
+        return galleryModel.getGid(gid, (err2, doc) => {
+          if (err2) return next({ status: 404, error: 'group doesn\'t exist' });
 
-    // check if gallery exists
-    galleryModel.get(groupname, gid, (err, doc) => {
-      if (err) next({ status: 404, error: 'group doesn\'t exist' });
-
-      if (doc.users.indexOf(username) !== -1) {
-        next({ status: 401, error: 'user is already member of group' });
-      } else {
-        doc.users.push(username);
-        galleryModel.update(groupname, doc.uid, doc, (ret) => {
-          if (ret === 'updated one gallery') {
-            next({ status: 200, message: 'user has joined the group' });
-          } else {
-            next({ status: 500, error: ret });
+          if (doc.users.indexOf(username) !== -1) {
+            return next({ status: 401, error: 'user is already member of group' });
           }
+          doc.users.push(username);
+          return galleryModel.update(groupname, doc.uid, doc, (ret) => {
+            if (ret === 'updated one gallery') {
+              return next({ status: 200, message: 'user has joined the group' });
+            }
+            return next({ status: 500, error: ret });
+          });
         });
-      }
+      });
     });
   },
 
@@ -212,15 +211,15 @@ module.exports = {
     const gid = req.body.gid;
 
     // check to see if user has invite for group
-    userModel.get(username, (err, result) => {
+    return userModel.get(username, (err, result) => {
       const inviteData = { groupname, gid };
       if (result.invites.indexOf(inviteData) === -1) {
-        next({ status: 400, error: 'invitation doesn\'t exist' });
+        return next({ status: 400, error: 'invitation doesn\'t exist' });
       }
       result.invites.remove(result.invites.indexOf(inviteData));
-      userModel.update(username, result, (cb) => {
-        if (cb) next({ status: 500, error: cb });
-        next({ status: 200, message: 'user has refused invitation' });
+      return userModel.update(username, result, (cb) => {
+        if (cb) return next({ status: 500, error: cb });
+        return next({ status: 200, message: 'user has refused invitation' });
       });
     });
   },
@@ -230,9 +229,8 @@ module.exports = {
     const galleryname = req.body.galleryname;
 
     galleryModel.get(galleryname, uid, (err, doc) => {
-      if (err) next({ status: 404, error: 'gallery doesn\'t exist' });
-
-      next({
+      if (err) return next({ status: 404, error: 'gallery doesn\'t exist' });
+      return next({
         status: 200,
         message: 'gallery found',
         data: doc
@@ -243,40 +241,38 @@ module.exports = {
   getGroup: (req, res, next) => {
     const username = req.session.username;
     const uid = req.session.uid;
-    const groupname = req.body.groupname;
     const gid = req.body.gid;
 
-    galleryModel.get(groupname, gid, (err, doc) => {
-      if (err) next({ status: 404, error: 'group doesn\'t exist' });
+    galleryModel.getGid(gid, (err, doc) => {
+      if (err) return next({ status: 404, error: 'group doesn\'t exist' });
 
       if (doc.users.indexOf(username) === -1 || doc.uid !== uid) {
-        next({ status: 400, error: 'user isn\'t member of group' });
-      } else {
-        next({
-          status: 200,
-          message: 'group found',
-          data: doc
-        });
+        return next({ status: 400, error: 'user isn\'t member of group' });
       }
+      return next({
+        status: 200,
+        message: 'group found',
+        data: doc
+      });
     });
   },
 
   addGroupItem: (req, res, next) => {
     const username = req.session.username;
     const uid = req.session.uid;
-    const groupname = req.body.groupname;
     const gid = req.body.gid;
     // const updateData = req.body.updateData;
 
-    galleryModel.get(groupname, gid, (err, doc) => {
-      if (!doc) next({ status: 404, error: 'group doesn\'t exist' });
+    galleryModel.getGid(gid, (err, doc) => {
+      if (!doc) return next({ status: 404, error: 'group doesn\'t exist' });
       if (!(doc.uid === uid || doc.user.indexOf(username) !== -1)) {
-        next({ status: 400, error: 'user isn\'t member of group' });
+        return next({ status: 400, error: 'user isn\'t member of group' });
       }
+      return next();
       /* Waiting on server syncing
-      next({ status: 401, error: 'incorrect permissions for group' });
-      next({ status: 400, error: 'data is invalid' });
-      next({ status: 200, message: 'data added to group' });
+      return next({ status: 401, error: 'incorrect permissions for group' });
+      return next({ status: 400, error: 'data is invalid' });
+      return next({ status: 200, message: 'data added to group' });
       */
     });
   },
@@ -284,19 +280,19 @@ module.exports = {
   removeGroupItem: (req, res, next) => {
     const username = req.session.username;
     const uid = req.session.uid;
-    const groupname = req.body.groupname;
     const gid = req.body.gid;
     // const updateData = req.body.updateData;
 
-    galleryModel.get(groupname, gid, (err, doc) => {
-      if (!doc) next({ status: 404, error: 'group doesn\'t exist' });
+    galleryModel.getGid(gid, (err, doc) => {
+      if (!doc) return next({ status: 404, error: 'group doesn\'t exist' });
       if (!(doc.uid === uid || doc.user.indexOf(username) !== -1)) {
-        next({ status: 400, error: 'user isn\'t member of group' });
+        return next({ status: 400, error: 'user isn\'t member of group' });
       }
+      return next();
       /* Waiting on server syncing
-      next({ status: 401, error: 'incorrect permissions for group' });
-      next({ status: 400, error: 'data is invalid' });
-      next({ status: 200, message: 'data removed from group' });
+      return next({ status: 401, error: 'incorrect permissions for group' });
+      return next({ status: 400, error: 'data is invalid' });
+      return next({ status: 200, message: 'data removed from group' });
       */
     });
   }

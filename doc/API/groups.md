@@ -60,10 +60,10 @@ Upon successful request, turns a gallery into a group.
 
 ### Expected Errors
 
-| Error Message                           | Status |
-|-----------------------------------------|--------|
-| `'switch failed'`                       |   500  |
-| `'gallery doesn't exist'`               |   404  |
+| Error Message             | Status |
+|---------------------------|--------|
+| `'switch failed'`         |   500  |
+| `'gallery doesn't exist'` |   404  |
 
 ## Delete Group
 
@@ -73,9 +73,9 @@ Upon successful request, deletes a group gallery.
 
 ### Parameters
 
-| Name      | Type   | Description                     |
-|-----------|--------|---------------------------------|
-| groupname | string | The name of the group to delete |
+| Name | Type   | Description                   |
+|------|--------|-------------------------------|
+| gid  | string | The id of the group to delete |
 
 ### Response
 
@@ -124,7 +124,7 @@ Upon successful request, invites a user to join the group.
 
 | Name      | Type   | Description                 |
 |-----------|--------|-----------------------------|
-| groupname | string | The group name to invite to |
+| gid       | string | The group id to invite to   |
 | username  | string | The name of the user to add |
 
 ### Response
@@ -141,6 +141,7 @@ Upon successful request, invites a user to join the group.
 | `'group doesn't exist'`             |   404  |
 | `'user doesn't exist'`              |   404  |
 | `'incorrect permissions for group'` |   401  |
+| `'user is already member of group'` |   400  |
 
 ## Remove user from group
 
@@ -150,10 +151,10 @@ Upon successful request, removes a user from the group.
 
 ### Parameters
 
-| Name      | Type   | Description                    |
-|-----------|--------|--------------------------------|
-| groupname | string | The group name to remove from  |
-| username  | string | The name of the user to remove |
+| Name      | Type   | Description                        |
+|-----------|--------|------------------------------------|
+| gid       | string | The id of the group to remove from |
+| username  | string | The name of the user to remove     |
 
 ### Response
 
@@ -179,9 +180,10 @@ Upon successful request, join a group that you have been invited to.
 
 ### Parameters
 
-| Name      | Type   | Description            |
-|-----------|--------|------------------------|
-| groupname | string | The group name to join |
+| Name      | Type   | Description                 |
+|-----------|--------|-----------------------------|
+| groupname | string | The group name to join      |
+| gid       | string | The id of the group to join |
 
 ### Response
 
@@ -206,9 +208,10 @@ Upon successful request, refuse an invitation you have received to a group.
 
 ### Parameters
 
-| Name      | Type   | Description                  |
-|-----------|--------|------------------------------|
-| groupname | string | The group name of the invite |
+| Name      | Type   | Description                   |
+|-----------|--------|-------------------------------|
+| groupname | string | The group name of the invite  |
+| gid       | string | The id of the group to refuse |
 
 ### Response
 
@@ -219,9 +222,9 @@ Upon successful request, refuse an invitation you have received to a group.
 
 ### Expected Errors
 
-| Error Message                       | Status |
-|-------------------------------------|--------|
-| `'invitation doesn't exist'`        |   404  |
+| Error Message                | Status |
+|------------------------------|--------|
+| `'invitation doesn't exist'` |   404  |
 
 ## Get all your Invites
 
@@ -248,9 +251,9 @@ group.
 
 ### Parameters
 
-| Name      | Type   | Description            |
-|-----------|--------|------------------------|
-| groupname | string | The group name to join |
+| Name | Type   | Description                   |
+|------|--------|-------------------------------|
+| gid  | string | The group id to get data from |
 
 ### Response
 
@@ -279,10 +282,10 @@ group.
 
 ### Expected Errors
 
-| Error Message                       | Status |
-|-------------------------------------|--------|
-| `'group doesn't exist'`             |   404  |
-| `'user isn't member of group'`      |   400  |
+| Error Message                  | Status |
+|--------------------------------|--------|
+| `'group doesn't exist'`        |   404  |
+| `'user isn't member of group'` |   400  |
 
 ## Add images/galleries to group
 
@@ -292,10 +295,10 @@ Upon successful request, adds images/galleries to a group.
 
 ### Parameters
 
-| Name      | Type   | Description                  |
-|-----------|--------|------------------------------|
-| groupname | string | The group name to add to     |
-| groupdata | object | The data to add to the group |
+| Name      | Type   | Description                   |
+|-----------|--------|-------------------------------|
+| gid       | string | The id of the group to update |
+| groupdata | object | The data to add to the group  |
 
 ### Response
 
@@ -321,10 +324,10 @@ Upon successful request, removes images/galleries from a group.
 
 ### Parameters
 
-| Name      | Type   | Description                       |
-|-----------|--------|-----------------------------------|
-| groupname | string | The group name to remove from     |
-| groupdata | object | The data to remove from the group |
+| Name      | Type   | Description                        |
+|-----------|--------|------------------------------------|
+| gid       | string | The id of the group to remove from |
+| groupdata | object | The data to remove from the group  |
 
 ### Response
 

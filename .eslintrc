@@ -10,6 +10,7 @@
     "no-console": "off",
     "camelcase": "off",
     "comma-dangle": "off",
+    "no-underscore-dangle": "off",
     "no-param-reassign": "off",
     "guard-for-in": "off",
     "import/no-extraneous-dependencies": "off",
