@@ -8,6 +8,7 @@ var batch = require('gulp-batch');
 var plumber = require('gulp-plumber');
 var jetpack = require('fs-jetpack');
 var jsx = require('rollup-plugin-jsx');
+var buble = require('rollup-plugin-buble');
 var bundle = require('./bundle');
 
 var projectDir = jetpack;
@@ -19,6 +20,7 @@ gulp.task('bundle', function () {
         bundle(srcDir.path('background.js'), destDir.path('background.js')),
         bundle(srcDir.path('app.js'), destDir.path('app.js'), {
             rollupPlugins: [
+                buble(),
                 jsx({ factory: 'React.createElement' })
             ]
         }),

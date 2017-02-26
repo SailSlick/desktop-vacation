@@ -1,5 +1,5 @@
 import React from 'react';
-import { setSlideshow } from '../helpers/slideshow-client';
+import Slideshow from '../helpers/slideshow-client';
 
 class GalleryCard extends React.Component {
   constructor(props) {
@@ -11,7 +11,7 @@ class GalleryCard extends React.Component {
   }
 
   setSlideshow() {
-    setSlideshow(this.props.name);
+    Slideshow.setSlideshow(this.props.name);
   }
 
   remove() {
@@ -44,8 +44,8 @@ class GalleryCard extends React.Component {
 GalleryCard.propTypes = {
   name: React.PropTypes.string.isRequired,
   thumbnail: React.PropTypes.string.isRequired,
-  onClick: React.propTypes.func.isRequired,
-  remove: React.propTypes.func.isRequired
+  onClick: React.PropTypes.func.isRequired,
+  remove: React.PropTypes.func.isRequired
 };
 
 export default GalleryCard;

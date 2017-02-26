@@ -1,12 +1,15 @@
 import async from 'async';
+import { ipcRenderer as ipc } from 'electron';
 import DbConn from '../helpers/db';
-import image_db from './images';
+import Images from './images';
 
 let gallery_db;
 
-const Galleries = {
-  baseName: 'Sully'.concat('_all'),
+const BASE_GALLERY = 'Sully_all';
 
+const gallery_update_event = new Event('gallery_updated');
+
+const Galleries = {
   add: (name) => {
     console.log(`Adding gallery ${name}`);
     gallery_db.findOne({ name }, (found_gallery) => {
@@ -18,15 +21,15 @@ const Galleries = {
           images: []
         };
         return gallery_db.insert(doc, (inserted_gallery) => {
-          gallery_db.findOne({ name: Galleries.baseName }, (base_gallery) => {
+          gallery_db.findOne({ name: BASE_GALLERY }, (base_gallery) => {
             if (base_gallery === null) {
-              const msg = `${Galleries.baseName} not found.`;
+              const msg = `${BASE_GALLERY} not found.`;
               console.error(msg);
               return msg;
             }
             base_gallery.subgallaries.push(inserted_gallery.$loki);
             gallery_db.updateOne(
-              { name: Galleries.baseName },
+              { name: BASE_GALLERY },
               base_gallery
             );
             return 0;
@@ -50,41 +53,16 @@ const Galleries = {
       if (gallery.images.indexOf(image_id) === -1) {
         gallery.images.push(image_id);
         gallery_db.updateOne({ name }, gallery, () => {});
+
+        // This may be changed later, because for every
+        // image in a multi-add it will be fired... not
+        // great for performance
+        document.dispatchEvent(gallery_update_event);
         return 0;
       }
       const msg = 'Duplicate Image added';
       console.error(msg);
       return msg;
-    });
-  },
-
-  forAllSubgalleries: (name, next) => {
-    gallery_db.findOne({ name }, (gallery) => {
-      if (gallery === null) {
-        console.error(`${name} is an invalid gallery`);
-        return;
-      }
-      gallery.subgallaries.forEach((id, index) => {
-        gallery_db.findOne({ $loki: id }, (subGallary) => {
-          if (subGallary !== null) {
-            next(subGallary, index);
-          } else {
-            console.error(`Invalid subgallary in ${id}`);
-          }
-        });
-      });
-    });
-  },
-
-  getThumbnail: (name, next) => {
-    gallery_db.findOne({ name }, (gallery) => {
-      if (gallery.images.length !== 0) {
-        return image_db.findOne(
-          { $loki: gallery.images[0] },
-          image => next(image.location)
-        );
-      }
-      return next();
     });
   },
 
@@ -96,9 +74,44 @@ const Galleries = {
     gallery_db.findOne({ name }, cb);
   },
 
+  getThumbnail: (name, next) => {
+    gallery_db.findOne({ name }, (gallery) => {
+      if (gallery.images.length !== 0) {
+        return Images.get(
+          gallery.images[0],
+          image => next(image.location)
+        );
+      }
+      return next();
+    });
+  },
+
+  getSubgalleries: (name, cb) => {
+    gallery_db.findOne({ name: name || BASE_GALLERY }, gallery =>
+      async.map(gallery.subgalleries, (id, next) =>
+        Galleries.get(id, (subgallery) => {
+          // Get thumbnail
+          if (subgallery.images.length !== 0) {
+            Images.get(
+              gallery.images[0],
+              (image) => {
+                subgallery.thumbnail = image.location;
+                next(null, subgallery);
+              }
+            );
+          } else {
+            next(null, subgallery);
+          }
+        }),
+      (_, subgalleries) =>
+        cb(subgalleries)
+      )
+    );
+  },
+
   remove: (name) => {
     console.log(`Removing gallery: ${name}`);
-    if (name !== Galleries.baseName) {
+    if (name !== BASE_GALLERY) {
       return gallery_db.findOne({ name }, (gallery) => {
         if (gallery == null) {
           const msg = 'No gallery to delete';
@@ -124,46 +137,45 @@ const Galleries = {
 
   removeItem: (name, id) => {
     console.log(`Attempting to remove ${id} from ${name}`);
-    if (name !== Galleries.baseName) {
-      gallery_db.findOne({ name }, (gallery) => {
-        if (gallery === null) {
-          const msg = `${name} not found`;
-          console.error(msg);
-          return msg;
-        }
+    gallery_db.findOne({ name }, (gallery) => {
+      if (gallery === null) {
+        const msg = `${name} not found`;
+        console.error(msg);
+      } else {
         gallery.images = gallery.images.filter(i => i !== id);
-        return gallery_db.updateOne({ name }, gallery);
-      });
+        gallery_db.updateOne({ name }, gallery, () => {
+          console.log('Item removed');
+          document.dispatchEvent(gallery_update_event);
+        });
+      }
+    });
+    if (name === BASE_GALLERY) {
+      console.log('TODO delete from image db');
     }
   },
 
-  getSubgalleries: (name, cb) => {
-    gallery_db.findOne({ name: name || Galleries.baseName }, gallery =>
-      async.map(gallery.subgalleries, (id, next) =>
-        Galleries.get(id, (subgallery) => {
-          // Get thumbnail
-          if (subgallery.images.length !== 0) {
-            image_db.findOne(
-              { $loki: gallery.images[0] },
-              (image) => {
-                subgallery.thumbnail = image.location;
-                next(null, subgallery);
-              }
-            );
+  forAllSubgalleries: (name, next) => {
+    gallery_db.findOne({ name }, (gallery) => {
+      if (gallery === null) {
+        console.error(`${name} is an invalid gallery`);
+        return;
+      }
+      gallery.subgallaries.forEach((id, index) => {
+        gallery_db.findOne({ $loki: id }, (subGallary) => {
+          if (subGallary !== null) {
+            next(subGallary, index);
           } else {
-            next(null, subgallery);
+            console.error(`Invalid subgallary in ${id}`);
           }
-        }),
-      (_, subgalleries) =>
-        cb(subgalleries)
-      )
-    );
+        });
+      });
+    });
   },
 
   forAllImages: (name, next) => {
     gallery_db.findOne({ name }, (gallery) => {
       gallery.images.forEach((id, index) => {
-        image_db.findOne({ $loki: id }, (image) => {
+        Images.get(id, (image) => {
           if (image !== null) {
             next(image, index);
           } else {
@@ -179,5 +191,20 @@ const Galleries = {
 document.addEventListener('vacation_loaded', () => {
   gallery_db = new DbConn('galleries');
 }, false);
+
+document.addEventListener('gallery_updated', () => {
+  gallery_db.save(_ => console.log('Database saved'));
+}, false);
+
+// IPC Calls
+ipc.on('selected-directory', (event, files) => {
+  let i;
+  for (i = 0; i < files.length; i++) {
+    Images.add(files[i], image =>
+      Galleries.addItem(BASE_GALLERY, image.$loki)
+    );
+    console.log(`Opened image ${files[i]}`);
+  }
+});
 
 export default Galleries;

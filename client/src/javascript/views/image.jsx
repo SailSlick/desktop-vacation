@@ -1,18 +1,26 @@
 import React from 'react';
 import { ObjectId } from 'lokijs';
-import { Button, Modal } from 'react-bootstrap';
+import { Button, Modal, Image as BsImage } from 'react-bootstrap';
 import Wallpaper from '../helpers/wallpaper-client';
 import Images from '../models/images';
 import Galleries from '../models/galleries';
-import SimpleGalleryCard from './gallerycard-simple';
+import SimpleGalleryCard from './gallerycard-simple.jsx';
 
 class Image extends React.Component {
-  getInitialState() {
-    return {
+  constructor(props) {
+    super(props);
+
+    this.state = {
       expanded: false,
       gallerySelector: false,
       subgalleries: []
     };
+
+    this.setAsWallpaper = this.setAsWallpaper.bind(this);
+    this.showGallerySelector = this.showGallerySelector.bind(this);
+    this.expand = this.expand.bind(this);
+    this.collapse = this.collapse.bind(this);
+    this.remove = this.remove.bind(this);
   }
 
   setAsWallpaper() {
@@ -43,18 +51,21 @@ class Image extends React.Component {
   }
 
   collapse() {
-    return this.setState(this.getInitialState());
+    return this.setState({
+      expanded: false,
+      gallerySelector: false,
+      subgalleries: []
+    });
   }
 
   remove() {
-    Images.remove(this.props.src);
-    this.props.onRemove();
+    this.props.onRemove(this.props.id);
   }
 
   render() {
     return (
       <figure className="figure img-card rounded" data-id={this.props.id}>
-        <img className="img-fluid" src={this.props.src} alt="MISSING" onClick={this.expand} />
+        <BsImage responsive src={this.props.src} alt="MISSING" onClick={this.expand} />
         <figcaption className="figure-caption rounded-circle">
           ...
           <div className="dropdown-menu img-menu">
@@ -101,6 +112,7 @@ class Image extends React.Component {
           <Modal.Body>
             {this.state.subgalleries.map(gallery =>
               <SimpleGalleryCard
+                gallery={gallery}
                 onClick={_ =>
                   this.addToGallery(gallery.name)
                 }
@@ -122,4 +134,4 @@ Image.propTypes = {
   onRemove: React.PropTypes.func.isRequired
 };
 
-export default { Image };
+export default Image;

@@ -3,7 +3,7 @@ import { platform } from 'os';
 import { reduce } from 'async';
 import { exec } from 'child_process';
 import { ipcMain as ipc } from 'electron';
-import setters from '../config/wp_setters';
+import setters from '../../config/wp_setters';
 
 function escapePath(path) {
   if (platform() !== 'win32') {
