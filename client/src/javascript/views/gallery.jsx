@@ -63,56 +63,31 @@ class Gallery extends React.Component {
   }
 
   render() {
+    const items = this.state.subgalleries.map(subgallery =>
+      <GalleryCard
+        name={subgallery.name}
+        thumbnail={subgallery.thumbnail}
+        onClick={_ => this.props.onChange(subgallery.name)}
+        remove={this.removeSubgallery}
+      />
+    ).concat(this.state.images.map(image =>
+      <Image
+        id={image.$loki}
+        src={image.location}
+        onRemove={this.removeItem}
+      />
+    ));
     return (
       <Row>
-        {this.state.subgalleries.map(subgallery =>
-          <Col xs={4}>
-            <GalleryCard
-              name={subgallery.name}
-              thumbnail={subgallery.thumbnail}
-              onClick={_ => this.props.onChange(subgallery.name)}
-              remove={this.removeSubgallery}
-            />
-          </Col>
-        )}
-        <Row>
-          <Col xs={4}>
-            {this.state.images.map((image, i) => {
-              if (i % 3 !== 0) return null;
-              return (
-                <Image
-                  id={image.$loki}
-                  src={image.location}
-                  onRemove={this.removeItem}
-                />
-              );
-            })}
-          </Col>
-          <Col xs={4}>
-            {this.state.images.map((image, i) => {
-              if ((i + 1) % 3 !== 0) return null;
-              return (
-                <Image
-                  id={image.$loki}
-                  src={image.location}
-                  onRemove={this.removeItem}
-                />
-              );
-            })}
-          </Col>
-          <Col xs={4}>
-            {this.state.images.map((image, i) => {
-              if ((i + 2) % 3 !== 0) return null;
-              return (
-                <Image
-                  id={image.$loki}
-                  src={image.location}
-                  onRemove={this.removeItem}
-                />
-              );
-            })}
-          </Col>
-        </Row>
+        <Col xs={4}>
+          {items.map((item, i) => (i % 3 === 0 && item) || null)}
+        </Col>
+        <Col xs={4}>
+          {items.map((item, i) => ((i + 1) % 3 === 0 && item) || null)}
+        </Col>
+        <Col xs={4}>
+          {items.map((item, i) => ((i + 2) % 3 === 0 && item) || null)}
+        </Col>
       </Row>
     );
   }

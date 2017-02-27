@@ -1,8 +1,7 @@
 import React from 'react';
 import { ObjectId } from 'lokijs';
-import { Button, Modal, MenuItem, Image as BsImage } from 'react-bootstrap';
+import { Modal, MenuItem, Image as BsImage } from 'react-bootstrap';
 import Wallpaper from '../helpers/wallpaper-client';
-import Images from '../models/images';
 import Galleries from '../models/galleries';
 import SimpleGalleryCard from './gallerycard-simple.jsx';
 
@@ -87,11 +86,8 @@ class Image extends React.Component {
             <Modal.Title>{this.props.src}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <h1>HELLO</h1>
+            <BsImage responsive src={this.props.src} alt="MISSING" />
           </Modal.Body>
-          <Modal.Footer>
-            <Button onClick={this.collapse}>Close</Button>
-          </Modal.Footer>
         </Modal>
 
         <Modal show={this.state.gallerySelector} onHide={this.collapse}>
@@ -108,9 +104,6 @@ class Image extends React.Component {
               />
             )}
           </Modal.Body>
-          <Modal.Footer>
-            <Button onClick={this.collapse}>Close</Button>
-          </Modal.Footer>
         </Modal>
       </figure>
     );
