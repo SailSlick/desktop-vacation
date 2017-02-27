@@ -58,13 +58,9 @@ class DbConn {
   // findOne: find single item in collection that matches query (e.g. get user data)
   // query in {x:y} format
   findOne(query, cb) {
-    /*if (query._id) {
-      console.error(query);
-      console.error('db layer:', query._id);
-      console.error('db layer type1:', typeof query._id);
-      query._id = MongoClient.ObjectId(query.id);
-      console.error('db layer type2:', typeof query._id);
-    }*/
+    if (query._id && typeof query._id === 'string') {
+      query._id = new MongoClient.ObjectID(query._id);
+    }
     return this.col.find(query).limit(1).next((err, doc) => {
       errCheck(err, () => {
         debug('Found one doc');

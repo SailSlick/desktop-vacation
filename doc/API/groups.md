@@ -91,6 +91,7 @@ Upon successful request, deletes a group gallery.
 | `'deletion failed'`                 |   500  |
 | `'group doesn't exist'`             |   404  |
 | `'incorrect permissions for group'` |   401  |
+| `'invalid gid'`                     |   400  |
 
 ## Get all your Groups
 

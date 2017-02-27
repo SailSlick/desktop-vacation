@@ -25,7 +25,7 @@ module.exports = {
           galleryModel.create(username.concat('_all'), added, (g_id) => {
             userData.gallery = g_id;
             return db.updateOne({ _id: added }, userData, (res) => {
-              if (res) return cb();
+              if (res) return cb(added);
               return cb('database communication error');
             });
           });

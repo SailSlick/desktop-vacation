@@ -42,7 +42,7 @@ module.exports = {
       // add gallery to groups in userdb
       return userModel.get(uid, (err, uData) => {
         if (err) return next({ status: 500, error: 'switch failed' });
-        uData.groups.push(doc.id);
+        uData.groups.push(doc._id);
         return userModel.update(uid, doc, (ret) => {
           if (ret) return next({ status: 500, error: 'switch failed' });
           return next({ status: 200, message: 'gallery switched' });
@@ -54,6 +54,10 @@ module.exports = {
   delete: (req, res, next) => {
     const uid = req.session.uid;
     const gid = req.body.gid;
+
+    if (!galleryModel.verGid(gid)) {
+      return next({ status: 400, error: 'invalid gid' });
+    }
 
     // check if gallery exists
     return galleryModel.getGid(gid, (err, doc) => {
@@ -78,7 +82,6 @@ module.exports = {
 
     // get list from userDB
     return userModel.get(username, (err, data) => {
-      console.error('control glist:', data.groups);
       next({
         status: 200,
         message: 'user groups found',
@@ -115,8 +118,12 @@ module.exports = {
         if (doc.uid !== uid) {
           return next({ status: 401, error: 'incorrect permissions for group' });
         }
+        if (doc.users.indexOf(toAddName) !== -1) {
+          return next({ status: 400, error: 'user is already member of group' });
+        }
+
         // add invite to user list
-        result.invites.push({ groupname: doc.name, gid: doc.id });
+        result.invites.push({ groupname: doc.name, gid: doc._id.toHexString() });
         return userModel.update(toAddName, result, (check) => {
           if (check) return next({ status: 500, message: 'invite failed' });
           return next({ status: 200, message: 'user invited to group' });
@@ -127,40 +134,43 @@ module.exports = {
 
   removeUser: (req, res, next) => {
     const uid = req.session.uid;
-    const username = req.session.username;
     const toRemoveName = req.body.username;
     const gid = req.body.gid;
 
-    if (username === toRemoveName) {
-      return next({ status: 400, error: 'user is owner of group' });
-    }
-
     // check to see if user exists
     return userModel.get(toRemoveName, (err, result) => {
-      if (err) return next({ status: 404, message: 'user doesn\'t exist' });
+      if (err) return next({ status: 404, error: 'user doesn\'t exist' });
 
-      // update the user's group list
-      const userListIndex = result.groups.indexOf(toRemoveName);
-      if (userListIndex === -1) {
-        return next({ status: 400, error: 'user isn\'t member of group' });
-      }
-      result.groups.remove(userListIndex);
-      return userModel.update(toRemoveName, result, (cb) => {
-        if (cb) return next({ status: 500, error: cb });
-        // check if gallery exists
-        return galleryModel.getGid(gid, (error, doc) => {
-          if (error) return next({ status: 404, error: 'group doesn\'t exist' });
+      // check if gallery exists
+      return galleryModel.getGid(gid, (error, doc) => {
+        if (error) return next({ status: 404, error: 'group doesn\'t exist' });
+        if (!(doc.uid === uid || result._id.toHexString() === uid)) {
+          return next({ status: 401, error: 'incorrect permissions for group' });
+        }
+        if (doc.uid === result._id.toHexString()) {
+          return next({ status: 400, error: 'user is owner of group' });
+        }
 
-          if (doc.uid !== uid) {
-            return next({ status: 401, error: 'incorrect permissions for group' });
+        // check user group list for the group id
+        let found = false;
+        result.groups.forEach((group, index) => {
+          if (typeof group !== 'string') group = group.toHexString();
+          if (group === gid) {
+            result.groups.splice(index, 1);
+            found = true;
           }
-          // remove user from group
+        });
+        if (!found) return next({ status: 400, error: 'user isn\'t member of group' });
+        return userModel.update(toRemoveName, result, (cb) => {
+          if (cb) return next({ status: 500, error: cb });
+
+          // remove group from user groups
           const groupListIndex = doc.users.indexOf(toRemoveName);
           if (groupListIndex === -1) {
             return next({ status: 400, error: 'user isn\'t member of group' });
           }
-          doc.users.remove(groupListIndex);
-          return galleryModel.update(doc.name, uid, doc, (ret) => {
+          doc.users.splice(groupListIndex, 1);
+          return galleryModel.update(doc.name, doc.uid, doc, (ret) => {
             if (ret === 'updated one gallery') {
               return next({ status: 200, message: 'user removed from group' });
             }
@@ -178,17 +188,21 @@ module.exports = {
 
     // check to see if user has invite for group
     return userModel.get(username, (err, result) => {
-      const inviteData = { groupname, gid };
-      if (result.invites.indexOf(inviteData) === -1) {
-        return next({ status: 400, error: 'user isn\'t invited to group' });
-      }
-      result.groups.push(gid);
-      result.invites.remove(result.invites.indexOf(inviteData));
-      return userModel.update(username, result, (cb) => {
-        if (cb) return next({ status: 500, error: cb });
-        // check if gallery exists
-        return galleryModel.getGid(gid, (err2, doc) => {
-          if (err2) return next({ status: 404, error: 'group doesn\'t exist' });
+      let in_check = false;
+      result.invites.forEach((invite, index) => {
+        if (invite.groupname === groupname && invite.gid === gid) {
+          result.groups.push(gid);
+          result.invites.splice(index, 1);
+          in_check = true;
+        }
+      });
+
+      return galleryModel.getGid(gid, (err2, doc) => {
+        if (err2) return next({ status: 404, error: 'group doesn\'t exist' });
+        if (!in_check) return next({ status: 400, error: 'user isn\'t invited to group' });
+        return userModel.update(username, result, (cb) => {
+          if (cb) return next({ status: 500, error: cb });
+          // check if gallery exists
 
           if (doc.users.indexOf(username) !== -1) {
             return next({ status: 401, error: 'user is already member of group' });
@@ -212,11 +226,15 @@ module.exports = {
 
     // check to see if user has invite for group
     return userModel.get(username, (err, result) => {
-      const inviteData = { groupname, gid };
-      if (result.invites.indexOf(inviteData) === -1) {
-        return next({ status: 400, error: 'invitation doesn\'t exist' });
-      }
-      result.invites.remove(result.invites.indexOf(inviteData));
+      let in_check = false;
+      result.invites.forEach((invite, index) => {
+        if (invite.groupname === groupname && invite.gid === gid) {
+          result.groups.push(gid);
+          result.invites.splice(index, 1);
+          in_check = true;
+        }
+      });
+      if (!in_check) return next({ status: 404, error: 'invitation doesn\'t exist' });
       return userModel.update(username, result, (cb) => {
         if (cb) return next({ status: 500, error: cb });
         return next({ status: 200, message: 'user has refused invitation' });

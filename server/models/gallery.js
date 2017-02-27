@@ -34,8 +34,6 @@ module.exports = {
   },
 
   getGid: (gid, cb) => {
-    console.error('model:', gid);
-    console.error('modeltype:', typeof gid);
     db.findOne({ _id: gid }, (doc) => {
       if (doc) return cb(null, doc);
       return cb('gallery not found', null);

@@ -27,9 +27,7 @@ describe('Group API', () => {
           testAgent
             .post('/user/create')
             .send({ username: username2, password: password2 })
-            .end((_err2, _res2) => {
-              done();
-            });
+            .end((_err2, _res2) => { done(); });
         });
     };
   });
@@ -103,7 +101,7 @@ describe('Group API', () => {
     it('should reject delete for non existent gallery', (done) => {
       agent
         .post('/group/delete')
-        .send({ gid: 'tomtotmotm' })
+        .send({ gid: '58aff53d6de1e9214295308a' })
         .end((err, res) => {
           res.should.have.status(404);
           res.body.should.be.a('object');
@@ -115,11 +113,6 @@ describe('Group API', () => {
 
     it('should reject if you don\'t have permission', (done) => {
       galleryDB.findOne({ name: groupname }, (doc) => {
-        console.log('first find:', doc._id);
-        console.log('first findtype:', typeof doc._id);
-        galleryDB.findOne({ _id: doc._id }, (hu) => {
-          console.log('hu', hu);
-        });
         testAgent
           .post('/group/delete')
           .send({ gid: doc._id })
@@ -138,10 +131,10 @@ describe('Group API', () => {
         .post('/group/delete')
         .send({})
         .end((err, res) => {
-          res.should.have.status(401);
+          res.should.have.status(400);
           res.body.should.be.a('object');
           res.body.should.have.property('error');
-          res.body.error.should.equal('group doesn\'t exist');
+          res.body.error.should.equal('invalid gid');
           done();
         });
     });
@@ -155,7 +148,7 @@ describe('Group API', () => {
             res.should.have.status(200);
             res.body.should.be.a('object');
             res.body.should.have.property('message');
-            res.body.message.should.equal('group deleted');
+            res.body.message.should.equal('gallery deleted');
             done();
           });
       });
@@ -163,7 +156,10 @@ describe('Group API', () => {
 
     after((done) => {
       galleryDB.findOne({ name: groupname }, (doc) => {
-        galleryDB.removeOne({ name: groupname, uid: doc.uid }, () => { done(); });
+        if (doc) {
+          galleryDB.removeOne({ name: groupname, uid: doc.uid }, () => { done(); });
+        }
+        done();
       });
     });
   });
@@ -206,18 +202,16 @@ describe('Group API', () => {
     });
 
     it('should not be invite to non-existent group', (done) => {
-      galleryDB.findOne({ name: groupname }, (doc) => {
-        agent
-          .post('/group/user/invite')
-          .send({ gid: doc._id, username })
-          .end((err, res) => {
-            res.should.have.status(404);
-            res.body.should.be.a('object');
-            res.body.should.have.property('error');
-            res.body.error.should.equal('group doesn\'t exist');
-            done();
-          });
-      });
+      agent
+        .post('/group/user/invite')
+        .send({ gid: '58b2fb2d39f24c268f190769', username })
+        .end((err, res) => {
+          res.should.have.status(404);
+          res.body.should.be.a('object');
+          res.body.should.have.property('error');
+          res.body.error.should.equal('group doesn\'t exist');
+          done();
+        });
     });
 
     it('should not be able to invite non-existent user', (done) => {
@@ -238,7 +232,7 @@ describe('Group API', () => {
     it('should not allow anyone to invite', (done) => {
       galleryDB.findOne({ name: groupname }, (doc) => {
         testAgent
-          .post('/user/update')
+          .post('/group/user/invite')
           .send({ gid: doc._id, username })
           .end((err, res) => {
             res.should.have.status(401);
@@ -254,7 +248,7 @@ describe('Group API', () => {
       galleryDB.findOne({ name: groupname }, (doc) => {
         agent
           .post('/group/user/invite')
-          .send({ gid: doc._id, username2 })
+          .send({ gid: doc._id, username: username2 })
           .end((err, res) => {
             res.should.have.status(200);
             res.body.should.be.a('object');
@@ -273,18 +267,13 @@ describe('Group API', () => {
           .end((_err, _res) => {
             agent
               .post('/group/user/invite')
-              .send({ gid: doc._id, username2 })
-              .end((_err2, _res2) => {
-                testAgent
-                  .post('/group/user/join')
-                  .send({ groupname, gid: doc._id })
-                  .end((err3, res3) => {
-                    res3.should.have.status(400);
-                    res3.body.should.be.a('object');
-                    res3.body.should.have.property('error');
-                    res3.body.error.should.equal('user is already member of group');
-                    done();
-                  });
+              .send({ gid: doc._id, username: username2 })
+              .end((err2, res2) => {
+                res2.should.have.status(400);
+                res2.body.should.be.a('object');
+                res2.body.should.have.property('error');
+                res2.body.error.should.equal('user is already member of group');
+                done();
               });
           });
       });
@@ -308,7 +297,7 @@ describe('Group API', () => {
     it('should not be remove from non-existent group', (done) => {
       agent
         .post('/group/user/remove')
-        .send({ gid: 'hooo', username })
+        .send({ gid: '58b2fb2d39f24c268f190769', username })
         .end((err, res) => {
           res.should.have.status(404);
           res.body.should.be.a('object');
@@ -322,12 +311,12 @@ describe('Group API', () => {
       galleryDB.findOne({ name: groupname }, (doc) => {
         agent
           .post('/group/user/remove')
-          .send({ gid: doc._id, username: 'clearly_not_username h' })
+          .send({ gid: doc._id, username: username2 })
           .end((err, res) => {
             res.should.have.status(400);
             res.body.should.be.a('object');
-            res.body.should.have.property('message');
-            res.body.message.should.equal('user isn\'t member of group');
+            res.body.should.have.property('error');
+            res.body.error.should.equal('user isn\'t member of group');
             done();
           });
       });
@@ -335,15 +324,25 @@ describe('Group API', () => {
 
     it('should not be able delete user without permissions', (done) => {
       galleryDB.findOne({ name: groupname }, (doc) => {
-        testAgent
-          .post('/group/user/remove')
-          .send({ gid: doc._id, username })
-          .end((err, res) => {
-            res.should.have.status(401);
-            res.body.should.be.a('object');
-            res.body.should.have.property('message');
-            res.body.message.should.equal('incorrect permissions for group');
-            done();
+        agent
+          .post('/group/user/invite')
+          .send({ gid: doc._id, username: username2 })
+          .end((_err, _res) => {
+            testAgent
+              .post('/group/user/join')
+              .send({ groupname, gid: doc._id })
+              .end((_err2, _res2) => {
+                testAgent
+                  .post('/group/user/remove')
+                  .send({ gid: doc._id, username })
+                  .end((_err3, res) => {
+                    res.should.have.status(401);
+                    res.body.should.be.a('object');
+                    res.body.should.have.property('error');
+                    res.body.error.should.equal('incorrect permissions for group');
+                    done();
+                  });
+              });
           });
       });
     });
@@ -352,7 +351,7 @@ describe('Group API', () => {
       galleryDB.findOne({ name: groupname }, (doc) => {
         chai.request(app)
           .post('/group/user/remove')
-          .send({ gid: doc._id, username2 })
+          .send({ gid: doc._id, username: username2 })
           .end((err, res) => {
             res.should.have.status(401);
             res.body.should.be.a('object');
@@ -367,12 +366,12 @@ describe('Group API', () => {
       galleryDB.findOne({ name: groupname }, (doc) => {
         agent
           .post('/group/user/remove')
-          .send({ gid: doc._id, username2 })
+          .send({ gid: doc._id, username: username2 })
           .end((err, res) => {
             res.should.have.status(200);
             res.body.should.be.a('object');
-            res.body.should.have.property('error');
-            res.body.error.should.equal('user removed from group');
+            res.body.should.have.property('message');
+            res.body.message.should.equal('user removed from group');
             done();
           });
       });
@@ -380,15 +379,25 @@ describe('Group API', () => {
 
     it('should be able to remove yourself if not owner', (done) => {
       galleryDB.findOne({ name: groupname }, (doc) => {
-        testAgent
-          .post('/group/user/remove')
-          .send({ gid: doc._id, username2 })
-          .end((err, res) => {
-            res.should.have.status(200);
-            res.body.should.be.a('object');
-            res.body.should.have.property('error');
-            res.body.error.should.equal('user removed from group');
-            done();
+        agent
+          .post('/group/user/invite')
+          .send({ gid: doc._id, username: username2 })
+          .end((_err, _res) => {
+            testAgent
+              .post('/group/user/join')
+              .send({ groupname, gid: doc._id })
+              .end((_err2, _res2) => {
+                testAgent
+                  .post('/group/user/remove')
+                  .send({ gid: doc._id, username: username2 })
+                  .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.be.a('object');
+                    res.body.should.have.property('message');
+                    res.body.message.should.equal('user removed from group');
+                    done();
+                  });
+              });
           });
       });
     });
@@ -424,7 +433,7 @@ describe('Group API', () => {
           galleryDB.findOne({ name: groupname }, (doc) => {
             agent
               .post('/group/user/invite')
-              .send({ gid: doc._id, username2 })
+              .send({ gid: doc._id, username: username2 })
               .end((_err2, _res2) => {
                 agent
                   .post('/group/create')
@@ -438,7 +447,7 @@ describe('Group API', () => {
     it('should not be join non-existent group', (done) => {
       testAgent
         .post('/group/user/join')
-        .send({ groupname: 'hooo', gid: 'gdashgd' })
+        .send({ groupname, gid: '58b2fb2d39f24c268f190769' })
         .end((err, res) => {
           res.should.have.status(404);
           res.body.should.be.a('object');
@@ -454,10 +463,10 @@ describe('Group API', () => {
           .post('/group/user/join')
           .send({ groupname: 'the real group', gid: doc._id })
           .end((err, res) => {
-            res.should.have.status(401);
+            res.should.have.status(400);
             res.body.should.be.a('object');
-            res.body.should.have.property('message');
-            res.body.message.should.equal('user isn\'t invited to group');
+            res.body.should.have.property('error');
+            res.body.error.should.equal('user isn\'t invited to group');
             done();
           });
       });
@@ -494,7 +503,7 @@ describe('Group API', () => {
           galleryDB.findOne({ name: groupname }, (doc) => {
             agent
               .post('/group/user/invite')
-              .send({ gid: doc._id, username2 })
+              .send({ gid: doc._id, username: username2 })
               .end((_err2, _res2) => {
                 agent
                   .post('/group/create')
@@ -506,15 +515,15 @@ describe('Group API', () => {
     });
 
     it('should not be able to refuse without invite', (done) => {
-      galleryDB.findOne({ name: groupname }, (doc) => {
+      galleryDB.findOne({ name: 'the real group' }, (doc) => {
         testAgent
           .post('/group/user/refuse')
           .send({ groupname: 'the real group', gid: doc._id })
           .end((err, res) => {
             res.should.have.status(404);
             res.body.should.be.a('object');
-            res.body.should.have.property('message');
-            res.body.message.should.equal('invitation doesn\'t exist');
+            res.body.should.have.property('error');
+            res.body.error.should.equal('invitation doesn\'t exist');
             done();
           });
       });
