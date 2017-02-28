@@ -21,7 +21,7 @@ class Gallery extends React.Component {
     this.removeItem = this.removeItem.bind(this);
 
     // Hook event to catch when an image is added
-    document.addEventListener('gallery_updated', this.refresh, false);
+    document.addEventListener('gallery_updated', _ => this.refresh(), false);
   }
 
   componentDidMount() {
@@ -44,8 +44,10 @@ class Gallery extends React.Component {
     Galleries.getByName(name, (gallery) => {
       async.map(
         gallery.images,
-        (image_id, next) =>
-          Images.get(image_id, image => next(null, image)),
+        (image_id, next) => {
+          console.log(gallery.images, image_id);
+          Images.get(image_id, image => next(null, image));
+        },
         (_, images) =>
           this.setState({ images })
       );
@@ -54,12 +56,10 @@ class Gallery extends React.Component {
 
   removeSubgallery(name) {
     Galleries.remove(name);
-    this.refresh();
   }
 
   removeItem(id) {
     Galleries.removeItem(this.props.name, id);
-    this.refresh();
   }
 
   render() {

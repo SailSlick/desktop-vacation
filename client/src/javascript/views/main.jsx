@@ -24,6 +24,7 @@ class Main extends React.Component {
   }
 
   changeGallery(gallery) {
+    console.log('Switched to', gallery);
     this.setState({ gallery });
   }
 

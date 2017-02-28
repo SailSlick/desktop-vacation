@@ -38,7 +38,7 @@ class Image extends React.Component {
   }
 
   addToGallery(name) {
-    Galleries.addItem(name, this.props.src);
+    Galleries.addItem(name, this.props.id);
     return this.hideModals();
   }
 

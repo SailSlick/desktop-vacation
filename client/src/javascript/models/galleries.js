@@ -91,7 +91,6 @@ const Galleries = {
     gallery_db.findOne({ name: name || BASE_GALLERY }, gallery =>
       async.map(gallery.subgalleries, (id, next) =>
         Galleries.get(id, (subgallery) => {
-          console.log('SCANNING GALLERY', id);
           // Get thumbnail
           if (subgallery.images.length !== 0) {
             Images.get(
@@ -163,11 +162,11 @@ const Galleries = {
         return;
       }
       gallery.subgalleries.forEach((id, index) => {
-        gallery_db.findOne({ $loki: id }, (subGallary) => {
-          if (subGallary !== null) {
-            next(subGallary, index);
+        gallery_db.findOne({ $loki: id }, (subGallery) => {
+          if (subGallery !== null) {
+            next(subGallery, index);
           } else {
-            console.error(`Invalid subgallary in ${id}`);
+            console.error(`Invalid subgallery in ${id}`);
           }
         });
       });
