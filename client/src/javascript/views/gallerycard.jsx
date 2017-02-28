@@ -1,5 +1,5 @@
 import React from 'react';
-import { MenuItem } from 'react-bootstrap';
+import { MenuItem, Image as BsImage } from 'react-bootstrap';
 import Slideshow from '../helpers/slideshow-client';
 
 class GalleryCard extends React.Component {
@@ -22,7 +22,7 @@ class GalleryCard extends React.Component {
   render() {
     return (
       <figure className="figure img-card gallery-card rounded" onClick={this.props.onClick}>
-        <img className="img-fluid" src={this.props.thumbnail} alt="" />
+        <BsImage responsive src={this.props.thumbnail} alt="" />
         <h2 className="rounded">{this.props.name}</h2>
         <figcaption className="figure-caption rounded-circle">
           ...

@@ -44,10 +44,8 @@ class Gallery extends React.Component {
     Galleries.getByName(name, (gallery) => {
       async.map(
         gallery.images,
-        (image_id, next) => {
-          console.log(gallery.images, image_id);
-          Images.get(image_id, image => next(null, image));
-        },
+        (image_id, next) =>
+          Images.get(image_id, image => next(null, image)),
         (_, images) =>
           this.setState({ images })
       );
@@ -65,7 +63,7 @@ class Gallery extends React.Component {
   render() {
     const items = this.state.subgalleries.map(subgallery =>
       <GalleryCard
-        key={subgallery.$loki}
+        key={`g${subgallery.$loki}`}
         name={subgallery.name}
         thumbnail={subgallery.thumbnail}
         onClick={_ => this.props.onChange(subgallery.name)}
@@ -85,10 +83,10 @@ class Gallery extends React.Component {
           {items.map((item, i) => (i % 3 === 0 && item) || null)}
         </Col>
         <Col xs={4}>
-          {items.map((item, i) => ((i + 1) % 3 === 0 && item) || null)}
+          {items.map((item, i) => ((i + 2) % 3 === 0 && item) || null)}
         </Col>
         <Col xs={4}>
-          {items.map((item, i) => ((i + 2) % 3 === 0 && item) || null)}
+          {items.map((item, i) => ((i + 1) % 3 === 0 && item) || null)}
         </Col>
       </Row>
     );

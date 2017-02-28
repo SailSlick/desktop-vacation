@@ -94,13 +94,15 @@ const Galleries = {
           // Get thumbnail
           if (subgallery.images.length !== 0) {
             Images.get(
-              gallery.images[0],
+              subgallery.images[0],
               (image) => {
                 subgallery.thumbnail = image.location;
                 next(null, subgallery);
               }
             );
           } else {
+            // Make sure thumbnail is null before returning
+            subgallery.thumbnail = null;
             next(null, subgallery);
           }
         }),

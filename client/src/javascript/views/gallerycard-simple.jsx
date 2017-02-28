@@ -1,8 +1,9 @@
 import React from 'react';
+import { Image as BsImage } from 'react-bootstrap';
 
 const SimpleGalleryCard = props => (
   <figure className="figure img-card gallery-card rounded" onClick={props.onClick}>
-    <img className="img-fluid" src={props.thumbnail} alt="" />
+    <BsImage responsive src={props.thumbnail} alt="" />
     <h2 className="rounded">{props.name}</h2>
   </figure>
 );
