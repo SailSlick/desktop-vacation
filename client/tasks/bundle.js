@@ -33,6 +33,7 @@ module.exports = function (src, dest, opts) {
         external: generateExternalModulesList(),
         cache: cached[src],
         plugins: opts.rollupPlugins,
+        sourceMap: true
     })
     .then(function (bundle) {
         cached[src] = bundle;

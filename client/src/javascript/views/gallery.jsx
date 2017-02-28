@@ -28,26 +28,26 @@ class Gallery extends React.Component {
     this.refresh();
   }
 
-  refresh() {
+  componentWillReceiveProps(nextProps) {
+    this.refresh(nextProps.name);
+  }
+
+  refresh(name) {
+    name = name || this.props.name;
+
     // Load data for all galleries
-    Galleries.getSubgalleries(this.props.name, subgalleries =>
-      this.setState({
-        subgalleries,
-        images: this.state.images
-      })
+    Galleries.getSubgalleries(name, subgalleries =>
+      this.setState({ subgalleries })
     );
 
     // Load data for all images
-    Galleries.getByName(this.props.name, (gallery) => {
+    Galleries.getByName(name, (gallery) => {
       async.map(
         gallery.images,
         (image_id, next) =>
           Images.get(image_id, image => next(null, image)),
         (_, images) =>
-          this.setState({
-            images,
-            subgalleries: this.state.subgalleries
-          })
+          this.setState({ images })
       );
     });
   }
@@ -65,6 +65,7 @@ class Gallery extends React.Component {
   render() {
     const items = this.state.subgalleries.map(subgallery =>
       <GalleryCard
+        key={subgallery.$loki}
         name={subgallery.name}
         thumbnail={subgallery.thumbnail}
         onClick={_ => this.props.onChange(subgallery.name)}
@@ -72,6 +73,7 @@ class Gallery extends React.Component {
       />
     ).concat(this.state.images.map(image =>
       <Image
+        key={image.$loki}
         id={image.$loki}
         src={image.location}
         onRemove={this.removeItem}

@@ -1,40 +1,43 @@
 import React from 'react';
 import { ipcRenderer as ipc } from 'electron';
-import { Navbar, Nav, NavDropdown, MenuItem, Grid } from 'react-bootstrap';
+import { Navbar, Nav, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup, ControlLabel } from 'react-bootstrap';
 import Gallery from './gallery.jsx';
+import Galleries from '../models/galleries';
 
 class Main extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      gallery: 'Sully_all'
+      gallery: 'Sully_all',
+      getNewGalleryName: false
     };
 
-    this.handleSelect = this.handleSelect.bind(this);
+    this.getNewGalleryName = this.getNewGalleryName.bind(this);
+    this.addNewGallery = this.addNewGallery.bind(this);
     this.changeGallery = this.changeGallery.bind(this);
+    this.hideModals = this.hideModals.bind(this);
   }
 
-  // addGallery() {
-  //   this.setState({
-  //     mainContent: this.state.mainContent,
-  //     hoverContent: (<AddGalleryForm />)
-  //   });
-  // }
-
-  handleSelect(key) {
-    return {
-      1.1: this.showImages,
-      1.2: _ => ipc.send('open-file-dialog'),
-      2.1: this.showGalleries,
-      // 2.2: this.addGallery
-    }[key]();
+  getNewGalleryName() {
+    this.setState({ getNewGalleryName: true });
   }
 
-  changeGallery(name) {
-    this.setState({
-      gallery: name
-    });
+  changeGallery(gallery) {
+    this.setState({ gallery });
+  }
+
+  addNewGallery() {
+    Galleries.add(this.newGalleryInput.value, new_gallery =>
+      this.setState({
+        gallery: new_gallery.name,
+        getNewGalleryName: false
+      })
+    );
+  }
+
+  hideModals() {
+    this.setState({ getNewGalleryName: false });
   }
 
   render() {
@@ -50,16 +53,15 @@ class Main extends React.Component {
           <Navbar.Collapse>
             <Nav onSelect={this.handleSelect}>
               <NavDropdown title="Images" id="images">
-                <MenuItem eventKey={1.1}>View</MenuItem>
-                <MenuItem eventKey={1.2}>Add</MenuItem>
+                <MenuItem onClick={_ => ipc.send('open-file-dialog')}>Add</MenuItem>
               </NavDropdown>
               <NavDropdown title="Galleries" id="galleries">
-                <MenuItem eventKey={2.1}>View</MenuItem>
-                <MenuItem eventKey={2.2}>Add</MenuItem>
+                <MenuItem onClick={_ => this.changeGallery('Sully_all')}>View</MenuItem>
+                <MenuItem onClick={this.getNewGalleryName}>Add</MenuItem>
               </NavDropdown>
               <NavDropdown title="Slideshow" id="slideshow">
-                <MenuItem eventKey={3.1}>Add</MenuItem>
-                <MenuItem eventKey={3.2}>Clear</MenuItem>
+                <MenuItem>Add</MenuItem>
+                <MenuItem>Clear</MenuItem>
               </NavDropdown>
             </Nav>
           </Navbar.Collapse>
@@ -71,6 +73,29 @@ class Main extends React.Component {
             onChange={this.changeGallery}
           />
         </Grid>
+
+        <Modal show={this.state.getNewGalleryName} onHide={this.hideModals}>
+          <Modal.Header closeButton>
+            <Modal.Title>Enter a gallery name</Modal.Title>
+          </Modal.Header>
+
+          <Modal.Body>
+            <form>
+              <FormGroup>
+                <ControlLabel>Name</ControlLabel>
+                <input
+                  id="galleryName"
+                  type="text"
+                  placeholder="Gallery Name"
+                  ref={(input) => { this.newGalleryInput = input; }}
+                />
+              </FormGroup>
+              <Button type="button" onClick={this.addNewGallery}>
+                Add
+              </Button>
+            </form>
+          </Modal.Body>
+        </Modal>
       </div>
     );
   }

@@ -18,7 +18,7 @@ class Image extends React.Component {
     this.setAsWallpaper = this.setAsWallpaper.bind(this);
     this.showGallerySelector = this.showGallerySelector.bind(this);
     this.expand = this.expand.bind(this);
-    this.collapse = this.collapse.bind(this);
+    this.hideModals = this.hideModals.bind(this);
     this.remove = this.remove.bind(this);
   }
 
@@ -27,29 +27,26 @@ class Image extends React.Component {
   }
 
   showGallerySelector() {
-    Galleries.getSubgalleries(null, subgalleries =>
+    Galleries.getSubgalleries(null, (subgalleries) => {
+      console.log(subgalleries);
       this.setState({
         expanded: false,
         gallerySelector: true,
         subgalleries
-      })
-    );
-  }
-
-  addToGallery(name) {
-    Galleries.add(name, this.props.src);
-    return this.collapse();
-  }
-
-  expand() {
-    return this.setState({
-      expanded: true,
-      gallerySelector: false,
-      subgalleries: []
+      });
     });
   }
 
-  collapse() {
+  addToGallery(name) {
+    Galleries.addItem(name, this.props.src);
+    return this.hideModals();
+  }
+
+  expand() {
+    return this.setState({ expanded: true });
+  }
+
+  hideModals() {
     return this.setState({
       expanded: false,
       gallerySelector: false,
@@ -63,7 +60,7 @@ class Image extends React.Component {
 
   render() {
     return (
-      <figure className="figure img-card rounded" data-id={this.props.id}>
+      <figure className="figure img-card rounded">
         <BsImage responsive src={this.props.src} alt="MISSING" onClick={this.expand} />
         <figcaption className="figure-caption rounded-circle">
           ...
@@ -81,7 +78,7 @@ class Image extends React.Component {
           </div>
         </figcaption>
 
-        <Modal show={this.state.expanded} onHide={this.collapse}>
+        <Modal show={this.state.expanded} onHide={this.hideModals}>
           <Modal.Header closeButton>
             <Modal.Title>{this.props.src}</Modal.Title>
           </Modal.Header>
@@ -90,14 +87,16 @@ class Image extends React.Component {
           </Modal.Body>
         </Modal>
 
-        <Modal show={this.state.gallerySelector} onHide={this.collapse}>
+        <Modal show={this.state.gallerySelector} onHide={this.hideModals}>
           <Modal.Header closeButton>
             <Modal.Title>Select a Gallery</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             {this.state.subgalleries.map(gallery =>
               <SimpleGalleryCard
-                gallery={gallery}
+                key={gallery.$loki}
+                name={gallery.name}
+                thumbnail={gallery.thumbnail}
                 onClick={_ =>
                   this.addToGallery(gallery.name)
                 }
@@ -111,7 +110,7 @@ class Image extends React.Component {
 }
 
 Image.propTypes = {
-  id: React.PropTypes.objectOf(ObjectId).isRequired,
+  id: React.PropTypes.number.isRequired,
   src: React.PropTypes.string.isRequired,
   onRemove: React.PropTypes.func.isRequired
 };

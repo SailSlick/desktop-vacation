@@ -1,4 +1,5 @@
 import React from 'react';
+import { MenuItem } from 'react-bootstrap';
 import Slideshow from '../helpers/slideshow-client';
 
 class GalleryCard extends React.Component {
@@ -21,19 +22,18 @@ class GalleryCard extends React.Component {
   render() {
     return (
       <figure className="figure img-card gallery-card rounded" onClick={this.props.onClick}>
-        <img className="img-fluid" src={this.props.thumbnail} alt="Primary" />
+        <img className="img-fluid" src={this.props.thumbnail} alt="" />
         <h2 className="rounded">{this.props.name}</h2>
         <figcaption className="figure-caption rounded-circle">
           ...
           <div className="dropdown-menu img-menu">
-            <button
-              className="dropdown-item btn-gallery-slideshow"
-              onClick={this.setSlideshow}
-            >Slideshow</button>
-            <button
-              className="dropdown-item btn-gallery-remove"
-              onClick={this.remove}
-            >Remove</button>
+            <MenuItem onClick={this.setSlideshow}>
+              Slideshow
+            </MenuItem>
+            <MenuItem divider />
+            <MenuItem onClick={this.remove}>
+              Remove
+            </MenuItem>
           </div>
         </figcaption>
       </figure>
@@ -43,9 +43,13 @@ class GalleryCard extends React.Component {
 
 GalleryCard.propTypes = {
   name: React.PropTypes.string.isRequired,
-  thumbnail: React.PropTypes.string.isRequired,
+  thumbnail: React.PropTypes.string,
   onClick: React.PropTypes.func.isRequired,
   remove: React.PropTypes.func.isRequired
+};
+
+GalleryCard.defaultProps = {
+  thumbnail: ''
 };
 
 export default GalleryCard;

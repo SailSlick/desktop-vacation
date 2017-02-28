@@ -1,8 +1,20 @@
 import React from 'react';
 
-export default (gallery, onClick) => (
-  <figure className="figure img-card gallery-card rounded" onClick={onClick}>
-    <img className="img-fluid" src={gallery.thumbnail} alt="Primary" />
-    <h2 className="rounded">{gallery.name}</h2>
+const SimpleGalleryCard = props => (
+  <figure className="figure img-card gallery-card rounded" onClick={props.onClick}>
+    <img className="img-fluid" src={props.thumbnail} alt="" />
+    <h2 className="rounded">{props.name}</h2>
   </figure>
 );
+
+SimpleGalleryCard.propTypes = {
+  onClick: React.PropTypes.func.isRequired,
+  thumbnail: React.PropTypes.string,
+  name: React.PropTypes.string.isRequired
+};
+
+SimpleGalleryCard.defaultProps = {
+  thumbnail: ''
+};
+
+export default SimpleGalleryCard;

@@ -1,6 +1,7 @@
 // All includes from src should be done here
 import React from 'react';
 import ReactDOM from 'react-dom';
+import DevTools from 'electron-react-devtools';
 import Main from './javascript/views/main.jsx';
 
 // Store number of pending events for application loading
@@ -16,6 +17,8 @@ function checkIfLoaded() {
     document.dispatchEvent(ready_event);
   }
 }
+
+DevTools.install();
 
 // Events
 document.addEventListener('database_loaded', checkIfLoaded, false);
