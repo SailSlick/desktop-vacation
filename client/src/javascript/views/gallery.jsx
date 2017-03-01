@@ -1,8 +1,6 @@
 import React from 'react';
 import { Col, Row } from 'react-bootstrap';
-import async from 'async';
 import Image from './image.jsx';
-import Images from '../models/images';
 import Galleries from '../models/galleries';
 import GalleryCard from './gallerycard.jsx';
 
@@ -29,7 +27,7 @@ class Gallery extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    this.refresh(nextProps.name);
+    this.refresh(nextProps.dbId);
   }
 
   componentWillUnmount() {
@@ -37,41 +35,35 @@ class Gallery extends React.Component {
     document.removeEventListener('gallery_updated', this.refresh, false);
   }
 
-  refresh(name) {
-    name = (typeof name === 'string') ? name : this.props.name;
+  refresh(dbId) {
+    dbId = (typeof dbId === 'number') ? dbId : this.props.dbId;
 
-    // Load data for all galleries
-    Galleries.getSubgalleries(name, subgalleries =>
-      this.setState({ subgalleries })
+    Galleries.get(dbId, gallery =>
+      Galleries.expand(gallery, (subgalleries, images) =>
+        this.setState({
+          subgalleries,
+          images
+        })
+      )
     );
-
-    // Load data for all images
-    Galleries.getByName(name, (gallery) => {
-      async.map(
-        gallery.images,
-        (image_id, next) =>
-          Images.get(image_id, image => next(null, image)),
-        (_, images) =>
-          this.setState({ images })
-      );
-    });
   }
 
-  removeSubgallery(name) {
-    Galleries.remove(name);
+  removeSubgallery(dbId) {
+    Galleries.remove(dbId);
   }
 
   removeItem(id) {
-    Galleries.removeItem(this.props.name, id);
+    Galleries.removeItem(this.props.dbId, id);
   }
 
   render() {
     let items = this.state.subgalleries.map(subgallery =>
       <GalleryCard
         key={`g${subgallery.$loki}`}
+        dbId={subgallery.$loki}
         name={subgallery.name}
         thumbnail={subgallery.thumbnail}
-        onClick={_ => this.props.onChange(subgallery.name)}
+        onClick={_ => this.props.onChange(subgallery.$loki)}
         remove={this.removeSubgallery}
         simple={this.props.simple}
       />
@@ -81,7 +73,7 @@ class Gallery extends React.Component {
       items = items.concat(this.state.images.map(image =>
         <Image
           key={image.$loki}
-          id={image.$loki}
+          dbId={image.$loki}
           src={image.location}
           onRemove={this.removeItem}
         />
@@ -104,7 +96,7 @@ class Gallery extends React.Component {
 }
 
 Gallery.propTypes = {
-  name: React.PropTypes.string.isRequired,
+  dbId: React.PropTypes.number.isRequired,
   onChange: React.PropTypes.func.isRequired,
   simple: React.PropTypes.bool
 };

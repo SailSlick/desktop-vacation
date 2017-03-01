@@ -4,14 +4,14 @@ import { Navbar, Nav, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup } fr
 import Gallery from './gallery.jsx';
 import Galleries from '../models/galleries';
 
-const BASE_GALLERY = 'Sully_all';
+const BASE_GALLERY_ID = 1;
 
 class Main extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      gallery: BASE_GALLERY,
+      galleryId: BASE_GALLERY_ID,
       newGalleryModal: false,
       selectGalleryModal: false,
       imageId: null
@@ -33,14 +33,14 @@ class Main extends React.Component {
     document.removeEventListener('append_gallery', this.showGallerySelector, false);
   }
 
-  onSelectGallery(gallery) {
+  onSelectGallery(galleryId) {
     this.setState({
       selectGalleryModal: false,
       imageId: null
     });
 
     // Add pending item to gallery
-    Galleries.addItem(gallery, this.state.imageId);
+    Galleries.addItem(galleryId, this.state.imageId);
   }
 
   getNewGalleryName() {
@@ -60,8 +60,12 @@ class Main extends React.Component {
     );
   }
 
-  changeGallery(gallery) {
-    this.setState({ gallery });
+  changeGallery(galleryId) {
+    // This if prevents deleted galleries/non-existent Ids
+    // causing big issues
+    if (galleryId) {
+      this.setState({ galleryId });
+    }
   }
 
   hideModals() {
@@ -88,7 +92,7 @@ class Main extends React.Component {
                 <MenuItem onClick={_ => ipc.send('open-file-dialog')}>Add</MenuItem>
               </NavDropdown>
               <NavDropdown title="Galleries" id="galleries">
-                <MenuItem onClick={_ => this.changeGallery(BASE_GALLERY)}>View</MenuItem>
+                <MenuItem onClick={_ => this.changeGallery(BASE_GALLERY_ID)}>View</MenuItem>
                 <MenuItem onClick={this.getNewGalleryName}>Add</MenuItem>
               </NavDropdown>
               <NavDropdown title="Slideshow" id="slideshow">
@@ -101,7 +105,7 @@ class Main extends React.Component {
 
         <Grid fluid id="main-content">
           <Gallery
-            name={this.state.gallery}
+            dbId={this.state.galleryId}
             onChange={this.changeGallery}
           />
         </Grid>
@@ -136,7 +140,7 @@ class Main extends React.Component {
             <Grid fluid>
               <Gallery
                 simple
-                name={BASE_GALLERY}
+                dbId={BASE_GALLERY_ID}
                 onChange={this.onSelectGallery}
               />
             </Grid>

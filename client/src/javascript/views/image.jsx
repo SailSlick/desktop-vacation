@@ -24,7 +24,7 @@ class Image extends React.Component {
   addToGallery() {
     document.dispatchEvent(new CustomEvent(
       append_gallery_event_name,
-      { detail: this.props.id }
+      { detail: this.props.dbId }
     ));
   }
 
@@ -37,7 +37,7 @@ class Image extends React.Component {
   }
 
   remove() {
-    this.props.onRemove(this.props.id);
+    this.props.onRemove(this.props.dbId);
   }
 
   render() {
@@ -75,7 +75,7 @@ class Image extends React.Component {
 }
 
 Image.propTypes = {
-  id: React.PropTypes.number.isRequired,
+  dbId: React.PropTypes.number.isRequired,
   src: React.PropTypes.string.isRequired,
   onRemove: React.PropTypes.func.isRequired
 };

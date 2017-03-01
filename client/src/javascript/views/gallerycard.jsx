@@ -38,11 +38,11 @@ class GalleryCard extends React.Component {
   }
 
   setSlideshow() {
-    Slideshow.setSlideshow(this.props.name);
+    Slideshow.setSlideshow(this.props.dbId);
   }
 
   remove() {
-    this.props.remove(this.props.name);
+    this.props.remove(this.props.dbId);
   }
 
   render() {
@@ -61,6 +61,7 @@ class GalleryCard extends React.Component {
 }
 
 GalleryCard.propTypes = {
+  dbId: React.PropTypes.number.isRequired,
   name: React.PropTypes.string.isRequired,
   thumbnail: React.PropTypes.string,
   onClick: React.PropTypes.func.isRequired,
