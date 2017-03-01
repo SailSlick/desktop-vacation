@@ -64,7 +64,7 @@ class Gallery extends React.Component {
         name={subgallery.name}
         thumbnail={subgallery.thumbnail}
         onClick={_ => this.props.onChange(subgallery.$loki)}
-        remove={this.removeSubgallery}
+        onRemove={this.removeSubgallery}
         simple={this.props.simple}
       />
     );

@@ -1,31 +1,30 @@
 import { ipcRenderer as ipc } from 'electron';
-import $ from 'jquery';
 import DbConn from './db';
+import Galleries from '../models/galleries';
 
 let hostCol;
-let imageCol;
-let galleryCol;
 
 const hostname = 'Sully';
+const BASE_GALLERY_ID = 1;
 
 export default {
-  setSlideshow: (galName) => {
+  set: (galleryId) => {
     hostCol.findOne({ username: hostname }, (oldHostData) => {
       let mTime = oldHostData.timer;
 
       if (mTime <= 0 || isNaN(mTime)) {
-        mTime = 30;
+        mTime = 5;
       }
-      if (galName === '' || $.type(galName) !== 'string') {
-        console.log('Invalid db_name, switching to base db');
-        galName = hostname.concat('_all');
+      if (galleryId === '' || typeof galleryId !== 'number') {
+        console.error(`Invalid gallery ID ${galleryId}`);
+        return;
       }
 
       const msTime = mTime * 60000;
       const hostData = {
         slideshowConfig: {
           onstart: true,
-          galleryName: galName,
+          galleryName: galleryId,
           timer: msTime
         }
       };
@@ -33,67 +32,44 @@ export default {
       // puts the config files into the host db
       hostCol.updateOne({ username: hostname }, hostData, (updated) => {
         console.log('updated:', updated);
-        // array to store filepaths of each image in gallery
-        const slideshow_paths_array = [];
-
         // gets the named gallery from db
-        galleryCol.findOne({ name: updated.slideshowConfig.galleryName }, (gallery) => {
-          // loop through each image id in the gallery
-          gallery.images.forEach((image_id) => {
-            // find the image in the imagedb using its unique id and add path to array
-            imageCol.findOne({ $loki: image_id }, (image_doc) => {
-              slideshow_paths_array.push(image_doc.location);
-            });
-          });
-          if (slideshow_paths_array.length === 0) {
-            console.error('The gallery has no images');
-            return;
-          }
-          ipc.send('set-slideshow', slideshow_paths_array, updated.slideshowConfig.timer);
-        });
+        Galleries.get(galleryId, gallery =>
+          Galleries.expand(gallery, (subgalleries, images) => {
+            const image_paths = images.map(image => image.location);
+
+            if (image_paths.length === 0) {
+              console.error('The gallery has no images');
+              return;
+            }
+            ipc.send('set-slideshow', image_paths, msTime);
+          })
+        );
       });
     });
     hostCol.save(() => {});
   },
 
-  clearSlideshow: () => {
+  clear: () => {
     const hostData = {
       slideshowConfig: {
         onstart: false,
-        galleryName: hostname.concat('_all'),
+        galleryName: BASE_GALLERY_ID,
         timer: 0
       }
     };
     // puts the config files into the host db
-    hostCol.updateOne({ username: hostname }, hostData, () => {
-      ipc.send('clearSlideshow');
-    });
+    hostCol.updateOne({ username: hostname }, hostData, () =>
+      ipc.send('clearSlideshow')
+    );
     hostCol.save();
   }
 };
 
 // Events
-$(document).on('vacation_loaded', () => {
-  console.log('vac loaded for slideshow client');
-  imageCol = new DbConn('images');
-  galleryCol = new DbConn('galleries');
+document.addEventListener('vacation_loaded', () => {
   hostCol = new DbConn('host');
-});
+}, false);
 
 ipc.on('set-slideshow-done', (event, exitCode) => {
   console.log(`Slideshow set. exit code ${exitCode}`);
-  if (exitCode === 0) {
-    $('#notification sst')
-      .html('Slideshow set!')
-      .parent().attr('class', 'alert-success');
-  } else {
-    $('#notification ssf')
-      .html(`Failed to set slideshow, exit code ${exitCode}`)
-      .parent().attr('class', 'alert-danger');
-  }
-  $('#notification').addClass('alert alert-dismissable fade show');
-  setTimeout(
-    () => $('#notification').attr('class', 'alert fade hide'),
-    3000
-  );
 });

@@ -3,6 +3,7 @@ import { ipcRenderer as ipc } from 'electron';
 import { Navbar, Nav, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup } from 'react-bootstrap';
 import Gallery from './gallery.jsx';
 import Galleries from '../models/galleries';
+import Slideshow from '../helpers/slideshow-client';
 
 const BASE_GALLERY_ID = 1;
 
@@ -96,8 +97,10 @@ class Main extends React.Component {
                 <MenuItem onClick={this.getNewGalleryName}>Add</MenuItem>
               </NavDropdown>
               <NavDropdown title="Slideshow" id="slideshow">
-                <MenuItem>Add</MenuItem>
-                <MenuItem>Clear</MenuItem>
+                <MenuItem onClick={_ => Slideshow.set(this.state.galleryId)}>
+                  Use Current Gallery
+                </MenuItem>
+                <MenuItem onClick={Slideshow.clear}>Clear</MenuItem>
               </NavDropdown>
             </Nav>
           </Navbar.Collapse>

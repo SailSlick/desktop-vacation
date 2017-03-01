@@ -2,7 +2,7 @@ import React from 'react';
 import { MenuItem, Image as BsImage } from 'react-bootstrap';
 import Slideshow from '../helpers/slideshow-client';
 
-const ActionMenu = ({ simple, setSlideshow, remove }) => {
+const ActionMenu = ({ simple, setSlideshow, onRemove }) => {
   if (simple) {
     return <figcaption style={{ display: 'none' }} />;
   }
@@ -14,7 +14,7 @@ const ActionMenu = ({ simple, setSlideshow, remove }) => {
           Slideshow
         </MenuItem>
         <MenuItem divider />
-        <MenuItem onClick={remove}>
+        <MenuItem onClick={onRemove}>
           Remove
         </MenuItem>
       </div>
@@ -25,7 +25,7 @@ const ActionMenu = ({ simple, setSlideshow, remove }) => {
 ActionMenu.propTypes = {
   simple: React.PropTypes.bool.isRequired,
   setSlideshow: React.PropTypes.func.isRequired,
-  remove: React.PropTypes.func.isRequired
+  onRemove: React.PropTypes.func.isRequired
 };
 
 class GalleryCard extends React.Component {
@@ -38,11 +38,11 @@ class GalleryCard extends React.Component {
   }
 
   setSlideshow() {
-    Slideshow.setSlideshow(this.props.dbId);
+    Slideshow.set(this.props.dbId);
   }
 
   remove() {
-    this.props.remove(this.props.dbId);
+    this.props.onRemove(this.props.dbId);
   }
 
   render() {
@@ -53,7 +53,7 @@ class GalleryCard extends React.Component {
         <ActionMenu
           simple={this.props.simple}
           setSlideshow={this.setSlideshow}
-          remove={this.remove}
+          onRemove={this.remove}
         />
       </figure>
     );
@@ -65,7 +65,7 @@ GalleryCard.propTypes = {
   name: React.PropTypes.string.isRequired,
   thumbnail: React.PropTypes.string,
   onClick: React.PropTypes.func.isRequired,
-  remove: React.PropTypes.func.isRequired,
+  onRemove: React.PropTypes.func.isRequired,
   simple: React.PropTypes.bool
 };
 
