@@ -56,7 +56,8 @@ h3, h4 { color: lightgray; }
 /* BEGIN Gallery Cards */
 
 .gallery-card {
-	min-height: 192px;
+	/* Enough space for the header */
+	min-height: 3em;
 }
 
 .gallery-card h2 {
@@ -100,6 +101,11 @@ h3, h4 { color: lightgray; }
 .modal-body img.img-responsive {
 	display: inline-block;
 	max-height: 100%;
+}
+
+.modal-body>.container-fluid {
+	height: 100%;
+	overflow-y: scroll;
 }
 
 /* END Modals */

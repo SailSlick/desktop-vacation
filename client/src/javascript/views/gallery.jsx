@@ -21,7 +21,7 @@ class Gallery extends React.Component {
     this.removeItem = this.removeItem.bind(this);
 
     // Hook event to catch when an image is added
-    document.addEventListener('gallery_updated', _ => this.refresh(), false);
+    document.addEventListener('gallery_updated', this.refresh, false);
   }
 
   componentDidMount() {
@@ -32,8 +32,13 @@ class Gallery extends React.Component {
     this.refresh(nextProps.name);
   }
 
+  componentWillUnmount() {
+    // Unhook all events
+    document.removeEventListener('gallery_updated', this.refresh, false);
+  }
+
   refresh(name) {
-    name = name || this.props.name;
+    name = (name instanceof String) ? name : this.props.name;
 
     // Load data for all galleries
     Galleries.getSubgalleries(name, subgalleries =>
@@ -61,22 +66,27 @@ class Gallery extends React.Component {
   }
 
   render() {
-    const items = this.state.subgalleries.map(subgallery =>
+    let items = this.state.subgalleries.map(subgallery =>
       <GalleryCard
         key={`g${subgallery.$loki}`}
         name={subgallery.name}
         thumbnail={subgallery.thumbnail}
         onClick={_ => this.props.onChange(subgallery.name)}
         remove={this.removeSubgallery}
+        simple={this.props.simple}
       />
-    ).concat(this.state.images.map(image =>
-      <Image
-        key={image.$loki}
-        id={image.$loki}
-        src={image.location}
-        onRemove={this.removeItem}
-      />
-    ));
+    );
+
+    if (!this.props.simple) {
+      items = items.concat(this.state.images.map(image =>
+        <Image
+          key={image.$loki}
+          id={image.$loki}
+          src={image.location}
+          onRemove={this.removeItem}
+        />
+      ));
+    }
     return (
       <Row>
         <Col xs={4}>
@@ -95,7 +105,10 @@ class Gallery extends React.Component {
 
 Gallery.propTypes = {
   name: React.PropTypes.string.isRequired,
-  onChange: React.PropTypes.func.isRequired
+  onChange: React.PropTypes.func.isRequired,
+  simple: React.PropTypes.bool
 };
+
+Gallery.defaultProps = { simple: false };
 
 export default Gallery;

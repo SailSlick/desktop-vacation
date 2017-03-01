@@ -1,22 +1,17 @@
 import React from 'react';
-import { ObjectId } from 'lokijs';
 import { Modal, MenuItem, Image as BsImage } from 'react-bootstrap';
 import Wallpaper from '../helpers/wallpaper-client';
-import Galleries from '../models/galleries';
-import SimpleGalleryCard from './gallerycard-simple.jsx';
+
+const append_gallery_event_name = 'append_gallery';
 
 class Image extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      expanded: false,
-      gallerySelector: false,
-      subgalleries: []
-    };
+    this.state = { expanded: false };
 
     this.setAsWallpaper = this.setAsWallpaper.bind(this);
-    this.showGallerySelector = this.showGallerySelector.bind(this);
+    this.addToGallery = this.addToGallery.bind(this);
     this.expand = this.expand.bind(this);
     this.hideModals = this.hideModals.bind(this);
     this.remove = this.remove.bind(this);
@@ -26,20 +21,11 @@ class Image extends React.Component {
     Wallpaper.set(this.props.src);
   }
 
-  showGallerySelector() {
-    Galleries.getSubgalleries(null, (subgalleries) => {
-      console.log(subgalleries);
-      this.setState({
-        expanded: false,
-        gallerySelector: true,
-        subgalleries
-      });
-    });
-  }
-
-  addToGallery(name) {
-    Galleries.addItem(name, this.props.id);
-    return this.hideModals();
+  addToGallery() {
+    document.dispatchEvent(new CustomEvent(
+      append_gallery_event_name,
+      { detail: this.props.id }
+    ));
   }
 
   expand() {
@@ -47,11 +33,7 @@ class Image extends React.Component {
   }
 
   hideModals() {
-    return this.setState({
-      expanded: false,
-      gallerySelector: false,
-      subgalleries: []
-    });
+    return this.setState({ expanded: false });
   }
 
   remove() {
@@ -68,7 +50,7 @@ class Image extends React.Component {
             <MenuItem onClick={this.setAsWallpaper}>
               Set as Wallpaper
             </MenuItem>
-            <MenuItem onClick={this.showGallerySelector}>
+            <MenuItem onClick={this.addToGallery}>
               Add to gallery
             </MenuItem>
             <MenuItem divider />
@@ -87,23 +69,6 @@ class Image extends React.Component {
           </Modal.Body>
         </Modal>
 
-        <Modal show={this.state.gallerySelector} onHide={this.hideModals}>
-          <Modal.Header closeButton>
-            <Modal.Title>Select a Gallery</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            {this.state.subgalleries.map(gallery =>
-              <SimpleGalleryCard
-                key={gallery.$loki}
-                name={gallery.name}
-                thumbnail={gallery.thumbnail}
-                onClick={_ =>
-                  this.addToGallery(gallery.name)
-                }
-              />
-            )}
-          </Modal.Body>
-        </Modal>
       </figure>
     );
   }

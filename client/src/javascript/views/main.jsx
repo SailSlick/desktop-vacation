@@ -4,41 +4,72 @@ import { Navbar, Nav, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup, Con
 import Gallery from './gallery.jsx';
 import Galleries from '../models/galleries';
 
+const BASE_GALLERY = 'Sully_all';
+
 class Main extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      gallery: 'Sully_all',
-      getNewGalleryName: false
+      gallery: BASE_GALLERY,
+      newGalleryModal: false,
+      selectGalleryModal: false,
+      imageId: null
     };
 
+    this.onSelectGallery = this.onSelectGallery.bind(this);
     this.getNewGalleryName = this.getNewGalleryName.bind(this);
+    this.showGallerySelector = this.showGallerySelector.bind(this);
     this.addNewGallery = this.addNewGallery.bind(this);
     this.changeGallery = this.changeGallery.bind(this);
     this.hideModals = this.hideModals.bind(this);
+
+    // Events
+    document.addEventListener('append_gallery', this.showGallerySelector, false);
+  }
+
+  componentWillUnmount() {
+    // Unhook all events
+    document.removeEventListener('append_gallery', this.showGallerySelector, false);
+  }
+
+  onSelectGallery(gallery) {
+    this.setState({
+      selectGalleryModal: false,
+      imageId: null
+    });
+
+    // Add pending item to gallery
+    Galleries.addItem(gallery, this.state.imageId);
   }
 
   getNewGalleryName() {
-    this.setState({ getNewGalleryName: true });
+    this.setState({ newGalleryModal: true });
   }
 
-  changeGallery(gallery) {
-    console.log('Switched to', gallery);
-    this.setState({ gallery });
+  showGallerySelector(evt) {
+    this.setState({
+      selectGalleryModal: true,
+      imageId: evt.detail
+    });
   }
 
   addNewGallery() {
-    Galleries.add(this.newGalleryInput.value, new_gallery =>
-      this.setState({
-        gallery: new_gallery.name,
-        getNewGalleryName: false
-      })
+    Galleries.add(this.newGalleryInput.value, () =>
+      this.setState({ newGalleryModal: false })
     );
   }
 
+  changeGallery(gallery) {
+    this.setState({ gallery });
+  }
+
   hideModals() {
-    this.setState({ getNewGalleryName: false });
+    this.setState({
+      newGalleryModal: false,
+      selectGalleryModal: false,
+      imageId: null
+    });
   }
 
   render() {
@@ -57,7 +88,7 @@ class Main extends React.Component {
                 <MenuItem onClick={_ => ipc.send('open-file-dialog')}>Add</MenuItem>
               </NavDropdown>
               <NavDropdown title="Galleries" id="galleries">
-                <MenuItem onClick={_ => this.changeGallery('Sully_all')}>View</MenuItem>
+                <MenuItem onClick={_ => this.changeGallery(BASE_GALLERY)}>View</MenuItem>
                 <MenuItem onClick={this.getNewGalleryName}>Add</MenuItem>
               </NavDropdown>
               <NavDropdown title="Slideshow" id="slideshow">
@@ -75,7 +106,7 @@ class Main extends React.Component {
           />
         </Grid>
 
-        <Modal show={this.state.getNewGalleryName} onHide={this.hideModals}>
+        <Modal show={this.state.newGalleryModal} onHide={this.hideModals}>
           <Modal.Header closeButton>
             <Modal.Title>Enter a gallery name</Modal.Title>
           </Modal.Header>
@@ -95,6 +126,21 @@ class Main extends React.Component {
                 Add
               </Button>
             </form>
+          </Modal.Body>
+        </Modal>
+
+        <Modal show={this.state.selectGalleryModal} onHide={this.hideModals}>
+          <Modal.Header closeButton>
+            <Modal.Title>Select a Gallery</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Grid fluid>
+              <Gallery
+                simple
+                name={BASE_GALLERY}
+                onChange={this.onSelectGallery}
+              />
+            </Grid>
           </Modal.Body>
         </Modal>
       </div>
