@@ -35,6 +35,7 @@ describe('Galleries', () => {
       it('cant add a gallery using the base gallery name', (done) => {
         Galleries.add(Galleries.baseName, (err) => {
           err.should.be.a('string');
+          err.should.equal('Attempting to add base gallery');
           done();
         });
       });
@@ -42,6 +43,7 @@ describe('Galleries', () => {
       it('cant add a gallery with a blank name', (done) => {
         Galleries.add('', (err) => {
           err.should.be.a('string');
+          err.should.equal('Empty name');
           done();
         });
       });
@@ -63,6 +65,7 @@ describe('Galleries', () => {
       it('fails to remove blank gallery', (done) => {
         Galleries.remove('', (err) => {
           err.should.be.a('string');
+          err.should.equal('Gallery does not exist');
           done();
         });
       });
@@ -70,6 +73,7 @@ describe('Galleries', () => {
       it('fails to remove base gallery', (done) => {
         Galleries.remove(Galleries.baseName, (err) => {
           err.should.be.a('string');
+          err.should.equal('Tried to delete base gallery');
           done();
         });
       });
