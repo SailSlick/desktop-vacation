@@ -1,15 +1,13 @@
 import { ipcRenderer as ipc } from 'electron';
-import DbConn from './db';
+import Hostdata from '../models/hostdata';
 import Galleries from '../models/galleries';
-
-let hostCol;
 
 const hostname = 'Sully';
 const BASE_GALLERY_ID = 1;
 
 export default {
   set: (galleryId) => {
-    hostCol.findOne({ username: hostname }, (oldHostData) => {
+    Hostdata.get(hostname, (oldHostData) => {
       let mTime = oldHostData.timer;
 
       if (mTime <= 0 || isNaN(mTime)) {
@@ -21,7 +19,7 @@ export default {
       }
 
       const msTime = mTime * 60000;
-      const hostData = {
+      const config = {
         slideshowConfig: {
           onstart: true,
           galleryName: galleryId,
@@ -30,7 +28,7 @@ export default {
       };
 
       // puts the config files into the host db
-      hostCol.updateOne({ username: hostname }, hostData, (updated) => {
+      Hostdata.update(hostname, config, (updated) => {
         console.log('updated:', updated);
         // gets the named gallery from db
         Galleries.get(galleryId, gallery =>
@@ -46,11 +44,10 @@ export default {
         );
       });
     });
-    hostCol.save(() => {});
   },
 
   clear: () => {
-    const hostData = {
+    const config = {
       slideshowConfig: {
         onstart: false,
         galleryName: BASE_GALLERY_ID,
@@ -58,18 +55,13 @@ export default {
       }
     };
     // puts the config files into the host db
-    hostCol.updateOne({ username: hostname }, hostData, () =>
+    Hostdata.update(hostname, config, () =>
       ipc.send('clearSlideshow')
     );
-    hostCol.save();
   }
 };
 
 // Events
-document.addEventListener('vacation_loaded', () => {
-  hostCol = new DbConn('host');
-}, false);
-
 ipc.on('set-slideshow-done', (event, exitCode) => {
   console.log(`Slideshow set. exit code ${exitCode}`);
 });
