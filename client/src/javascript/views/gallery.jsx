@@ -38,7 +38,7 @@ class Gallery extends React.Component {
   }
 
   refresh(name) {
-    name = (name instanceof String) ? name : this.props.name;
+    name = (typeof name === 'string') ? name : this.props.name;
 
     // Load data for all galleries
     Galleries.getSubgalleries(name, subgalleries =>

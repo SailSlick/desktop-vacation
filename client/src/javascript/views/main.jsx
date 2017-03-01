@@ -1,6 +1,6 @@
 import React from 'react';
 import { ipcRenderer as ipc } from 'electron';
-import { Navbar, Nav, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup, ControlLabel } from 'react-bootstrap';
+import { Navbar, Nav, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup } from 'react-bootstrap';
 import Gallery from './gallery.jsx';
 import Galleries from '../models/galleries';
 
@@ -108,13 +108,12 @@ class Main extends React.Component {
 
         <Modal show={this.state.newGalleryModal} onHide={this.hideModals}>
           <Modal.Header closeButton>
-            <Modal.Title>Enter a gallery name</Modal.Title>
+            <Modal.Title>Adding New Gallery</Modal.Title>
           </Modal.Header>
 
           <Modal.Body>
             <form>
               <FormGroup>
-                <ControlLabel>Name</ControlLabel>
                 <input
                   id="galleryName"
                   type="text"

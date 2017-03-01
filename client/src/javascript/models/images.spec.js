@@ -1,8 +1,8 @@
 import path from 'path';
 import { should, assert } from 'chai';
 import Images from './images';
-import DbConn from './db';
-import '../app';
+import DbConn from '../helpers/db';
+import '../../app';
 
 // Use 'should' style chai testing
 should();

@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import { expect } from 'chai';
-import DbConn from './db';
+import DbConn from './helpers/db';
 
 let testCol;
 
