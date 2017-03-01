@@ -314,7 +314,7 @@ const Galleries = {
           name: subGallery.name,
           thumbnail
         }));
-        $(selector).click(() => {
+        $(`${selector} .img-card:last-child`).click(() => {
           Galleries.view(subGallery.name);
         });
         $(`${selector} .img-card:last-child .btn-gallery-remove`).click(() => Galleries.remove(subGallery.name, (err) => {
