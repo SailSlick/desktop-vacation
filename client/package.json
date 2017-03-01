@@ -38,14 +38,12 @@
     "async": "^2.1.4",
     "bootstrap": "^3.3.7",
     "fs-jetpack": "^0.10.2",
-    "jquery": "^3.1.1",
     "lokijs": "^1.4.2",
     "minimist": "^1.2.0",
     "mustache": "^2.3.0",
     "react": "^15.4.2",
     "react-bootstrap": "^0.30.7",
-    "react-dom": "^15.4.2",
-    "tether": "^1.4.0"
+    "react-dom": "^15.4.2"
   },
   "devDependencies": {
     "chai": "^3.5.0",
