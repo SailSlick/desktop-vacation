@@ -21,22 +21,20 @@ describe('application launch', function () {
 
   it('loads home page', function () {
     return this.app.client.waitUntilWindowLoaded()
-           // .getText('#main-content').should.eventually.be.empty
-           .getText('#hover-content').should.eventually.be.empty;
+           .getText('#react-content').should.eventually.be.not.empty;
   });
 
   it('can display opened images', function () {
     return this.app.client.waitUntilWindowLoaded()
            .webContents.send('selected-directory', [test_image_path])
-           .getText('#main-content').should.eventually.be.not.empty;
+           .element('.img-card').should.eventually.exist;
   });
 
   it('can expand opened images', function () {
     return this.app.client.waitUntilWindowLoaded()
-           .webContents.send('selected-directory', [test_image_path])
-           .getText('#main-content').should.eventually.be.not.empty
-           .click('#main-content img')
-           .element('#img-expanded').should.eventually.exist;
+           .getText('#react-content').should.eventually.be.not.empty
+           .click('.img-card img')
+           .element('.modal-body img').should.eventually.exist;
   });
 
 // This cannot be properly tested due to an open issue with

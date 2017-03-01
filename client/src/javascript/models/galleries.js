@@ -14,7 +14,7 @@ const Galleries = {
     console.log(`Adding gallery ${name}`);
     gallery_db.findOne({ name }, (found_gallery) => {
       if (found_gallery) {
-        console.error(`Gallery ${name} already exists`);
+        console.log(`Gallery ${name} already exists`);
         return cb(found_gallery);
       }
       const doc = {
@@ -25,10 +25,6 @@ const Galleries = {
       };
       return gallery_db.insert(doc, (inserted_gallery) => {
         gallery_db.findOne({ $loki: BASE_GALLERY_ID }, (base_gallery) => {
-          if (base_gallery === null) {
-            console.error(`${BASE_GALLERY_ID} not found.`);
-            return cb(null);
-          }
           base_gallery.subgalleries.push(inserted_gallery.$loki);
           return gallery_db.updateOne(
             { name: BASE_GALLERY_ID },
@@ -43,27 +39,26 @@ const Galleries = {
     });
   },
 
-  addItem: (id, image_id) => {
+  addItem: (id, image_id, cb) => {
     console.log(`Adding image_id ${image_id} to gallery ${id}`);
     return gallery_db.findOne({ $loki: id }, (gallery) => {
       if (gallery === null) {
         const msg = 'Cannot find gallery';
         console.error(msg);
-        return msg;
+        return cb(null);
+      } else if (gallery.images.indexOf(image_id) !== -1) {
+        const msg = 'Duplicate Image added';
+        console.log(msg);
+        return cb(gallery);
       }
-      if (gallery.images.indexOf(image_id) === -1) {
-        gallery.images.push(image_id);
-        gallery_db.updateOne({ $loki: id }, gallery, () =>
-          // This may be changed later, because for every
-          // image in a multi-add it will be fired... not
-          // great for performance
-          document.dispatchEvent(gallery_update_event)
-        );
-        return 0;
-      }
-      const msg = 'Duplicate Image added';
-      console.error(msg);
-      return msg;
+      gallery.images.push(image_id);
+      return gallery_db.updateOne({ $loki: id }, gallery, (new_gallery) => {
+        // This may be changed later, because for every
+        // image in a multi-add it will be fired... not
+        // great for performance
+        document.dispatchEvent(gallery_update_event);
+        return cb(new_gallery);
+      });
     });
   },
 
@@ -129,22 +124,23 @@ const Galleries = {
     return msg;
   },
 
-  removeItem: (id, item_id) => {
+  removeItem: (id, item_id, cb) => {
     console.log(`Attempting to remove ${item_id} from ${id}`);
     gallery_db.findOne({ $loki: id }, (gallery) => {
       if (gallery === null) {
         const msg = `${id} not found`;
         console.error(msg);
-      } else {
-        gallery.images = gallery.images.filter(i => i !== item_id);
-        gallery_db.updateOne({ $loki: id }, gallery, () => {
-          console.log('Item removed');
-          document.dispatchEvent(gallery_update_event);
-        });
-        if (id === BASE_GALLERY_ID) {
-          console.log('TODO delete from all galleries if removed from base gallery');
-        }
+        return cb(null);
       }
+      gallery.images = gallery.images.filter(i => i !== item_id);
+      if (id === BASE_GALLERY_ID) {
+        console.log('TODO delete from all galleries if removed from base gallery');
+      }
+      return gallery_db.updateOne({ $loki: id }, gallery, (new_gallery) => {
+        console.log('Item removed');
+        document.dispatchEvent(gallery_update_event);
+        return cb(new_gallery);
+      });
     });
   }
 };

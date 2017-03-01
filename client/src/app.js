@@ -22,6 +22,9 @@ DevTools.install();
 
 // Events
 document.addEventListener('database_loaded', checkIfLoaded, false);
-document.addEventListener('vacation_loaded', _ =>
-  ReactDOM.render(React.createElement(Main), document.getElementById('react-content')),
-false);
+document.addEventListener('vacation_loaded', _ => {
+  // Don't render in test mode
+  if (document.getElementById('react-content')) {
+    ReactDOM.render(React.createElement(Main), document.getElementById('react-content'))
+  }
+}, false);

@@ -16,19 +16,18 @@ const Images = {
     };
 
     // Check if it already exists
-    const query = { location: path };
-    image_db.findOne(query, (ex_doc) => {
+    image_db.findOne({ location: path }, (ex_doc) => {
       // If it already existed, return the existing doc
-      if (ex_doc) cb(ex_doc);
+      if (ex_doc) return cb(ex_doc);
 
       // Otherwise insert and return the new doc
-      image_db.insert(doc, cb);
+      return image_db.insert(doc, cb);
     });
   },
 
-  remove: (path) => {
-    image_db.removeOne({ location: path });
-    console.log(`Removed image ${path}`);
+  remove: (id) => {
+    image_db.removeOne({ $loki: id });
+    console.log(`Removed image ${id}`);
     return 0;
   }
 };

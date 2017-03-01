@@ -41,7 +41,7 @@ class Main extends React.Component {
     });
 
     // Add pending item to gallery
-    Galleries.addItem(galleryId, this.state.imageId);
+    Galleries.addItem(galleryId, this.state.imageId, () => true);
   }
 
   getNewGalleryName() {

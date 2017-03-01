@@ -53,7 +53,7 @@ class Gallery extends React.Component {
   }
 
   removeItem(id) {
-    Galleries.removeItem(this.props.dbId, id);
+    Galleries.removeItem(this.props.dbId, id, () => true);
   }
 
   render() {
