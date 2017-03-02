@@ -122,4 +122,12 @@ describe('galleries', () => {
       done();
     });
   });
+
+  it('can\'t remove the base gallery', (done) => {
+    Galleries.remove(base_gallery_id);
+    Galleries.get(base_gallery_id, (removed_gallery) => {
+      should.exist(removed_gallery);
+      done();
+    });
+  });
 });

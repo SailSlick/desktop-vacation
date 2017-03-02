@@ -61,9 +61,9 @@ describe('Loki Db tools', () => {
 
     describe('findIndex()', () => {
       it('Can find item in db that match index query', (done) => {
-        const testQueryIndex = 10;
-        testCol.findMany(testQueryIndex, (doc) => {
-          expect(doc).to.be.an('array');
+        const testQueryIndex = 1;
+        testCol.findIndex(testQueryIndex, (doc) => {
+          expect(doc).to.be.an('object');
           done();
         });
       });

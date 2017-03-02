@@ -99,37 +99,37 @@ const Galleries = {
 
   remove: (id) => {
     console.log(`Removing gallery: ${id}`);
-    if (id !== BASE_GALLERY_ID) {
-      return gallery_db.findOne({ $loki: id }, (gallery) => {
-        if (gallery == null) {
-          const msg = 'No gallery to delete';
-          console.error(msg);
-          return msg;
-        }
-        gallery_db.findMany({ subgalleries: { $contains: gallery.$loki } }, (references) => {
-          references.forEach((ref, _i) => {
-            ref.subgalleries = ref.subgalleries.filter(i => i !== gallery.$loki);
-            gallery_db.updateOne(
-              { $loki: ref.$loki },
-              ref.subgalleries,
-              r => console.log(`- ${r.$loki} no longer contains reference to gallery`));
-          });
-        });
-        gallery_db.removeOne({ $loki: id });
-        return document.dispatchEvent(gallery_update_event);
-      });
+    if (id === BASE_GALLERY_ID) {
+      const msg = 'Tried to delete base gallery';
+      console.log(msg);
+      return msg;
     }
-    const msg = 'Tried to delete base gallery';
-    console.error(msg);
-    return msg;
+
+    // db.js does the existence check
+    gallery_db.removeOne({ $loki: id });
+
+    return gallery_db.findMany({ subgalleries: { $contains: id } }, references =>
+      async.each(references, (ref, next) => {
+        ref.subgalleries = ref.subgalleries.filter(i => i !== id);
+        gallery_db.updateOne(
+          { $loki: ref.$loki },
+          ref.subgalleries,
+          () => {
+            console.log(`- ${ref.$loki} no longer contains reference to gallery`);
+            next();
+          }
+        );
+      }, () =>
+        document.dispatchEvent(gallery_update_event)
+      )
+    );
   },
 
   removeItem: (id, item_id, cb) => {
     console.log(`Attempting to remove ${item_id} from ${id}`);
     gallery_db.findOne({ $loki: id }, (gallery) => {
       if (gallery === null) {
-        const msg = `${id} not found`;
-        console.error(msg);
+        console.error(`${id} not found`);
         return cb(null);
       }
       gallery.images = gallery.images.filter(i => i !== item_id);
