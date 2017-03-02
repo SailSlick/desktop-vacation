@@ -31,7 +31,7 @@ ipc.on('set-slideshow', (event, slideshow_paths_array, timer) => {
   }, timer);
 });
 
-ipc.on('clearSlideshow', (event) => {
+ipc.on('clear-slideshow', (event) => {
   console.log('clearing slideshow');
   clearInterval(main_loop);
   event.sender.send('set-slideshow-done', 0);

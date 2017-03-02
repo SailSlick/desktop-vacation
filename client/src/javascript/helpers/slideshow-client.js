@@ -6,7 +6,9 @@ const hostname = 'Sully';
 const BASE_GALLERY_ID = 1;
 
 export default {
-  set: (galleryId) => {
+  set: (galleryId, cb) => {
+    cb = cb || (() => true);
+
     Userdata.get(hostname, (oldHostData) => {
       let mTime = oldHostData.timer;
 
@@ -15,7 +17,7 @@ export default {
       }
       if (galleryId === '' || typeof galleryId !== 'number') {
         console.error(`Invalid gallery ID ${galleryId}`);
-        return;
+        return cb();
       }
 
       const msTime = mTime * 60000;
@@ -28,8 +30,7 @@ export default {
       };
 
       // puts the config files into the host db
-      Userdata.update(hostname, config, (updated) => {
-        console.log('updated:', updated);
+      return Userdata.update(hostname, config, (updated) => {
         // gets the named gallery from db
         Galleries.get(galleryId, gallery =>
           Galleries.expand(gallery, (subgalleries, images) => {
@@ -37,16 +38,17 @@ export default {
 
             if (image_paths.length === 0) {
               console.error('The gallery has no images');
-              return;
+              return cb();
             }
             ipc.send('set-slideshow', image_paths, msTime);
+            return cb();
           })
         );
       });
     });
   },
 
-  clear: () => {
+  clear: (cb) => {
     const config = {
       slideshowConfig: {
         onstart: false,
@@ -55,9 +57,10 @@ export default {
       }
     };
     // puts the config files into the host db
-    Userdata.update(hostname, config, () =>
-      ipc.send('clearSlideshow')
-    );
+    Userdata.update(hostname, config, () => {
+      ipc.send('clear-slideshow');
+      if (cb) cb();
+    });
   }
 };
 

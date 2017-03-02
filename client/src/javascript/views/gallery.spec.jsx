@@ -9,7 +9,7 @@ import Images from '../models/images';
 import Galleries from '../models/galleries';
 
 use(chaiEnzyme());
-const should = chaiShould();
+chaiShould();
 
 describe('gallery view', () => {
   const test_gallery_name = 'Land Rovers';
