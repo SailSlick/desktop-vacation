@@ -5,7 +5,6 @@ import Images from './images';
 // Use 'should' style chai testing
 const should = chaiShould();
 
-// Arrow functions not used because the context of 'this' gets lost
 describe('images', () => {
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
   let test_image;

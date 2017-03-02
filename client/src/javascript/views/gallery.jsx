@@ -43,6 +43,9 @@ class Gallery extends React.Component {
         this.setState({
           subgalleries,
           images
+        }, () => {
+          console.log('Gallery refreshed');
+          this.props.onRefresh();
         })
       )
     );
@@ -53,6 +56,7 @@ class Gallery extends React.Component {
   }
 
   removeItem(id) {
+    console.log('CALLED');
     Galleries.removeItem(this.props.dbId, id, () => true);
   }
 
@@ -98,9 +102,13 @@ class Gallery extends React.Component {
 Gallery.propTypes = {
   dbId: React.PropTypes.number.isRequired,
   onChange: React.PropTypes.func.isRequired,
+  onRefresh: React.PropTypes.func,
   simple: React.PropTypes.bool
 };
 
-Gallery.defaultProps = { simple: false };
+Gallery.defaultProps = {
+  simple: false,
+  onRefresh: () => true
+};
 
 export default Gallery;

@@ -8,7 +8,6 @@ import Images from './images';
 const should = chaiShould();
 use(chaiThings);
 
-// Arrow functions not used because the context of 'this' gets lost
 describe('galleries', () => {
   const base_gallery_id = 1;
   const test_gallery_name = 'Land Rovers';

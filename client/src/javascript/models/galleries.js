@@ -1,4 +1,4 @@
-import async from 'async';
+import { map, each } from 'async';
 import { ipcRenderer as ipc } from 'electron';
 import DbConn from '../helpers/db';
 import Images from './images';
@@ -70,7 +70,7 @@ const Galleries = {
   //   - Images with full details
   expand: (gallery, cb) => {
     // Expand Subgalleries
-    async.map(gallery.subgalleries, (id, next) =>
+    map(gallery.subgalleries, (id, next) =>
       Galleries.get(id, (subgallery) => {
         // Get thumbnail
         if (subgallery.images.length !== 0) {
@@ -89,7 +89,7 @@ const Galleries = {
       }),
     (err_gal, subgalleries) =>
       // Expand Images
-      async.map(gallery.images, (image_id, next) =>
+      map(gallery.images, (image_id, next) =>
           Images.get(image_id, image => next(null, image)),
         (err_img, images) =>
           cb(subgalleries, images)
@@ -109,7 +109,7 @@ const Galleries = {
     gallery_db.removeOne({ $loki: id });
 
     return gallery_db.findMany({ subgalleries: { $contains: id } }, references =>
-      async.each(references, (ref, next) => {
+      each(references, (ref, next) => {
         ref.subgalleries = ref.subgalleries.filter(i => i !== id);
         gallery_db.updateOne(
           { $loki: ref.$loki },

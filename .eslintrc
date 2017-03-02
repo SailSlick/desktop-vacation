@@ -11,6 +11,7 @@
     "camelcase": "off",
     "comma-dangle": "off",
     "no-param-reassign": "off",
+    "no-unused-expressions": "off",
     "guard-for-in": "off",
     "import/no-extraneous-dependencies": "off",
     "import/extensions": ["error", {"jsx": "off", "js": "error"}],

@@ -4,7 +4,6 @@ import Userdata from './userdata';
 // Use 'should' style chai testing
 const should = chaiShould();
 
-// Arrow functions not used because the context of 'this' gets lost
 describe('userdata', () => {
   const test_username = 'Landyboi';
   let test_data;
