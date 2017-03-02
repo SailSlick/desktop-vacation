@@ -80,17 +80,19 @@ class DbConn {
 
   // removeOne: delete one item from collection
   // query in {x:y} format
-  removeOne(query) {
+  removeOne(query, cb) {
     const doc = this.col.findOne(query);
     if (doc) {
-      this.col.remove(doc);
+      return cb(this.col.remove(doc));
     }
+    return cb();
   }
 
   // removeMany: remove all docs matching query from collection
   // query in {x:y} format
-  removeMany(query) {
+  removeMany(query, cb) {
     this.col.chain().find(query).remove();
+    return cb();
   }
 }
 

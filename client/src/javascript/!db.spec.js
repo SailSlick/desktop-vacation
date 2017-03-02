@@ -104,30 +104,34 @@ describe('Loki Db tools', () => {
     describe('db#removeOne()', () => {
       it('Can remove item from db', (done) => {
         const testQuery = { backgrounds: { $gt: 0 } };
-        testCol.removeOne(testQuery);
-        testCol.findOne(testQuery, (doc) => {
-          expect(doc).to.not.exist;
-          done();
+        testCol.removeOne(testQuery, () => {
+          testCol.findOne(testQuery, (doc) => {
+            expect(doc).to.not.exist;
+            done();
+          });
         });
       });
 
       it('Should get correct response for item to remove not being there', (done) => {
         const testQuery = { backgrounds: { $gt: 0 } };
-        testCol.removeOne(testQuery);
-        testCol.findOne(testQuery, (doc) => {
-          expect(doc).to.not.exist;
-          done();
+        testCol.removeOne(testQuery, () => {
+          testCol.findOne(testQuery, (doc) => {
+            expect(doc).to.not.exist;
+            done();
+          });
         });
+
       });
     });
 
     describe('db#removeMany()', () => {
       it('Can remove multiple items that match query', (done) => {
         const testQuery = { screensavers: { $gt: 0 } };
-        testCol.removeMany(testQuery);
-        testCol.findOne(testQuery, (doc) => {
-          expect(doc).to.not.exist;
-          done();
+        testCol.removeMany(testQuery, () => {
+          testCol.findOne(testQuery, (doc) => {
+            expect(doc).to.not.exist;
+            done();
+          });
         });
       });
     });

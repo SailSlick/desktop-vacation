@@ -24,7 +24,10 @@ $(document).on('database_loaded', checkIfLoaded);
 // Link DOM events to functions
 $('#btn-view-images').click(Images.view);
 $('#btn-add-images').click(Images.getNew);
+$('#btn-view-galleries').click(() => {
+  Galleries.currentGallery = '';
+  Galleries.view();
+});
+$('#btn-add-gallery').click(Galleries.addGalleryName);
 $('#btn-add-slideshow').click(() => Slides.setSlideshow());
 $('#btn-clear-slideshow').click(Slides.clearSlideshow);
-$('#btn-view-galleries').click(Galleries.view);
-$('#btn-add-gallery').click(Galleries.addGalleryName);
