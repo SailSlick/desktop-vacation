@@ -5,7 +5,7 @@ import Images from './images';
 // Use 'should' style chai testing
 const should = chaiShould();
 
-describe('images', () => {
+describe('Images model', () => {
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
   let test_image;
 

@@ -3,7 +3,7 @@ import DbConn from './db';
 
 let testCol;
 
-describe('Loki Db tools', () => {
+describe('Database Helper', () => {
   // Events
   document.addEventListener('database_loaded', () => {
     testCol = new DbConn('host');

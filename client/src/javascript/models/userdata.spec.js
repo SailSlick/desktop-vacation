@@ -4,7 +4,7 @@ import Userdata from './userdata';
 // Use 'should' style chai testing
 const should = chaiShould();
 
-describe('userdata', () => {
+describe('Userdata model', () => {
   const test_username = 'Landyboi';
   let test_data;
 

@@ -11,7 +11,7 @@ import Images from '../models/images';
 use(chaiEnzyme());
 chaiShould();
 
-describe('image view', () => {
+describe('Image Component', () => {
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
   const removeSpy = spy();
   let test_image;

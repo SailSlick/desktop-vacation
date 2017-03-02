@@ -11,7 +11,7 @@ import Galleries from '../models/galleries';
 use(chaiEnzyme());
 chaiShould();
 
-describe('gallery card', () => {
+describe('GalleryCard Component', () => {
   const test_gallery_name = 'Land Rovers';
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
   const removeSpy = spy();

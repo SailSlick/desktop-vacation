@@ -7,7 +7,7 @@ import Wallpaper from './wallpaper-client';
 // Use 'should' style chai testing
 chaiShould();
 
-describe('Wallpaper Client', () => {
+describe('Wallpaper Helper (Client)', () => {
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
   let ipcSpy;
 

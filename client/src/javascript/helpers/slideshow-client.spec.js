@@ -9,7 +9,7 @@ import Galleries from '../models/galleries';
 // Use 'should' style chai testing
 chaiShould();
 
-describe('Slideshow Client', () => {
+describe('Slideshow Helper (Client)', () => {
   const test_gallery_name = 'Land Rovers';
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
   let ipcSpy;

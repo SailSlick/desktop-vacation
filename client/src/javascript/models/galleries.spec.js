@@ -8,7 +8,7 @@ import Images from './images';
 const should = chaiShould();
 use(chaiThings);
 
-describe('galleries', () => {
+describe('Galleries model', () => {
   const base_gallery_id = 1;
   const test_gallery_name = 'Land Rovers';
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
