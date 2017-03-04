@@ -88,7 +88,7 @@ class Main extends React.Component {
       <div>
         <Navbar inverse collapseOnSelect>
           <Navbar.Header>
-            <Navbar.Brand>
+            <Navbar.Brand onClick={_ => this.changeGallery(BASE_GALLERY_ID)}>
               Desktop Vacation
             </Navbar.Brand>
             <Navbar.Toggle />
@@ -106,7 +106,7 @@ class Main extends React.Component {
                 <MenuItem onClick={_ => Slideshow.set(this.state.galleryId)}>
                   Use Current Gallery
                 </MenuItem>
-                <MenuItem onClick={Slideshow.clear}>Clear</MenuItem>
+                <MenuItem onClick={_ => Slideshow.clear()}>Clear</MenuItem>
               </NavDropdown>
             </Nav>
           </Navbar.Collapse>
