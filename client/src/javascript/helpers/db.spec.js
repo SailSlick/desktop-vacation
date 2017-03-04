@@ -1,15 +1,14 @@
-import $ from 'jquery';
 import { expect } from 'chai';
 import DbConn from './db';
 
 let testCol;
 
-describe('Loki Db tools', () => {
+describe('Database Helper', () => {
   // Events
-  $(document).on('database_loaded', () => {
+  document.addEventListener('database_loaded', () => {
     testCol = new DbConn('host');
 
-    describe('db#insertOne()', () => {
+    describe('insertOne()', () => {
       it('Can insert into Db', (done) => {
         const testData = { backgrounds: 'areLife' };
         testCol.insert(testData, (doc) => {
@@ -19,7 +18,7 @@ describe('Loki Db tools', () => {
       });
     });
 
-    describe('db#insertMany()', () => {
+    describe('insertMany()', () => {
       it('Can insert multiple items at once', (done) => {
         const testData = [
           { screensavers: 'areGreat' },
@@ -32,7 +31,7 @@ describe('Loki Db tools', () => {
       });
     });
 
-    describe('db#findOne()', () => {
+    describe('findOne()', () => {
       it('Can find one item in db through query', (done) => {
         const testQuery = { backgrounds: { $gte: 0 } };
         testCol.findOne(testQuery, (doc) => {
@@ -50,7 +49,7 @@ describe('Loki Db tools', () => {
       });
     });
 
-    describe('db#findMany()', () => {
+    describe('findMany()', () => {
       it('Can find multiple items in db that match query', (done) => {
         const testQuery = { screensavers: { $gte: 0 } };
         testCol.findMany(testQuery, (doc_array) => {
@@ -60,17 +59,17 @@ describe('Loki Db tools', () => {
       });
     });
 
-    describe('db#findIndex()', () => {
+    describe('findIndex()', () => {
       it('Can find item in db that match index query', (done) => {
-        const testQueryIndex = 10;
-        testCol.findMany(testQueryIndex, (doc) => {
-          expect(doc).to.be.an('array');
+        const testQueryIndex = 1;
+        testCol.findIndex(testQueryIndex, (doc) => {
+          expect(doc).to.be.an('object');
           done();
         });
       });
     });
 
-    describe('db#updateOne()', () => {
+    describe('updateOne()', () => {
       it('Can update one item in db', (done) => {
         const testQuery = { backgrounds: 'areLife' };
         const testData = { backgrounds: 'areFunny' };
@@ -90,7 +89,7 @@ describe('Loki Db tools', () => {
       });
     });
 
-    describe('db#updateMany()', () => {
+    describe('updateMany()', () => {
       it('Can update multiple items', (done) => {
         const testQuery = { screensavers: { $gt: 0 } };
         const testData = { screensavers: 'areWorthIt' };
@@ -101,7 +100,7 @@ describe('Loki Db tools', () => {
       });
     });
 
-    describe('db#removeOne()', () => {
+    describe('removeOne()', () => {
       it('Can remove item from db', (done) => {
         const testQuery = { backgrounds: { $gt: 0 } };
         testCol.removeOne(testQuery, () => {
@@ -120,11 +119,10 @@ describe('Loki Db tools', () => {
             done();
           });
         });
-
       });
     });
 
-    describe('db#removeMany()', () => {
+    describe('removeMany()', () => {
       it('Can remove multiple items that match query', (done) => {
         const testQuery = { screensavers: { $gt: 0 } };
         testCol.removeMany(testQuery, () => {
@@ -135,5 +133,5 @@ describe('Loki Db tools', () => {
         });
       });
     });
-  });
+  }, false);
 });

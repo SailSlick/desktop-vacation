@@ -34,7 +34,7 @@ function makeGallery() {
   const galleryData = {
     name: galname,
     tags: [],
-    subgallaries: [],
+    subgalleries: [],
     images: []
   };
   const mainGal = galleries.insert(galleryData);

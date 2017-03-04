@@ -37,8 +37,6 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 		stage ('Test Client') {
 			sh 'cd $WORKSPACE/client && npm run lint'
 
-			sh 'cd $WORKSPACE/client && npm run e2e-jenkins'
-
 			sh 'cd $WORKSPACE/client && npm run test-jenkins'
 
 			sh 'cd $WORKSPACE/client && npm run coverage'
@@ -53,7 +51,7 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 
 			step([$class: 'CheckStylePublisher', canComputeNew: false, defaultEncoding: '', healthy: '30', pattern: '', unHealthy: '200'])
 
-			step([$class: 'CloverPublisher', cloverReportDir: 'coverage', cloverReportFileName: 'clover.xml', failingTarget: [conditionalCoverage: 45, methodCoverage: 25, statementCoverage: 45], healthyTarget: [conditionalCoverage: 80, methodCoverage: 70, statementCoverage: 80], unhealthyTarget: [conditionalCoverage: 55, methodCoverage: 40, statementCoverage: 55]])
+			step([$class: 'CloverPublisher', cloverReportDir: 'coverage', cloverReportFileName: 'clover.xml', failingTarget: [conditionalCoverage: 30, methodCoverage: 50, statementCoverage: 50], healthyTarget: [conditionalCoverage: 70, methodCoverage: 80, statementCoverage: 80], unhealthyTarget: [conditionalCoverage: 40, methodCoverage: 55, statementCoverage: 55]])
 
 			step([$class: 'GitHubCommitStatusSetter'])
 

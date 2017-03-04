@@ -11,8 +11,19 @@
     "camelcase": "off",
     "comma-dangle": "off",
     "no-param-reassign": "off",
+    "no-unused-expressions": "off",
     "guard-for-in": "off",
     "import/no-extraneous-dependencies": "off",
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
+    "import/extensions": "off",
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "no-restricted-syntax": "off"
+  },
+  "plugins": [
+    "react"
+  ],
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    }
   }
 }

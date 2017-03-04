@@ -57,9 +57,8 @@ cd "$BASEDIR/client" && npm install
 echo "Creating symlinks for client dependencies"
 cd $BASEDIR/client/app
 mkdir thirdparty
+mkdir stylesheets
 cd thirdparty
-ln -s ../../node_modules/jquery/dist jquery
-ln -s ../../node_modules/tether/dist tether
 ln -s ../../node_modules/bootstrap/dist bootstrap
 
 echo "Creating symlinks for build system"
