@@ -1,5 +1,5 @@
 'use strict';
 
-require('./tasks/build_app');
-require('./tasks/build_tests');
-require('./tasks/start');
+require('./old_tasks/build_app');
+require('./old_tasks/build_tests');
+require('./old_tasks/start');

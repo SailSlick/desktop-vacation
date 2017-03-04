@@ -37,8 +37,6 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 		stage ('Test Client') {
 			sh 'cd $WORKSPACE/client && npm run lint'
 
-			sh 'cd $WORKSPACE/client && npm run e2e-jenkins'
-
 			sh 'cd $WORKSPACE/client && npm run test-jenkins'
 
 			sh 'cd $WORKSPACE/client && npm run coverage'
