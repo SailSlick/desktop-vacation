@@ -22,6 +22,7 @@
     "build": "node scripts/build.js",
     "prerelease": "gulp build --env=production",
     "release": "build",
+    "prestart": "npm run build",
     "start": "electron .",
     "makeDb": "node ./src/javascript/create-base-db.js",
     "lint": "eslint -f checkstyle -o checkstyle-result.xml src ; exit 0",
