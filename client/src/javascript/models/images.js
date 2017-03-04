@@ -25,10 +25,11 @@ const Images = {
     });
   },
 
-  remove: (id) => {
-    image_db.removeOne({ $loki: id });
-    console.log(`Removed image ${id}`);
-    return 0;
+  remove: (id, cb) => {
+    image_db.removeOne({ $loki: id }, _ => {
+      console.log(`Removed image ${id}`);
+      cb();
+    });
   }
 };
 

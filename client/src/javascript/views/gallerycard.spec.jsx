@@ -51,9 +51,9 @@ describe('GalleryCard Component', () => {
   );
 
   // Remove test image and gallery
-  after(() => {
-    Images.remove(test_image.$loki);
-    Galleries.remove(test_gallery.$loki);
+  after((done) => {
+    Images.remove(test_image.$loki, () => true);
+    Galleries.remove(test_gallery.$loki, _ => done());
   });
 
   it('can render gallery card element', (done) => {
@@ -64,7 +64,7 @@ describe('GalleryCard Component', () => {
 
   it('can fire onClick handler', (done) => {
     clickSpy.called.should.not.be.ok;
-    test_component.find('img').first().simulate('click');
+    test_component.find('figure').first().simulate('click');
     clickSpy.called.should.be.ok;
     done();
   });
@@ -82,5 +82,4 @@ describe('GalleryCard Component', () => {
     test_component.find('MenuItem').should.be.empty;
     done();
   });
-
 });

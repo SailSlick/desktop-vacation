@@ -52,11 +52,10 @@ class Gallery extends React.Component {
   }
 
   removeSubgallery(dbId) {
-    Galleries.remove(dbId);
+    Galleries.remove(dbId, () => true);
   }
 
   removeItem(id) {
-    console.log('CALLED');
     Galleries.removeItem(this.props.dbId, id, () => true);
   }
 

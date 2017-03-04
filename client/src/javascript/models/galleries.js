@@ -11,10 +11,14 @@ const gallery_update_event = new Event('gallery_updated');
 
 const Galleries = {
   add: (name, cb) => {
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      console.error(`Invalid gallery name ${name}`);
+      return cb(null);
+    }
     console.log(`Adding gallery ${name}`);
-    gallery_db.findOne({ name }, (found_gallery) => {
+    return gallery_db.findOne({ name }, (found_gallery) => {
       if (found_gallery) {
-        console.log(`Gallery ${name} already exists`);
+        console.error(`Gallery ${name} already exists`);
         return cb(found_gallery);
       }
       const doc = {
@@ -24,24 +28,47 @@ const Galleries = {
         images: []
       };
       return gallery_db.insert(doc, (inserted_gallery) => {
-        gallery_db.findOne({ $loki: BASE_GALLERY_ID }, (base_gallery) => {
-          base_gallery.subgalleries.push(inserted_gallery.$loki);
-          return gallery_db.updateOne(
-            { name: BASE_GALLERY_ID },
-            base_gallery,
-            () => {
-              document.dispatchEvent(gallery_update_event);
-              cb(inserted_gallery);
-            }
-          );
-        });
+        const id = inserted_gallery.$loki;
+        // addSubgallery will dispatch the event
+        Galleries.addSubGallery(BASE_GALLERY_ID, id, () =>
+          cb(inserted_gallery)
+        );
       });
+    });
+  },
+
+  addSubGallery(id, subgallery_id, cb) {
+    if (id === subgallery_id) {
+      console.error(`Tried to add gallery ${id} to itself`);
+      return cb(null);
+    }
+    if (subgallery_id === BASE_GALLERY_ID) {
+      console.error(`Tried to add base gallery to ${id}`);
+      return cb(null);
+    }
+    return Galleries.get(id, (base_gallery) => {
+      if (!base_gallery) {
+        console.error(`No such gallery ${id}`);
+        return cb(null);
+      } else if (base_gallery.subgalleries.indexOf(subgallery_id) !== -1) {
+        console.error(`Gallery ${subgallery_id} is already a subgallery of ${id}`);
+        return cb(base_gallery);
+      }
+      base_gallery.subgalleries.push(subgallery_id);
+      return gallery_db.updateOne(
+        { $loki: id },
+        { subgalleries: base_gallery.subgalleries },
+        (updated_gallery) => {
+          document.dispatchEvent(gallery_update_event);
+          return cb(updated_gallery);
+        }
+      );
     });
   },
 
   addItem: (id, image_id, cb) => {
     console.log(`Adding image_id ${image_id} to gallery ${id}`);
-    return gallery_db.findOne({ $loki: id }, (gallery) => {
+    return Galleries.get(id, (gallery) => {
       if (gallery === null) {
         const msg = 'Cannot find gallery';
         console.error(msg);
@@ -97,16 +124,13 @@ const Galleries = {
     );
   },
 
-  remove: (id) => {
-    console.log(`Removing gallery: ${id}`);
+  remove: (id, cb) => {
+    console.log('Removing gallery:', id);
     if (id === BASE_GALLERY_ID) {
       const msg = 'Tried to delete base gallery';
-      console.log(msg);
-      return msg;
+      console.error(msg);
+      return cb(msg);
     }
-
-    // db.js does the existence check
-    gallery_db.removeOne({ $loki: id });
 
     return gallery_db.findMany({ subgalleries: { $contains: id } }, references =>
       each(references, (ref, next) => {
@@ -115,33 +139,56 @@ const Galleries = {
           { $loki: ref.$loki },
           ref.subgalleries,
           () => {
-            console.log(`- ${ref.$loki} no longer contains reference to gallery`);
+            console.log(`- ${ref.$loki} no longer contains reference to ${id}`);
             next();
           }
         );
       }, () =>
-        document.dispatchEvent(gallery_update_event)
+        gallery_db.removeOne({ $loki: id }, () => {
+          document.dispatchEvent(gallery_update_event);
+          cb();
+        })
       )
     );
   },
 
   removeItem: (id, item_id, cb) => {
     console.log(`Attempting to remove ${item_id} from ${id}`);
-    gallery_db.findOne({ $loki: id }, (gallery) => {
+    if (id === BASE_GALLERY_ID) {
+      return Galleries.removeItemGlobal(item_id, cb);
+    }
+    return Galleries.get(id, (gallery) => {
       if (gallery === null) {
         console.error(`${id} not found`);
         return cb(null);
       }
       gallery.images = gallery.images.filter(i => i !== item_id);
-      if (id === BASE_GALLERY_ID) {
-        console.log('TODO delete from all galleries if removed from base gallery');
-      }
       return gallery_db.updateOne({ $loki: id }, gallery, (new_gallery) => {
         console.log('Item removed');
         document.dispatchEvent(gallery_update_event);
         return cb(new_gallery);
       });
     });
+  },
+
+  // Removes an image from all the galleries it was in
+  removeItemGlobal: (id, cb) => {
+    console.log('Globally removing image:', id);
+    Images.remove(id, () =>
+      gallery_db.findMany({ images: { $contains: id } }, refs =>
+        each(refs, (gallery, next) => {
+          gallery.images = gallery.images.filter(i => i !== id);
+          gallery_db.updateOne({ $loki: gallery.$loki }, gallery, () => {
+            console.log(`- ${gallery.$loki} no longer contains reference to ${id}`);
+            next();
+          });
+        }, () => {
+          console.log('Item removed globally');
+          document.dispatchEvent(gallery_update_event);
+          cb();
+        })
+      )
+    );
   }
 };
 
@@ -155,14 +202,17 @@ document.addEventListener('gallery_updated', () => {
 }, false);
 
 // IPC Calls
-ipc.on('selected-directory', (event, files) => {
-  let i;
-  for (i = 0; i < files.length; i++) {
-    Images.add(files[i], image =>
-      Galleries.addItem(BASE_GALLERY_ID, image.$loki)
-    );
-    console.log(`Opened image ${files[i]}`);
-  }
-});
+ipc.on('selected-directory', (event, files) =>
+  each(files, (file, next) =>
+    Images.add(file, image =>
+      Galleries.addItem(BASE_GALLERY_ID, image.$loki, () => {
+        console.log(`Opened image ${file}`);
+        next();
+      })
+    ),
+  () =>
+    console.log('Finished opening images')
+  )
+);
 
 export default Galleries;

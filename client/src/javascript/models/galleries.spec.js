@@ -11,9 +11,11 @@ use(chaiThings);
 describe('Galleries model', () => {
   const base_gallery_id = 1;
   const test_gallery_name = 'Land Rovers';
+  const test_subgallery_name = 'Series III';
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
   let test_gallery;
   let test_image;
+  let test_subgallery;
 
   // Create a test image
   before(done =>
@@ -25,7 +27,7 @@ describe('Galleries model', () => {
 
   // Remove test image
   after(() =>
-    Images.remove(test_image.$loki)
+    Images.remove(test_image.$loki, () => true)
   );
 
   it('can add gallery', done =>
@@ -41,6 +43,13 @@ describe('Galleries model', () => {
   it('won\'t duplicate gallery', done =>
     Galleries.add(test_gallery_name, (inserted_gallery) => {
       inserted_gallery.$loki.should.be.equal(test_gallery.$loki);
+      done();
+    })
+  );
+
+  it('won\'t add gallery with blank name', done =>
+    Galleries.add('', (inserted_gallery) => {
+      should.not.exist(inserted_gallery);
       done();
     })
   );
@@ -99,6 +108,33 @@ describe('Galleries model', () => {
     )
   );
 
+  it('can add a subgallery for a gallery', (done) => {
+    Galleries.add(test_subgallery_name, (subgallery) => {
+      test_subgallery = subgallery;
+      subgallery.should.be.an('object');
+      subgallery.name.should.be.equal(test_subgallery_name);
+      Galleries.addSubGallery(
+        test_gallery.$loki,
+        subgallery.$loki,
+        (updated_gallery) => {
+          updated_gallery.subgalleries.should.include(subgallery.$loki);
+          done();
+        }
+      );
+    });
+  });
+
+  it('can remove a subgallery from a gallery', (done) => {
+    Galleries.remove(test_subgallery.$loki, () => {
+      test_gallery.subgalleries.should.not.include(test_subgallery.$loki);
+      Galleries.get(test_subgallery.$loki, (removed_gallery) => {
+        should.not.exist(removed_gallery);
+        done();
+      });
+    });
+  });
+
+  // NOTE Most new tests will go above this comment
   it('can remove item from gallery', done =>
     Galleries.removeItem(test_gallery.$loki, test_image.$loki, (updated_gallery) => {
       updated_gallery.images.should.not.include(test_image.$loki);
@@ -115,18 +151,21 @@ describe('Galleries model', () => {
 
   it('can remove gallery', (done) => {
     const id = test_gallery.$loki;
-    Galleries.remove(id);
-    Galleries.get(id, (removed_gallery) => {
-      should.not.exist(removed_gallery);
-      done();
-    });
+    Galleries.remove(id, () =>
+      Galleries.get(id, (removed_gallery) => {
+        should.not.exist(removed_gallery);
+        done();
+      })
+    );
   });
 
   it('can\'t remove the base gallery', (done) => {
-    Galleries.remove(base_gallery_id);
-    Galleries.get(base_gallery_id, (removed_gallery) => {
-      should.exist(removed_gallery);
-      done();
-    });
+    Galleries.remove(base_gallery_id, () =>
+      Galleries.get(base_gallery_id, (removed_gallery) => {
+        should.exist(removed_gallery);
+        done();
+      })
+    );
   });
+
 });

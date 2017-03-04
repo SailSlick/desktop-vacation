@@ -1,7 +1,6 @@
 // All includes from src should be done here
 import React from 'react';
 import ReactDOM from 'react-dom';
-import DevTools from 'electron-react-devtools';
 import Main from './javascript/views/main.jsx';
 
 // Store number of pending events for application loading
@@ -18,13 +17,11 @@ function checkIfLoaded() {
   }
 }
 
-DevTools.install();
-
 // Events
 document.addEventListener('database_loaded', checkIfLoaded, false);
-document.addEventListener('vacation_loaded', _ => {
+document.addEventListener('vacation_loaded', () => {
   // Don't render in test mode
   if (document.getElementById('react-content')) {
-    ReactDOM.render(React.createElement(Main), document.getElementById('react-content'))
+    ReactDOM.render(React.createElement(Main), document.getElementById('react-content'));
   }
 }, false);

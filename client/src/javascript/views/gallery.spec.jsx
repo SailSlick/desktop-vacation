@@ -41,10 +41,10 @@ describe('Gallery Component', () => {
   );
 
   // Remove test image and gallery
-  after(() => {
+  after((done) => {
     test_component.unmount();
-    Galleries.remove(test_gallery.$loki);
-    Images.remove(test_image.$loki);
+    Images.remove(test_image.$loki, () => true);
+    Galleries.remove(test_gallery.$loki, () => done());
   });
 
   it('can display images in gallery', (done) => {

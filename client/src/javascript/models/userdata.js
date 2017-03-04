@@ -30,7 +30,7 @@ const Userdata = {
   },
 
   remove: (username) => {
-    userdata_db.removeOne({ username });
+    userdata_db.removeOne({ username }, _ => true);
   }
 };
 

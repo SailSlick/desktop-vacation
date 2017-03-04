@@ -34,10 +34,10 @@ describe('Slideshow Helper (Client)', () => {
   );
 
   // Remove test image and gallery
-  after(() => {
+  after((done) => {
     ipc.send.restore();
-    Galleries.remove(test_gallery.$loki);
-    Images.remove(test_image.$loki);
+    Images.remove(test_image.$loki, () => true);
+    Galleries.remove(test_gallery.$loki, () => done());
   });
 
   it('can set the slideshow', (done) => {

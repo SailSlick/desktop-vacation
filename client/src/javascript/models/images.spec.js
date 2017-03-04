@@ -33,10 +33,11 @@ describe('Images model', () => {
 
   it('can remove image', (done) => {
     const id = test_image.$loki;
-    Images.remove(id);
-    Images.get(id, (removed_image) => {
-      should.not.exist(removed_image);
-      done();
-    });
+    Images.remove(id, () =>
+      Images.get(id, (removed_image) => {
+        should.not.exist(removed_image);
+        done();
+      })
+    );
   });
 });

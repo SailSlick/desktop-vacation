@@ -31,7 +31,7 @@ describe('Image Component', () => {
   );
 
   after(() =>
-    Images.remove(test_image.$loki)
+    Images.remove(test_image.$loki, () => true)
   );
 
   it('can render image element', (done) => {
