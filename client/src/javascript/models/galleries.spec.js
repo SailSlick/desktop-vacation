@@ -167,5 +167,4 @@ describe('Galleries model', () => {
       })
     );
   });
-
 });

@@ -2,7 +2,7 @@ import { should as chaiShould } from 'chai';
 import './app';
 
 // Use 'should' style chai testing
-const should = chaiShould();
+chaiShould();
 
 // Arrow functions not used because the context of 'this' gets lost
 describe('app', () => {

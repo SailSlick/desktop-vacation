@@ -30,7 +30,7 @@ export default {
       };
 
       // puts the config files into the host db
-      return Userdata.update(hostname, config, (updated) => {
+      return Userdata.update(hostname, config, () => {
         // gets the named gallery from db
         Galleries.get(galleryId, gallery =>
           Galleries.expand(gallery, (subgalleries, images) => {

@@ -26,7 +26,7 @@ const Images = {
   },
 
   remove: (id, cb) => {
-    image_db.removeOne({ $loki: id }, _ => {
+    image_db.removeOne({ $loki: id }, () => {
       console.log(`Removed image ${id}`);
       cb();
     });
