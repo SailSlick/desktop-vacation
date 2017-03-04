@@ -3,7 +3,7 @@
   "env": {
     "browser": true,
     "node": true,
-    "mocha": true,
+    "mocha": true
   },
   "rules": {
     "no-plusplus": "off",

@@ -70,12 +70,10 @@ const Galleries = {
     console.log(`Adding image_id ${image_id} to gallery ${id}`);
     return Galleries.get(id, (gallery) => {
       if (gallery === null) {
-        const msg = 'Cannot find gallery';
-        console.error(msg);
+        console.error('Cannot find gallery');
         return cb(null);
       } else if (gallery.images.indexOf(image_id) !== -1) {
-        const msg = 'Duplicate Image added';
-        console.log(msg);
+        console.log('Tried to add duplicate image');
         return cb(gallery);
       }
       gallery.images.push(image_id);
