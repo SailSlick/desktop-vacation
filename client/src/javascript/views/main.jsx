@@ -125,7 +125,7 @@ class Main extends React.Component {
           </Modal.Header>
 
           <Modal.Body>
-            <form>
+            <form onSubmit={e => e.preventDefault() || this.addNewGallery()}>
               <FormGroup>
                 <input
                   id="galleryName"
