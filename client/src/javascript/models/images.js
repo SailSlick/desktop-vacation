@@ -1,3 +1,4 @@
+import fs from 'fs';
 import DbConn from '../helpers/db';
 
 let image_db;
@@ -25,12 +26,27 @@ const Images = {
     });
   },
 
+  delete: (id, cb) => {
+    Images.get(id, image =>
+      // Check file exists & we have write access
+      fs.access(image.location, fs.constants.W_OK, (err) => {
+        if (!err) {
+          fs.unlink(image.location, cb);
+        } else {
+          console.error(`Couldn't access ${image.location}`);
+          cb(err);
+        }
+      })
+    );
+  },
+
   remove: (id, cb) => {
     image_db.removeOne({ $loki: id }, () => {
       console.log(`Removed image ${id}`);
       cb();
     });
   }
+
 };
 
 // Events

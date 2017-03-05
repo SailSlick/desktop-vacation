@@ -169,6 +169,13 @@ const Galleries = {
     });
   },
 
+  deleteItem: (id, cb) => {
+    console.log(`Deleting ${id} from db and fs`);
+    Images.delete(id, _ =>
+      Galleries.removeItemGlobal(id, cb)
+    );
+  },
+
   // Removes an image from all the galleries it was in
   removeItemGlobal: (id, cb) => {
     console.log('Globally removing image:', id);
