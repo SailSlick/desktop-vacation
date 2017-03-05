@@ -1,9 +1,11 @@
 import React from 'react';
 import { ipcRenderer as ipc } from 'electron';
-import { Navbar, Nav, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup } from 'react-bootstrap';
+import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup } from 'react-bootstrap';
 import Gallery from './gallery.jsx';
 import Galleries from '../models/galleries';
 import Slideshow from '../helpers/slideshow-client';
+import Profile from './profile.jsx';
+
 
 const BASE_GALLERY_ID = 1;
 
@@ -15,7 +17,8 @@ class Main extends React.Component {
       galleryId: BASE_GALLERY_ID,
       newGalleryModal: false,
       selectGalleryModal: false,
-      imageId: null
+      imageId: null,
+      profileView: false
     };
 
     this.onSelectGallery = this.onSelectGallery.bind(this);
@@ -24,6 +27,7 @@ class Main extends React.Component {
     this.addNewGallery = this.addNewGallery.bind(this);
     this.changeGallery = this.changeGallery.bind(this);
     this.hideModals = this.hideModals.bind(this);
+    this.profileView = this.profileView.bind(this);
 
     // Events
     document.addEventListener('append_gallery', this.showGallerySelector, false);
@@ -37,7 +41,8 @@ class Main extends React.Component {
   onSelectGallery(galleryId) {
     this.setState({
       selectGalleryModal: false,
-      imageId: null
+      imageId: null,
+      profileView: false
     });
 
     // Add pending item to gallery
@@ -59,10 +64,10 @@ class Main extends React.Component {
     Galleries.add(this.newGalleryInput.value, (new_gallery) => {
       if (this.state.galleryId !== BASE_GALLERY_ID) {
         Galleries.addSubGallery(this.state.galleryId, new_gallery.$loki, () =>
-          this.setState({ newGalleryModal: false })
+          this.setState({ newGalleryModal: false, profileView: false })
         );
       } else {
-        this.setState({ newGalleryModal: false });
+        this.setState({ newGalleryModal: false, profileView: false });
       }
     });
   }
@@ -71,7 +76,7 @@ class Main extends React.Component {
     // This if prevents deleted galleries/non-existent Ids
     // causing big issues
     if (galleryId) {
-      this.setState({ galleryId });
+      this.setState({ galleryId, profileView: false });
     }
   }
 
@@ -81,6 +86,12 @@ class Main extends React.Component {
       selectGalleryModal: false,
       imageId: null
     });
+  }
+
+  profileView() {
+    // This is to show the profile details
+    console.log('changing profileView');
+    this.setState({ profileView: true });
   }
 
   render() {
@@ -108,14 +119,14 @@ class Main extends React.Component {
                 </MenuItem>
                 <MenuItem onClick={_ => Slideshow.clear()}>Clear</MenuItem>
               </NavDropdown>
+              <NavItem onClick={_ => this.profileView()}>Profile</NavItem>
             </Nav>
           </Navbar.Collapse>
         </Navbar>
 
         <Grid fluid id="main-content">
-          <Gallery
-            dbId={this.state.galleryId}
-            onChange={this.changeGallery}
+          <Profile
+            onChange={this.profileView}
           />
         </Grid>
 
@@ -147,10 +158,8 @@ class Main extends React.Component {
           </Modal.Header>
           <Modal.Body>
             <Grid fluid>
-              <Gallery
-                simple
-                dbId={BASE_GALLERY_ID}
-                onChange={this.onSelectGallery}
+              <Profile
+                onChange={this.profileView}
               />
             </Grid>
           </Modal.Body>
