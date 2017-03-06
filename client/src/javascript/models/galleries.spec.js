@@ -1,3 +1,4 @@
+import jetpack from 'fs-jetpack';
 import path from 'path';
 import { use, should as chaiShould } from 'chai';
 import chaiThings from 'chai-things';
@@ -16,6 +17,10 @@ describe('Galleries model', () => {
   let test_gallery;
   let test_image;
   let test_subgallery;
+
+  beforeEach(() => {
+    Galleries.should_save = false;
+  });
 
   // Create a test image
   before(done =>
@@ -91,15 +96,7 @@ describe('Galleries model', () => {
     })
   );
 
-  it('can expand gallery', done =>
-    Galleries.expand(test_gallery, (subgalleries, images) => {
-      subgalleries.should.be.empty;
-      images.should.all.have.property('location');
-      done();
-    })
-  );
-
-  it('can apply thumbails', done =>
+  it('can expand gallery and pick thumbnails', done =>
     Galleries.get(base_gallery_id, base_gallery =>
       Galleries.expand(base_gallery, (subgalleries) => {
         subgalleries.should.include.something.with.property('thumbnail');
@@ -108,7 +105,7 @@ describe('Galleries model', () => {
     )
   );
 
-  it('can add a subgallery for a gallery', (done) => {
+  it('can add a subgallery to a gallery', (done) => {
     Galleries.add(test_subgallery_name, (subgallery) => {
       test_subgallery = subgallery;
       subgallery.should.be.an('object');
@@ -117,12 +114,84 @@ describe('Galleries model', () => {
         test_gallery.$loki,
         subgallery.$loki,
         (updated_gallery) => {
-          updated_gallery.subgalleries.should.include(subgallery.$loki);
+          updated_gallery.subgalleries.should.contain(subgallery.$loki);
+          test_gallery = updated_gallery;
           done();
         }
       );
     });
   });
+
+  it('can\'t duplicate subgallery', (done) => {
+    Galleries.addSubGallery(
+      test_gallery.$loki,
+      test_subgallery.$loki,
+      (updated_gallery) => {
+        updated_gallery.should.exist;
+        updated_gallery.subgalleries.length.should.be.equal(test_gallery.subgalleries.length);
+        done();
+      }
+    );
+  });
+
+  it('can\'t add a gallery to itself', (done) => {
+    Galleries.addSubGallery(
+      test_gallery.$loki,
+      test_gallery.$loki,
+      (updated_gallery) => {
+        should.not.exist(updated_gallery);
+        done();
+      }
+    );
+  });
+
+  it('can\'t use base gallery as a subgallery', (done) => {
+    Galleries.addSubGallery(
+      test_gallery.$loki,
+      base_gallery_id,
+      (updated_gallery) => {
+        should.not.exist(updated_gallery);
+        done();
+      }
+    );
+  });
+
+  it('can\'t add subgallery to non-existent gallery', (done) => {
+    Galleries.addSubGallery(
+      999,
+      test_gallery.$loki,
+      (updated_gallery) => {
+        should.not.exist(updated_gallery);
+        done();
+      }
+    );
+  });
+
+  it('can add item to subgallery', done =>
+    Galleries.addItem(test_subgallery.$loki, test_image.$loki, (updated_gallery) => {
+      updated_gallery.images.should.contain(test_image.$loki);
+      test_subgallery = updated_gallery;
+      done();
+    })
+  );
+
+  it('can remove item from gallery', done =>
+    Galleries.removeItem(test_subgallery.$loki, test_image.$loki, (updated_gallery) => {
+      updated_gallery.images.should.not.contain(test_image.$loki);
+      test_subgallery = updated_gallery;
+      done();
+    })
+  );
+
+  it('can expand gallery without thumbnails', done =>
+    Galleries.expand(test_gallery, (subgalleries, images) => {
+      test_gallery.subgalleries.should.not.have.length(0);
+      subgalleries.should.not.be.empty;
+      subgalleries.should.all.have.property('thumbnail', null);
+      images.should.all.have.property('location');
+      done();
+    })
+  );
 
   it('can remove a subgallery from a gallery', (done) => {
     Galleries.remove(test_subgallery.$loki, () => {
@@ -134,13 +203,18 @@ describe('Galleries model', () => {
     });
   });
 
-  // NOTE Most new tests will go above this comment
-  it('can remove item from gallery', done =>
-    Galleries.removeItem(test_gallery.$loki, test_image.$loki, (updated_gallery) => {
-      updated_gallery.images.should.not.include(test_image.$loki);
-      done();
-    })
-  );
+  it('can remove an item from the db and fs', (done) => {
+    jetpack.copy(test_image_path, `${test_image_path}_orig`, { overwrite: true });
+    Galleries.deleteItem(test_image.$loki, () =>
+      Galleries.get(test_gallery.$loki, (updated_gallery) => {
+        updated_gallery.images.should.not.contain(test_image.$loki);
+        jetpack.exists(test_image_path).should.not.be.ok;
+        jetpack.move(`${test_image_path}_orig`, test_image_path);
+        test_gallery = updated_gallery;
+        done();
+      })
+    );
+  });
 
   it('can safely try to remove from non-existant gallery', done =>
     Galleries.removeItem(999, test_image.$loki, (updated_gallery) => {

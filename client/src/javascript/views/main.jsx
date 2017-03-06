@@ -39,12 +39,12 @@ class Main extends React.Component {
 
   onSelectGallery(galleryId) {
     // Add pending items to gallery
-    Galleries.disableSaving();
+    Galleries.should_save = false;
     each(this.state.imageSelection, (imageId, next) =>
       Galleries.addItem(galleryId, imageId, next),
-    () =>
-      Galleries.enableSaving()
-    );
+    () => {
+      Galleries.should_save = true;
+    });
 
     this.setState({
       selectGalleryModal: false,
@@ -147,7 +147,7 @@ class Main extends React.Component {
           </Modal.Header>
 
           <Modal.Body>
-            <form>
+            <form onSubmit={e => e.preventDefault() || this.addNewGallery()}>
               <FormGroup>
                 <input
                   id="galleryName"

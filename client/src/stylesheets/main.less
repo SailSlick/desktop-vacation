@@ -5,11 +5,7 @@ html, body, main {
   padding: 0;
 }
 
-h3, h4 { color: lightgray; }
-
-.inverted h1, .inverted h2, .inverted label { color: white; }
-
-.centered h1, .centered h2, .centered h3, .centered h4 { text-align: center; }
+.centered { text-align: center; }
 
 .padded { padding: 0 1em; }
 
@@ -20,6 +16,11 @@ h3, h4 { color: lightgray; }
 }
 
 .glyphicon { margin-right: 1em; }
+
+.small-preview {
+	max-width: 256px;
+	max-height: 128px;
+}
 
 /* BEGIN Navbars */
 
@@ -99,32 +100,32 @@ h3, h4 { color: lightgray; }
 
 /* BEGIN Modals */
 
-.modal-dialog {
+.big-modal .modal-dialog {
 	width: 95%;
 	height: 90%;
 	margin: 56px auto 0 auto;
 }
 
-.modal-content {
+.big-modal .modal-content {
 	height: 100%;
 	background-color: rgba(61, 62, 62, 0.95);
 }
 
-.modal-header .close {
-	color: ghostwhite;
-}
+.big-modal .modal-header .close { color: ghostwhite; }
 
-.modal-body {
+.big-modal .modal-title { color: lightgray; }
+
+.big-modal .modal-body {
 	height: 90%;
 	text-align: center;
 }
 
-.modal-body img.img-responsive {
+.big-modal .modal-body img.img-responsive {
 	display: inline-block;
 	max-height: 100%;
 }
 
-.modal-body>.container-fluid {
+.big-modal .modal-body>.container-fluid {
 	height: 100%;
 	overflow-y: auto;
 }

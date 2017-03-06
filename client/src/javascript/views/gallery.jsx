@@ -72,9 +72,7 @@ class Gallery extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.dbId !== this.props.dbId) {
-      this.refresh(nextProps.dbId);
-    }
+    this.refresh(nextProps.dbId);
   }
 
   componentWillUnmount() {
@@ -99,6 +97,7 @@ class Gallery extends React.Component {
     );
   }
 
+  // eslint-disable-next-line class-methods-use-this
   removeSubgallery(dbId) {
     Galleries.remove(dbId, () => true);
   }
@@ -110,17 +109,21 @@ class Gallery extends React.Component {
     ));
   }
 
-  removeItem(id) {
-    Galleries.removeItem(this.props.dbId, id, () => true);
+  removeItem(id, fsDelete) {
+    if (fsDelete) {
+      Galleries.deleteItem(id, () => true);
+    } else {
+      Galleries.removeItem(this.props.dbId, id, () => true);
+    }
   }
 
   removeAll() {
-    Galleries.disableSaving();
+    Galleries.should_save = false;
     each(this.state.selection, (id, next) =>
       Galleries.removeItem(this.props.dbId, id, next),
-    () =>
-      Galleries.enableSaving()
-    );
+    () => {
+      Galleries.should_save = true;
+    });
   }
 
   selectItem(id) {

@@ -4,13 +4,14 @@ import DbConn from '../helpers/db';
 import Images from './images';
 
 let gallery_db;
-let SAVING_ENABLED = true;
 
 const BASE_GALLERY_ID = 1;
 
 const gallery_update_event = new Event('gallery_updated');
 
 const Galleries = {
+  should_save: true,
+
   add: (name, cb) => {
     if (!name || typeof name !== 'string' || name.trim() === '') {
       console.error(`Invalid gallery name ${name}`);
@@ -170,6 +171,13 @@ const Galleries = {
     });
   },
 
+  deleteItem: (id, cb) => {
+    console.log(`Deleting ${id} from db and fs`);
+    Images.delete(id, _ =>
+      Galleries.removeItemGlobal(id, cb)
+    );
+  },
+
   // Removes an image from all the galleries it was in
   removeItemGlobal: (id, cb) => {
     console.log('Globally removing image:', id);
@@ -189,15 +197,6 @@ const Galleries = {
       )
     );
   },
-
-  disableSaving() {
-    SAVING_ENABLED = false;
-  },
-
-  enableSaving() {
-    SAVING_ENABLED = true;
-    document.dispatchEvent(gallery_update_event);
-  }
 };
 
 // Events
@@ -206,7 +205,7 @@ document.addEventListener('vacation_loaded', () => {
 }, false);
 
 document.addEventListener('gallery_updated', () =>
-  SAVING_ENABLED && gallery_db.save(_ => console.log('Database saved')),
+  Galleries.should_save && gallery_db.save(_ => console.log('Database saved')),
 false);
 
 // IPC Calls
