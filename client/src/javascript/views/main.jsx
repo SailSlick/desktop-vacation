@@ -6,8 +6,19 @@ import Galleries from '../models/galleries';
 import Slideshow from '../helpers/slideshow-client';
 import Profile from './profile.jsx';
 
-
 const BASE_GALLERY_ID = 1;
+
+const PrimaryContent = ({ page, parent }) =>
+  [
+    (<Gallery
+      dbId={parent.state.galleryId}
+      onChange={parent.changeGallery}
+    />),
+    (<Profile
+      page={0}
+      onChange={parent.profileView}
+    />)
+  ][page];
 
 class Main extends React.Component {
   constructor(props) {
@@ -18,7 +29,7 @@ class Main extends React.Component {
       newGalleryModal: false,
       selectGalleryModal: false,
       imageId: null,
-      profileView: false
+      page: 0
     };
 
     this.onSelectGallery = this.onSelectGallery.bind(this);
@@ -42,7 +53,7 @@ class Main extends React.Component {
     this.setState({
       selectGalleryModal: false,
       imageId: null,
-      profileView: false
+      page: 0
     });
 
     // Add pending item to gallery
@@ -64,10 +75,10 @@ class Main extends React.Component {
     Galleries.add(this.newGalleryInput.value, (new_gallery) => {
       if (this.state.galleryId !== BASE_GALLERY_ID) {
         Galleries.addSubGallery(this.state.galleryId, new_gallery.$loki, () =>
-          this.setState({ newGalleryModal: false, profileView: false })
+          this.setState({ newGalleryModal: false, page: 0 })
         );
       } else {
-        this.setState({ newGalleryModal: false, profileView: false });
+        this.setState({ newGalleryModal: false, page: 0 });
       }
     });
   }
@@ -76,7 +87,7 @@ class Main extends React.Component {
     // This if prevents deleted galleries/non-existent Ids
     // causing big issues
     if (galleryId) {
-      this.setState({ galleryId, profileView: false });
+      this.setState({ galleryId, page: 0 });
     }
   }
 
@@ -91,7 +102,7 @@ class Main extends React.Component {
   profileView() {
     // This is to show the profile details
     console.log('changing profileView');
-    this.setState({ profileView: true });
+    this.setState({ page: 1 });
   }
 
   render() {
@@ -125,9 +136,7 @@ class Main extends React.Component {
         </Navbar>
 
         <Grid fluid id="main-content">
-          <Profile
-            onChange={this.profileView}
-          />
+          <PrimaryContent page={this.state.page} parent={this} />
         </Grid>
 
         <Modal show={this.state.newGalleryModal} onHide={this.hideModals}>
@@ -145,7 +154,7 @@ class Main extends React.Component {
                   ref={(input) => { this.newGalleryInput = input; }}
                 />
               </FormGroup>
-              <Button type="button" onClick={this.addNewGallery}>
+              <Button type="submit">
                 Add
               </Button>
             </form>
@@ -158,6 +167,11 @@ class Main extends React.Component {
           </Modal.Header>
           <Modal.Body>
             <Grid fluid>
+              <Gallery
+                simple
+                dbId={BASE_GALLERY_ID}
+                onChange={this.onSelectGallery}
+              />
               <Profile
                 onChange={this.profileView}
               />
@@ -168,5 +182,11 @@ class Main extends React.Component {
     );
   }
 }
+
+
+PrimaryContent.PropTypes = {
+  page: React.PropTypes.number.isRequired,
+  parent: React.PropTypes.instanceOf(Main).isRequired
+};
 
 export default Main;

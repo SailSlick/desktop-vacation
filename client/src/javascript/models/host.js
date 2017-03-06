@@ -5,11 +5,11 @@ let host_db;
 let gallery_db;
 
 const host_update_event = new Event('host_updated');
-let server_uri = 'http://127.0.0.1:';
+let server_uri;
 if (process.env.SRVPORT) {
-  server_uri = server_uri.concat(process.env.SRVPORT.toString());
+  server_uri = 'http://vaca.m1cr0man.com';
 } else {
-  server_uri = server_uri.concat('3000');
+  server_uri = 'http://127.0.0.1:3000';
 }
 
 // Exported methods
@@ -29,6 +29,8 @@ const Host = {
       };
       return request(options, (err, response, body) => {
         console.log("body:", body);
+        console.log("err:", err);
+        console.log("res:", response);
         if (response.status !== 200) return cb(response.status, response.error);
         document.dispatchEvent(host_update_event);
         return cb(null, response.message);
@@ -45,6 +47,8 @@ const Host = {
     };
     request(options, (err, response, body) => {
       console.log("body:", body);
+      console.log("err:", err);
+      console.log("res:", response);
       if (response.status !== 200) return cb(response.status, response.error);
       document.dispatchEvent(host_update_event);
       return cb(null, response.message);
@@ -71,6 +75,8 @@ const Host = {
       };
       request(options, (err, response, body) => {
         console.log("body:", body);
+        console.log("err:", err);
+        console.log("res:", response);
         if (response.status !== 200) return cb(response.status, response.error);
         document.dispatchEvent(host_update_event);
         return cb(null, response.message);
@@ -116,6 +122,8 @@ const Host = {
     };
     request(options, (err, response, body) => {
       console.log("body:", body);
+      console.log("err:", err);
+      console.log("res:", response);
       if (response.status !== 200) return cb(response.status, response.error);
       document.dispatchEvent(host_update_event);
       return cb(null, response.message);
@@ -131,6 +139,8 @@ const Host = {
     };
     request(options, (err, response, body) => {
       console.log("body:", body);
+      console.log("err:", err);
+      console.log("res:", response);
       if (response.status !== 200) return cb(response.status, response.error);
       document.dispatchEvent(host_update_event);
       return cb(null, response.message);

@@ -1,20 +1,43 @@
 import React from 'react';
-import { FormGroup, FormControl, ControlLabel, HelpBlock, Button, Col, Grid, Row } from 'react-bootstrap';
+import { Button, Grid, Row } from 'react-bootstrap';
 import Host from '../models/host';
+import LoginForm from './loginForm.jsx';
+import CreateForm from './createForm.jsx';
 
-function genGroup({ id, label, help, ...props }) {
-  return (
-    <FormGroup controlId={id}>
-      <Col componentClass={ControlLabel} sm={2}>
-        {label}
-      </Col>
-      <Col sm={10}>
-        <FormControl {...props} />
-      </Col>
-      {help && <HelpBlock>{help}</HelpBlock>}
-    </FormGroup>
-  );
-}
+
+const ProfileContent = ({ page, parent }) =>
+  [
+    (<Grid>
+      <h1>Profile</h1>
+      <Row>
+        <Button
+          onClick={parent.loginPage}
+        >Login</Button>
+      </Row>
+      <Row>
+        <Button
+          onClick={parent.logout}
+        >Logout</Button>
+      </Row>
+      <Row>
+        <Button
+          onClick={parent.createPage}
+        >Create Account</Button>
+      </Row>
+      <Row>
+        <Button
+          onClick={parent.deleteAccount}
+        >Delete Account</Button>
+      </Row>
+    </Grid>),
+    (<CreateForm
+      onChange={parent.createPage}
+    />),
+    (<LoginForm
+      onChange={parent.createPage}
+    />)
+  ][page];
+
 
 class Profile extends React.Component {
   constructor(props) {
@@ -23,43 +46,34 @@ class Profile extends React.Component {
     this.state = {
       username: '',
       password: '',
-      loginForm: false,
-      createForm: false
+      page: 0
     };
 
     // Bind functions
-    this.refresh = this.refresh.bind(this);
-    this.login = this.login.bind(this);
+    this.logout = this.logout.bind(this);
+    this.isAuthed = this.isAuthed.bind(this);
+    this.deleteAccount = this.deleteAccount.bind(this);
+    this.loginPage = this.loginPage.bind(this);
+    this.createPage = this.createPage.bind(this);
+    this.profilePage = this.profilePage.bind(this);
   }
 
-  componentDidMount() {
-    this.refresh();
+  profilePage() {
+    // This is to show the profile details
+    console.log('changing to Profile home');
+    this.setState({ page: 0 });
   }
 
-  componentWillReceiveProps() {
-    this.refresh();
+  createPage() {
+    // This is to show the profile details
+    console.log('changing to CreateForm');
+    this.setState({ page: 1 });
   }
 
-  componentWillUnmount() {
-    // Unhook all events
-    document.removeEventListener('gallery_updated', this.refresh, false);
-  }
-
-  usernameChange(username) {
-    this.setState({ username });
-  }
-
-  passwordChange(password) {
-    this.setState({ password });
-  }
-
-  login(username, password) {
-    Host.login(username, password, (err, ret) => {
-      if (err) {
-        console.error(ret);
-      }
-      this.setState({ username, password });
-    });
+  loginPage() {
+    // This is to show the profile details
+    console.log('changing to loginForm');
+    this.setState({ page: 2 });
   }
 
   logout() {
@@ -80,15 +94,6 @@ class Profile extends React.Component {
     });
   }
 
-  createAccount(username, password) {
-    Host.createAccount(username, password, (err, ret) => {
-      if (err) {
-        console.error(ret);
-      }
-      this.setState({ username, password });
-    });
-  }
-
   deleteAccount(password) {
     Host.deleteAccount(password, (err, ret) => {
       if (err) {
@@ -99,101 +104,15 @@ class Profile extends React.Component {
   }
 
   render() {
-    if (this.state.loginForm) {
-      return (
-        <form horizontal>
-          <ControlLabel>Login to Account</ControlLabel>
-          <genGroup
-            id="formUsername"
-            label="Username"
-            type="text"
-            placeholder="Enter username"
-            help="No spaces allowed in username"
-            onChange={this.usernameChange}
-          />
-          <genGroup
-            id="formPassword"
-            label="Password"
-            type="password"
-            placeholder="Enter password"
-            help="Between 7-255 chars"
-            onChange={this.passwordChange}
-          />
-          <Button
-            type="submit"
-            onClick={this.login}
-          >Login</Button>
-        </form>
-      );
-    } else if (this.state.createForm) {
-      return (
-        <form horizontal>
-          <ControlLabel>Create Account</ControlLabel>
-          <genGroup
-            id="formUsername"
-            label="Username"
-            type="text"
-            placeholder="Enter username"
-            help="No spaces allowed in username"
-            onChange={this.usernameChange}
-          />
-          <genGroup
-            id="formPassword"
-            label="Password"
-            type="password"
-            placeholder="Enter password"
-            help="Between 7-255 chars"
-            onChange={this.passwordChange}
-          />
-          <genGroup
-            id="formPassword2"
-            label="Password2"
-            type="password"
-            placeholder="Enter password again"
-            onChange={this.passwordChange}
-          />
-          <Button
-            type="submit"
-            onClick={this.createAccount}
-          >Login</Button>
-        </form>
-      );
-    }
     return (
       <Grid>
-        <Row>
-          <Button
-            type="submit"
-            onClick={this.setState({ loginForm: true })}
-          >Login</Button>
-        </Row>
-        <Row>
-          <Button
-            type="submit"
-            onClick={this.logout}
-          >Logout</Button>
-        </Row>
-        <Row>
-          <Button
-            type="submit"
-            onClick={this.setState({ createForm: true })}
-          >Create Account</Button>
-        </Row>
-        <Row>
-          <Button
-            type="submit"
-            onClick={this.deleteAccount}
-          >Delete Account</Button>
-        </Row>
+        <Button
+          onClick={this.profilePage}
+        >Profile Home</Button>
+        <ProfileContent page={this.state.page} parent={this} />
       </Grid>
     );
   }
 }
-
-Profile.propTypes = {
-  username: React.PropTypes.string.isRequired,
-  password: React.PropTypes.string.isRequired,
-  loginForm: React.PropTypes.bool
-};
 
 export default Profile;
