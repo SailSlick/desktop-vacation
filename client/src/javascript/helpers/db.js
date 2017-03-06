@@ -15,6 +15,7 @@ class DbConn {
     this.col = db.getCollection(colName);
   }
 
+  // eslint-disable-next-line class-methods-use-this
   save(cb) {
     db.saveDatabase(cb);
   }

@@ -49,9 +49,9 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 		stage ('Generate Reports') {
 			junit '**/*-tests.xml'
 
-			step([$class: 'CheckStylePublisher', canComputeNew: false, defaultEncoding: '', healthy: '30', pattern: '', unHealthy: '200'])
+			step([$class: 'CheckStylePublisher', canComputeNew: false, defaultEncoding: '', healthy: '1', pattern: '', unHealthy: '15'])
 
-			step([$class: 'CloverPublisher', cloverReportDir: 'coverage', cloverReportFileName: 'clover.xml', failingTarget: [conditionalCoverage: 30, methodCoverage: 50, statementCoverage: 50], healthyTarget: [conditionalCoverage: 70, methodCoverage: 80, statementCoverage: 80], unhealthyTarget: [conditionalCoverage: 40, methodCoverage: 55, statementCoverage: 55]])
+			step([$class: 'CloverPublisher', cloverReportDir: 'coverage', cloverReportFileName: 'clover.xml', failingTarget: [conditionalCoverage: 40, methodCoverage: 50, statementCoverage: 50], healthyTarget: [conditionalCoverage: 70, methodCoverage: 85, statementCoverage: 85], unhealthyTarget: [conditionalCoverage: 50, methodCoverage: 65, statementCoverage: 65]])
 
 			step([$class: 'GitHubCommitStatusSetter'])
 
