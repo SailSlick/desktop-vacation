@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, MenuItem, Image as BsImage } from 'react-bootstrap';
+import { Modal, MenuItem, Button, Image as BsImage } from 'react-bootstrap';
 import Wallpaper from '../helpers/wallpaper-client';
 
 const append_gallery_event_name = 'append_gallery';
@@ -8,13 +8,18 @@ class Image extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = { expanded: false };
+    this.state = {
+      expanded: false,
+      deleteConfirmation: false
+    };
 
     this.setAsWallpaper = this.setAsWallpaper.bind(this);
     this.addToGallery = this.addToGallery.bind(this);
     this.expand = this.expand.bind(this);
     this.hideModals = this.hideModals.bind(this);
     this.remove = this.remove.bind(this);
+    this.deleteConfirmation = this.deleteConfirmation.bind(this);
+    this.confirmDelete = this.confirmDelete.bind(this);
   }
 
   setAsWallpaper() {
@@ -29,15 +34,27 @@ class Image extends React.Component {
   }
 
   expand() {
-    return this.setState({ expanded: true });
+    this.setState({ expanded: true });
   }
 
   hideModals() {
-    return this.setState({ expanded: false });
+    this.setState({
+      expanded: false,
+      deleteConfirmation: false
+    });
   }
 
   remove() {
-    this.props.onRemove(this.props.dbId);
+    this.props.onRemove(this.props.dbId, false);
+  }
+
+  deleteConfirmation() {
+    this.setState({ deleteConfirmation: true });
+  }
+
+  confirmDelete() {
+    this.props.onRemove(this.props.dbId, true);
+    this.setState({ deleteConfirmation: false });
   }
 
   render() {
@@ -57,16 +74,33 @@ class Image extends React.Component {
             <MenuItem onClick={this.remove}>
               Remove
             </MenuItem>
+            <MenuItem onClick={this.deleteConfirmation}>
+              Remove &amp; Delete
+            </MenuItem>
           </div>
         </figcaption>
 
-        <Modal show={this.state.expanded} onHide={this.hideModals}>
+        <Modal className="big-modal" show={this.state.expanded} onHide={this.hideModals}>
           <Modal.Header closeButton>
             <Modal.Title>{this.props.src}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <BsImage responsive src={this.props.src} alt="MISSING" />
           </Modal.Body>
+        </Modal>
+
+        <Modal show={this.state.deleteConfirmation} onHide={this.hideModals}>
+          <Modal.Header closeButton>
+            <Modal.Title>Confirm Deletion</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>Are you sure you want to delete <code>{this.props.src}</code>?</p>
+            <BsImage className="small-preview" src={this.props.src} alt="MISSING" />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button onClick={this.hideModals}>Cancel</Button>
+            <Button onClick={this.confirmDelete} bsStyle="primary">Yes, I&#39;m sure</Button>
+          </Modal.Footer>
         </Modal>
 
       </figure>

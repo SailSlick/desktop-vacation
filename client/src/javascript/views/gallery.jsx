@@ -51,12 +51,17 @@ class Gallery extends React.Component {
     );
   }
 
+  // eslint-disable-next-line class-methods-use-this
   removeSubgallery(dbId) {
     Galleries.remove(dbId, () => true);
   }
 
-  removeItem(id) {
-    Galleries.removeItem(this.props.dbId, id, () => true);
+  removeItem(id, fsDelete) {
+    if (fsDelete) {
+      Galleries.deleteItem(id, () => true);
+    } else {
+      Galleries.removeItem(this.props.dbId, id, () => true);
+    }
   }
 
   render() {
