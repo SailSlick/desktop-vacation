@@ -55,7 +55,26 @@ describe('Image Component', () => {
     setTimeout(() => {
       document.body.getElementsByClassName('modal').should.be.empty;
       done();
-    }, 1000);
+    }, 750);
+  });
+
+  it('can open delete confirmation modal', (done) => {
+    test_component.should.have.state('deleteConfirmation', false);
+    test_component.find('.img-menu a').at(3).simulate('click');
+    test_component.should.have.state('deleteConfirmation', true);
+    done();
+  });
+
+  it('can close delete confirmation modal', (done) => {
+    test_component.should.have.state('deleteConfirmation', true);
+    Simulate.click(document.body.getElementsByClassName('modal')[0]);
+    test_component.should.have.state('deleteConfirmation', false);
+
+    // This wait is to account for the fact it fades out
+    setTimeout(() => {
+      document.body.getElementsByClassName('modal').should.be.empty;
+      done();
+    }, 750);
   });
 
   it('can request add to gallery modal', (done) => {
@@ -72,6 +91,7 @@ describe('Image Component', () => {
     removeSpy.called.should.not.be.ok;
     test_component.find('.img-menu a').at(2).simulate('click');
     removeSpy.called.should.be.ok;
+    removeSpy.reset();
     done();
   });
 });
