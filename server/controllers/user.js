@@ -22,6 +22,7 @@ module.exports = {
         if (bcrypt_err) return next({ status: 500, error: bcrypt_err });
         if (correct) {
           req.session.username = username;
+          req.session.uid = data._id;
           return res.status(200).json({ message: 'user logged in' });
         }
         return next({ status: 401, error: 'incorrect credentials' });
@@ -72,9 +73,10 @@ module.exports = {
 
     return bcrypt.hash(password, SALT_N, (err, hash) => {
       if (err) return next({ status: 500, error: err });
-      return userModel.add(username, hash, (add_err) => {
-        if (add_err) return next({ status: 400, error: add_err });
+      return userModel.add(username, hash, (ret) => {
+        if (ret === 'database communication error') return next({ status: 400, error: ret });
         req.session.username = username;
+        req.session.uid = ret;
         return res.status(200).json({ message: 'user created and logged in' });
       });
     });

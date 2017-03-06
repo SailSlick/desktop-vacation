@@ -6,7 +6,7 @@ function errCheck(error, cb) {
   if (error) {
     console.error(error);
   }
-  return cb();
+  return cb(error);
 }
 
 class DbConn {
@@ -58,6 +58,9 @@ class DbConn {
   // findOne: find single item in collection that matches query (e.g. get user data)
   // query in {x:y} format
   findOne(query, cb) {
+    if (query._id && typeof query._id === 'string') {
+      query._id = new MongoClient.ObjectID(query._id);
+    }
     return this.col.find(query).limit(1).next((err, doc) => {
       errCheck(err, () => {
         debug('Found one doc');

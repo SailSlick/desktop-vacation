@@ -13,10 +13,23 @@ module.exports = {
   add: (username, password, cb) => {
     db.findOne({ username }, (data) => {
       if (data) return cb('username taken');
-      const gallery = galleryModel.initalize_user(username);
-      return db.insertOne({ username, password, gallery, groups: [] }, (added) => {
-        if (added) return cb();
-        return cb('database communication error');
+      const userData = {
+        username,
+        password,
+        gallery: '',
+        invites: [],
+        groups: []
+      };
+      return db.insertOne(userData, (added) => {
+        if (added) {
+          galleryModel.create(username.concat('_all'), added, (g_id) => {
+            userData.gallery = g_id;
+            return db.updateOne({ _id: added }, userData, (res) => {
+              if (res) return cb(added);
+              return cb('database communication error');
+            });
+          });
+        }
       });
     });
   },
@@ -36,9 +49,14 @@ module.exports = {
   },
 
   delete: (username, cb) => {
-    db.removeOne({ username }, (res) => {
-      if (!res) return cb('database communication error');
-      return cb(null);
+    db.findOne({ username }, (doc) => {
+      db.removeOne({ username }, (res) => {
+        if (!res) return cb('database communication error');
+        return galleryModel.remove(username.concat('_all'), doc._id, (check) => {
+          if (check === 'gallery deleted') return cb(null);
+          return cb('database communication error');
+        });
+      });
     });
   }
 };
