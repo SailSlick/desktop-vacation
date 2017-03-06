@@ -4,6 +4,7 @@ import DbConn from '../helpers/db';
 import Images from './images';
 
 let gallery_db;
+let SAVING_ENABLED = true;
 
 const BASE_GALLERY_ID = 1;
 
@@ -187,6 +188,15 @@ const Galleries = {
         })
       )
     );
+  },
+
+  disableSaving() {
+    SAVING_ENABLED = false;
+  },
+
+  enableSaving() {
+    SAVING_ENABLED = true;
+    document.dispatchEvent(gallery_update_event);
   }
 };
 
@@ -195,9 +205,9 @@ document.addEventListener('vacation_loaded', () => {
   gallery_db = new DbConn('galleries');
 }, false);
 
-document.addEventListener('gallery_updated', () => {
-  gallery_db.save(_ => console.log('Database saved'));
-}, false);
+document.addEventListener('gallery_updated', () =>
+  SAVING_ENABLED && gallery_db.save(_ => console.log('Database saved')),
+false);
 
 // IPC Calls
 ipc.on('selected-directory', (event, files) =>
