@@ -24,6 +24,10 @@ const Userdata = {
     userdata_db.findOne({ username }, cb);
   },
 
+  getIndex: (index, cb) => {
+    userdata_db.findIndex(1, cb);
+  },
+
   update: (username, data, cb) => {
     userdata_db.updateOne({ username }, data, cb);
     userdata_db.save();

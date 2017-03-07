@@ -2,14 +2,15 @@ import { ipcRenderer as ipc } from 'electron';
 import Userdata from '../models/userdata';
 import Galleries from '../models/galleries';
 
-const hostname = 'Sully';
+const hostIndex = 1;
 const BASE_GALLERY_ID = 1;
 
 export default {
   set: (galleryId, cb) => {
     cb = cb || (() => true);
 
-    Userdata.get(hostname, (oldHostData) => {
+    Userdata.getIndex(hostIndex, (oldHostData) => {
+      console.error(oldHostData);
       let mTime = oldHostData.timer;
 
       if (mTime <= 0 || isNaN(mTime)) {
@@ -30,7 +31,7 @@ export default {
       };
 
       // puts the config files into the host db
-      return Userdata.update(hostname, config, () => {
+      return Userdata.update(oldHostData.username, config, () => {
         // gets the named gallery from db
         Galleries.get(galleryId, gallery =>
           Galleries.expand(gallery, (subgalleries, images) => {
@@ -56,10 +57,12 @@ export default {
         timer: 0
       }
     };
-    // puts the config files into the host db
-    Userdata.update(hostname, config, () => {
-      ipc.send('clear-slideshow');
-      if (cb) cb();
+    Userdata.getIndex(hostIndex, (host) => {
+      // puts the config files into the host db
+      Userdata.update(host.username, config, () => {
+        ipc.send('clear-slideshow');
+        if (cb) cb();
+      });
     });
   }
 };

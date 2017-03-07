@@ -9,7 +9,8 @@ app.use(bodyParser.json());
 app.use(session({
   secret: 'hunter7',
   resave: false,
-  saveUninitialized: 'false'
+  saveUninitialized: 'false',
+  cookie: { maxAge: 900000 }
 }));
 app.use('/', routes);
 
