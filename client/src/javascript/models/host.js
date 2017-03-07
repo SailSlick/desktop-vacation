@@ -23,7 +23,8 @@ const cookie_jar = request.jar();
 const Host = {
   login: (username, password, cb) => {
     host_db.findOne({ username }, (host_doc) => {
-      if (host_doc.username !== username) return cb('An account already exists. Only one per app.');
+      if (!host_db) return cb(400, 'You have to create an account before you can login.');
+      if (host_doc.username !== username) return cb(500, 'An account already exists. Only one per app.');
 
       // post to /user/login
       const options = {
@@ -52,6 +53,9 @@ const Host = {
       json: {}
     };
     request(options, (err, response, body) => {
+      console.log("logout body:", body);
+      console.log("logout res:", response);
+      console.log("logout err:", err);
       if (body.status !== 200) return cb(body.status, body.error);
       document.dispatchEvent(host_update_event);
       return cb(null, body.message);
@@ -81,6 +85,7 @@ const Host = {
         }
       };
       return request(options, (err, response, body) => {
+        console.log("createAccount body:", body);
         if (body.status !== 200) return cb(body.status, body.error);
         // insert users
         const galname = username.concat('_all');
@@ -125,7 +130,8 @@ const Host = {
       json: {}
     };
     request(options, (err, response, body) => {
-      if (body.status !== 200) return cb(body.status, body.error);
+      console.log("deleteAccount body:", body);
+      //if (body.status !== 200) return cb(body.status, body.error);
 
       // remove presence from client, keep images
       return host_db.emptyCol(() => {
@@ -150,6 +156,7 @@ const Host = {
       json: { password }
     };
     request(options, (err, response, body) => {
+      console.log("updateAccount body:", body);
       if (body.status !== 200) return cb(body.status, body.error);
       document.dispatchEvent(host_update_event);
       return cb(null, body.message);

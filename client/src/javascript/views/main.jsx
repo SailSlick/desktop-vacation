@@ -186,7 +186,6 @@ class Main extends React.Component {
   }
 }
 
-
 PrimaryContent.PropTypes = {
   page: React.PropTypes.number.isRequired,
   parent: React.PropTypes.instanceOf(Main).isRequired

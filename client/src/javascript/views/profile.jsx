@@ -17,13 +17,15 @@ const ProfileContent = ({ page, parent }) => {
       </Row>
       <Row>
         <Button
-          onClick={parent.logout}
-        >Logout</Button>
-      </Row>
-      <Row>
-        <Button
           onClick={parent.createPage}
         >Create Account</Button>
+      </Row>
+    </Grid>),
+    (<Grid>
+      <Row>
+        <Button
+          onClick={parent.logout}
+        >Logout</Button>
       </Row>
       <Row>
         <Button
@@ -33,9 +35,11 @@ const ProfileContent = ({ page, parent }) => {
     </Grid>),
     (<CreateForm
       onChange={parent.createPage}
+      parentPage={parent.backToPage}
     />),
     (<LoginForm
       onChange={parent.createPage}
+      parentPage={parent.backToPage}
     />)
   ][page];
 };
@@ -48,7 +52,8 @@ class Profile extends React.Component {
     this.state = {
       username: '',
       password: '',
-      page: props.page
+      page: props.page,
+      loggedIn: false
     };
 
     // Bind functions
@@ -58,24 +63,35 @@ class Profile extends React.Component {
     this.loginPage = this.loginPage.bind(this);
     this.createPage = this.createPage.bind(this);
     this.profilePage = this.profilePage.bind(this);
+    this.backToPage = this.backToPage.bind(this);
   }
 
   profilePage() {
     // This is to show the profile details
     console.log('changing to Profile home');
-    this.setState({ page: 0 });
+    let pageNumber = 0;
+    if (this.state.loggedIn) pageNumber = 1;
+    this.setState({ page: pageNumber });
+  }
+
+  backToPage(log) {
+    // This is to show the profile details
+    console.log('back to Profile home', log);
+    let pageNumber = 0;
+    if (log) pageNumber = 1;
+    this.setState({ page: pageNumber, loggedIn: log });
   }
 
   createPage() {
     // This is to show the profile details
     console.log('changing to CreateForm');
-    this.setState({ page: 1 });
+    this.setState({ page: 2 });
   }
 
   loginPage() {
     // This is to show the profile details
     console.log('changing to loginForm');
-    this.setState({ page: 2 });
+    this.setState({ page: 3 });
   }
 
   logout() {
@@ -107,12 +123,7 @@ class Profile extends React.Component {
 
   render() {
     return (
-      <Grid>
-        <Button
-          onClick={this.profilePage}
-        >Back</Button>
-        <ProfileContent page={this.state.page} parent={this} />
-      </Grid>
+      <ProfileContent page={this.state.page} parent={this} />
     );
   }
 }

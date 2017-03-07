@@ -10,10 +10,12 @@ describe('Database Helper', () => {
 
     describe('insertOne()', () => {
       it('Can insert into Db', (done) => {
-        const testData = { backgrounds: 'areLife' };
-        testCol.insert(testData, (doc) => {
-          expect(doc).to.exist;
-          done();
+        testCol.removeMany({ backgrounds: { $gt: 0 } }, () => {
+          const testData = { backgrounds: 'areLife' };
+          testCol.insert(testData, (doc) => {
+            expect(doc).to.exist;
+            done();
+          });
         });
       });
     });
@@ -105,6 +107,7 @@ describe('Database Helper', () => {
         const testQuery = { backgrounds: { $gt: 0 } };
         testCol.removeOne(testQuery, () => {
           testCol.findOne(testQuery, (doc) => {
+            console.error(doc);
             expect(doc).to.not.exist;
             done();
           });
@@ -115,6 +118,7 @@ describe('Database Helper', () => {
         const testQuery = { backgrounds: { $gt: 0 } };
         testCol.removeOne(testQuery, () => {
           testCol.findOne(testQuery, (doc) => {
+            console.error(doc);
             expect(doc).to.not.exist;
             done();
           });
