@@ -1,11 +1,7 @@
-// XXX: These are temporary
-const db = {};
-let objId = 0;
+const grid = require('gridfs-stream');
 
 module.exports = {
-  add: (path, next) => {
-    db[objId] = path;
-    objId += 1;
-    return next(null, objId);
+  get(id, next) {
+    next(null, id);
   }
 };

@@ -1,10 +1,21 @@
 const express = require('express');
 const multer = require('multer');
+const crypto = require('crypto');
+const path = require('path');
 const user = require('../controllers/user');
 const gallery = require('../controllers/gallery');
 const sync = require('../controllers/sync');
+const url = require('../../script/db/mongo-url.js');
+const storage = require('multer-gridfs-storage')({
+  url,
+  filename: (req, file, cb) => {
+    crypto.randomBytes(16, (err, raw) => {
+      cb(err, err ? undefined : raw.toString('hex') + path.extname(file.originalname));
+    });
+  }
+});
 
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ storage });
 const routes = express.Router();
 
 // user functionality
@@ -20,6 +31,7 @@ routes.post('/user/delete', user.delete);
 routes.use('/gallery/*', user.requireAuth);
 routes.post('/gallery/data', gallery.get);
 routes.use('/gallery/upload', upload.array('images'), sync.upload);
+routes.get('/image/:id/', sync.download);
 
 // group management functionality
 routes.use('/group/*', user.requireAuth);

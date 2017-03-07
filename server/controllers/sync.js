@@ -1,14 +1,9 @@
-const { dirname, join } = require('path');
 const async = require('async');
 const images = require('../models/image');
 const galleries = require('../models/gallery');
 
-const uploadPath = dirname(__dirname);
-
 module.exports = {
   upload: (req, res, next) => {
-    console.log(req.files);
-
     if (!req.files) {
       next({ status: 400, error: 'no files sent' });
       return;
@@ -19,18 +14,16 @@ module.exports = {
     }
 
     async.map(req.files, (f, cb) => {
-      console.log('parsing file');
-      images.add(join(uploadPath, f.path), cb);
+      cb(null, f.id);
     }, (err, imageIds) => {
-      console.log(imageIds);
       if (err) {
         console.error(err);
         next({ status: 400, error: err });
         return;
       }
       galleries.addImages(req.body.gid, imageIds, (error) => {
-        console.log(error);
         if (error) {
+          console.error(error);
           next({ error, status: 400 });
         } else {
           res.status(200).json({
@@ -39,6 +32,20 @@ module.exports = {
           });
         }
       });
+    });
+  },
+
+  download: (req, res, next) => {
+    if (!req.params.id) {
+      next({ status: 400, error: 'Invalid image id' });
+    }
+    images.get(req.params.id, (err, image) => {
+      if (err) {
+        console.error(err);
+        next({ status: 400, error: err });
+      } else {
+        res.send(image);
+      }
     });
   }
 };
