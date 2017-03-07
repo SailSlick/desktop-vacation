@@ -66,13 +66,8 @@ class Main extends React.Component {
 
   addNewGallery() {
     Galleries.add(this.newGalleryInput.value, (new_gallery) => {
-      if (this.state.galleryId !== BASE_GALLERY_ID) {
-        Galleries.addSubGallery(this.state.galleryId, new_gallery.$loki, () =>
-          this.setState({ newGalleryModal: false })
-        );
-      } else {
-        this.setState({ newGalleryModal: false });
-      }
+      Galleries.addSubGallery(this.state.galleryId, new_gallery.$loki, () => true);
+      this.setState({ newGalleryModal: false });
     });
   }
 

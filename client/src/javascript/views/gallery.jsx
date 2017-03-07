@@ -117,12 +117,13 @@ class Gallery extends React.Component {
     }
   }
 
-  removeAll() {
+  removeAll(cb) {
     Galleries.should_save = false;
     each(this.state.selection, (id, next) =>
       Galleries.removeItem(this.props.dbId, id, next),
     () => {
       Galleries.should_save = true;
+      cb();
     });
   }
 
@@ -140,10 +141,10 @@ class Gallery extends React.Component {
     });
   }
 
-  selectAll(should_select) {
+  selectAll(should_select, cb) {
     this.setState({
       selection: (should_select) ? this.state.images.map(val => val.$loki) : []
-    });
+    }, cb);
   }
 
   render() {

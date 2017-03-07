@@ -86,7 +86,7 @@ class Image extends React.Component {
               <Glyphicon glyph="remove" />Remove
             </MenuItem>
             <MenuItem onClick={this.deleteConfirmation}>
-              Remove &amp; Delete
+              <Glyphicon glyph="trash" />Remove &amp; Delete
             </MenuItem>
           </div>
         </figcaption>
