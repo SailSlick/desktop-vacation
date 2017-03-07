@@ -5,8 +5,9 @@ import LoginForm from './loginForm.jsx';
 import CreateForm from './createForm.jsx';
 
 
-const ProfileContent = ({ page, parent }) =>
-  [
+const ProfileContent = ({ page, parent }) => {
+  parent.state.page = 0;
+  return [
     (<Grid>
       <h1>Profile</h1>
       <Row>
@@ -37,6 +38,7 @@ const ProfileContent = ({ page, parent }) =>
       onChange={parent.createPage}
     />)
   ][page];
+};
 
 
 class Profile extends React.Component {
@@ -46,7 +48,7 @@ class Profile extends React.Component {
     this.state = {
       username: '',
       password: '',
-      page: 0
+      page: props.page
     };
 
     // Bind functions
@@ -108,11 +110,19 @@ class Profile extends React.Component {
       <Grid>
         <Button
           onClick={this.profilePage}
-        >Profile Home</Button>
+        >Back</Button>
         <ProfileContent page={this.state.page} parent={this} />
       </Grid>
     );
   }
 }
+
+Profile.defaultProps = {
+  page: 0
+};
+
+Profile.propTypes = {
+  page: React.PropTypes.number.isRequired,
+};
 
 export default Profile;

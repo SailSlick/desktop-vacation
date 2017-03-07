@@ -6,24 +6,39 @@ class CreateForm extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {};
+    this.state = {
+      username: '',
+      password: '',
+      password2: '',
+      equal: true
+    };
     this.createAccount = this.createAccount.bind(this);
+    this.inputChange = this.inputChange.bind(this);
+  }
+
+  inputChange(event) {
+    this.setState({
+      [event.target.name]: event.target.value
+    });
   }
 
   createAccount(event) {
-    console.error("createevent", event);
     event.preventDefault();
-    console.error("event", event);
-    // const username = event.target.
-    // const password = event.target.
-    // const password2 = event.target.
-    // console.error("createAccount details:", username, password, password2);
-    // Host.createAccount(username, password, (err, ret) => {
-    //   if (err) {
-    //     console.error(ret);
-    //   }
-    //   this.setState({ username, password });
-    // });
+    const username = event.target.username.value;
+    const password = event.target.password.value;
+    const password2 = event.target.password2.value;
+    if (password !== password2) {
+      this.setState({ unequal: false });
+      return;
+    }
+    Host.createAccount(username, password, (err, ret) => {
+      if (err) {
+        console.error('Create Account error', err, ret);
+        return;
+      }
+      console.log('ret:', ret);
+      this.setState({});
+    });
   }
   render() {
     return (
@@ -35,8 +50,11 @@ class CreateForm extends React.Component {
           </Col>
           <Col sm={10}>
             <FormControl
+              name="username"
               type="text"
               placeholder="Enter username"
+              value={this.state.username}
+              onChange={this.inputChange}
             />
             <HelpBlock>No spaces allowed in username</HelpBlock>
           </Col>
@@ -47,7 +65,10 @@ class CreateForm extends React.Component {
           </Col>
           <Col sm={10}>
             <FormControl
+              name="password"
               type="password"
+              value={this.state.password}
+              onChange={this.inputChange}
             />
             <HelpBlock>Between 7-255 chars</HelpBlock>
           </Col>
@@ -58,12 +79,15 @@ class CreateForm extends React.Component {
           </Col>
           <Col sm={10}>
             <FormControl
+              name="password2"
               type="password"
+              value={this.state.password2}
+              onChange={this.inputChange}
             />
             <HelpBlock>Between 7-255 chars</HelpBlock>
           </Col>
         </FormGroup>
-        <Button type="submit">Login</Button>
+        <Button type="submit">Create</Button>
       </Form>
     );
   }

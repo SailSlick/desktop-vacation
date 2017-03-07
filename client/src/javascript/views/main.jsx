@@ -8,8 +8,11 @@ import Profile from './profile.jsx';
 
 const BASE_GALLERY_ID = 1;
 
-const PrimaryContent = ({ page, parent }) =>
-  [
+const PrimaryContent = ({ page, parent }) => {
+  Galleries.get({ $gt: 0 }, (cb) => {
+    if (!cb) page = 1;
+  });
+  return [
     (<Gallery
       dbId={parent.state.galleryId}
       onChange={parent.changeGallery}
@@ -19,6 +22,7 @@ const PrimaryContent = ({ page, parent }) =>
       onChange={parent.profileView}
     />)
   ][page];
+};
 
 class Main extends React.Component {
   constructor(props) {
@@ -101,7 +105,7 @@ class Main extends React.Component {
 
   profileView() {
     // This is to show the profile details
-    console.log('changing profileView');
+    console.log('changing to profileView');
     this.setState({ page: 1 });
   }
 

@@ -22,7 +22,7 @@ module.exports = {
         if (bcrypt_err) return next({ status: 500, error: bcrypt_err });
         if (correct) {
           req.session.username = username;
-          return res.status(200).json({ message: 'user logged in' });
+          return next({ status: 200, message: 'user logged in' });
         }
         return next({ status: 401, error: 'incorrect credentials' });
       });
@@ -32,7 +32,7 @@ module.exports = {
   logout: (req, res, next) => {
     req.session.destroy((err) => {
       if (err) return next({ status: 500, error: err });
-      return res.status(200).json({ message: 'user logged out' });
+      return next({ status: 200, message: 'user logged out' });
     });
   },
 
@@ -49,7 +49,7 @@ module.exports = {
       if (bcrypt_err) return next({ status: 500, error: bcrypt_err });
       return userModel.update(req.session.username, { password: hash }, (err) => {
         if (err) return next({ status: 500, error: err });
-        return res.status(200).json({ message: 'user updated' });
+        return next({ status: 200, message: 'user updated' });
       });
     });
   },
@@ -75,7 +75,7 @@ module.exports = {
       return userModel.add(username, hash, (add_err) => {
         if (add_err) return next({ status: 400, error: add_err });
         req.session.username = username;
-        return res.status(200).json({ message: 'user created and logged in' });
+        return next({ status: 200, message: 'user created and logged in' });
       });
     });
   },
@@ -83,7 +83,7 @@ module.exports = {
   delete: (req, res, next) => {
     userModel.delete(req.session.username, (err) => {
       if (err) return next({ status: 500, error: err });
-      return res.status(200).json({ message: 'user deleted' });
+      return next({ status: 200, message: 'user deleted' });
     });
   }
 };

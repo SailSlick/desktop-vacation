@@ -1,26 +1,38 @@
 import React from 'react';
-import { Form, FormGroup, FormControl, ControlLabel, HelpBlock, Button, Col, Grid } from 'react-bootstrap';
+import { Form, FormGroup, FormControl, ControlLabel, HelpBlock, Button, Col } from 'react-bootstrap';
 import Host from '../models/host';
 
 class LoginForm extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {};
+    this.state = {
+      username: '',
+      password: ''
+    };
 
+    this.inputChange = this.inputChange.bind(this);
     this.login = this.login.bind(this);
+  }
+
+  inputChange(event) {
+    this.setState({
+      [event.target.name]: event.target.value
+    });
   }
 
   login(event) {
     event.preventDefault();
-    console.error("login event", event);
-    // console.error("login details:", username, password);
-    // Host.login(username, password, (err, ret) => {
-    //   if (err) {
-    //     console.error(ret);
-    //   }
-    //   this.setState({ username, password });
-    // });
+    const username = event.target.username.value;
+    const password = event.target.password.value;
+    Host.login(username, password, (err, ret) => {
+      if (err) {
+        console.error('Login error', err, ret);
+        return;
+      }
+      console.log(ret);
+      this.setState({ username, password });
+    });
   }
 
   render() {
@@ -33,8 +45,11 @@ class LoginForm extends React.Component {
           </Col>
           <Col sm={10}>
             <FormControl
+              name="username"
               type="text"
               placeholder="Enter username"
+              value={this.state.username}
+              onChange={this.inputChange}
             />
             <HelpBlock>No spaces allowed in username</HelpBlock>
           </Col>
@@ -45,7 +60,10 @@ class LoginForm extends React.Component {
           </Col>
           <Col sm={10}>
             <FormControl
+              name="password"
               type="password"
+              value={this.state.password}
+              onChange={this.inputChange}
             />
             <HelpBlock>Between 7-255 chars</HelpBlock>
           </Col>
