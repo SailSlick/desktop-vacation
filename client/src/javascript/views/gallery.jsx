@@ -1,8 +1,9 @@
 import React from 'react';
 import { Col, Row } from 'react-bootstrap';
 import Image from './image.jsx';
-import Galleries from '../models/galleries';
 import GalleryCard from './gallerycard.jsx';
+import Galleries from '../models/galleries';
+import { success, danger } from '../helpers/notifier';
 
 class Gallery extends React.Component {
   constructor(props) {
@@ -53,14 +54,23 @@ class Gallery extends React.Component {
 
   // eslint-disable-next-line class-methods-use-this
   removeSubgallery(dbId) {
-    Galleries.remove(dbId, () => true);
+    Galleries.remove(dbId, (err_msg) => {
+      if (err_msg) danger(err_msg);
+      else success('Gallery Removed');
+    });
   }
 
   removeItem(id, fsDelete) {
     if (fsDelete) {
-      Galleries.deleteItem(id, () => true);
+      Galleries.deleteItem(id, (err_msg) => {
+        if (err_msg) danger(err_msg);
+        else success('Image Deleted');
+      });
     } else {
-      Galleries.removeItem(this.props.dbId, id, () => true);
+      Galleries.removeItem(this.props.dbId, id, (new_gallery, err_msg) => {
+        if (err_msg) danger(err_msg);
+        else success('Image Removed');
+      });
     }
   }
 

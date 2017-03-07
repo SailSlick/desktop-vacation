@@ -12,14 +12,11 @@ const gallery_update_event = new Event('gallery_updated');
 const Galleries = {
   add: (name, cb) => {
     if (!name || typeof name !== 'string' || name.trim() === '') {
-      console.error(`Invalid gallery name ${name}`);
-      return cb(null);
+      return cb(null, `Invalid gallery name ${name}`);
     }
-    console.log(`Adding gallery ${name}`);
     return gallery_db.findOne({ name }, (found_gallery) => {
       if (found_gallery) {
-        console.error(`Gallery ${name} already exists`);
-        return cb(found_gallery);
+        return cb(found_gallery, `Gallery ${name} already exists`);
       }
       const doc = {
         name,
@@ -39,20 +36,16 @@ const Galleries = {
 
   addSubGallery(id, subgallery_id, cb) {
     if (id === subgallery_id) {
-      console.error(`Tried to add gallery ${id} to itself`);
-      return cb(null);
+      return cb(null, `Tried to add gallery ${id} to itself`);
     }
     if (subgallery_id === BASE_GALLERY_ID) {
-      console.error(`Tried to add base gallery to ${id}`);
-      return cb(null);
+      return cb(null, `Tried to add base gallery to ${id}`);
     }
     return Galleries.get(id, (base_gallery) => {
       if (!base_gallery) {
-        console.error(`No such gallery ${id}`);
-        return cb(null);
+        return cb(null, `No such gallery ${id}`);
       } else if (base_gallery.subgalleries.indexOf(subgallery_id) !== -1) {
-        console.error(`Gallery ${subgallery_id} is already a subgallery of ${id}`);
-        return cb(base_gallery);
+        return cb(base_gallery, `Gallery ${subgallery_id} is already a subgallery of ${id}`);
       }
       base_gallery.subgalleries.push(subgallery_id);
       return gallery_db.updateOne(
@@ -70,11 +63,9 @@ const Galleries = {
     console.log(`Adding image_id ${image_id} to gallery ${id}`);
     return Galleries.get(id, (gallery) => {
       if (gallery === null) {
-        console.error('Cannot find gallery');
-        return cb(null);
+        return cb(null, 'Cannot find gallery');
       } else if (gallery.images.indexOf(image_id) !== -1) {
-        console.log('Tried to add duplicate image');
-        return cb(gallery);
+        return cb(gallery, 'Tried to add duplicate image');
       }
       gallery.images.push(image_id);
       return gallery_db.updateOne({ $loki: id }, gallery, (new_gallery) => {
@@ -125,9 +116,7 @@ const Galleries = {
   remove: (id, cb) => {
     console.log('Removing gallery:', id);
     if (id === BASE_GALLERY_ID) {
-      const msg = 'Tried to delete base gallery';
-      console.error(msg);
-      return cb(msg);
+      return cb('Tried to delete base gallery');
     }
 
     return gallery_db.findMany({ subgalleries: { $contains: id } }, references =>
@@ -157,8 +146,7 @@ const Galleries = {
     }
     return Galleries.get(id, (gallery) => {
       if (gallery === null) {
-        console.error(`${id} not found`);
-        return cb(null);
+        return cb(null, `${id} not found`);
       }
       gallery.images = gallery.images.filter(i => i !== item_id);
       return gallery_db.updateOne({ $loki: id }, gallery, (new_gallery) => {
@@ -171,9 +159,10 @@ const Galleries = {
 
   deleteItem: (id, cb) => {
     console.log(`Deleting ${id} from db and fs`);
-    Images.delete(id, _ =>
-      Galleries.removeItemGlobal(id, cb)
-    );
+    Images.delete(id, (err_msg) => {
+      if (err_msg) return cb(err_msg);
+      return Galleries.removeItemGlobal(id, cb);
+    });
   },
 
   // Removes an image from all the galleries it was in

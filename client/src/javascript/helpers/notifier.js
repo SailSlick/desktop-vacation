@@ -9,14 +9,14 @@ function sendEvent(type, headline, message) {
   ));
 }
 
-export function info(message) {
-  console.log(message);
-  sendEvent('info', 'Info', message);
-}
-
 export function success(message) {
   console.log(success);
   sendEvent('success', 'Success', message);
+}
+
+export function info(message) {
+  console.info(message);
+  sendEvent('info', 'Info', message);
 }
 
 export function warning(message) {

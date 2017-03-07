@@ -5,7 +5,7 @@ import { Navbar, Nav, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup } fr
 import Gallery from './gallery.jsx';
 import Galleries from '../models/galleries';
 import Slideshow from '../helpers/slideshow-client';
-import { success } from '../helpers/notifier';
+import { success, danger } from '../helpers/notifier';
 
 const BASE_GALLERY_ID = 1;
 
@@ -38,6 +38,7 @@ class Main extends React.Component {
   componentWillUnmount() {
     // Unhook all events
     document.removeEventListener('append_gallery', this.showGallerySelector, false);
+    document.removeEventListener('notify', this.showAlert, false);
   }
 
   onSelectGallery(galleryId) {
@@ -47,8 +48,9 @@ class Main extends React.Component {
     });
 
     // Add pending item to gallery
-    Galleries.addItem(galleryId, this.state.imageId, () => {
-      success('Image added');
+    Galleries.addItem(galleryId, this.state.imageId, (new_gallery, err_msg) => {
+      if (err_msg) danger(err_msg);
+      else success('Image added');
     });
   }
 
@@ -64,13 +66,22 @@ class Main extends React.Component {
   }
 
   addNewGallery() {
-    Galleries.add(this.newGalleryInput.value, (new_gallery) => {
-      if (this.state.galleryId !== BASE_GALLERY_ID) {
-        Galleries.addSubGallery(this.state.galleryId, new_gallery.$loki, () =>
-          this.setState({ newGalleryModal: false })
+    Galleries.add(this.newGalleryInput.value, (new_gallery, err_msg) => {
+      if (err_msg) danger(err_msg);
+      else if (this.state.galleryId !== BASE_GALLERY_ID) {
+        Galleries.addSubGallery(
+          this.state.galleryId, new_gallery.$loki,
+          (updated_gallery, sub_err_msg) => {
+            if (sub_err_msg) danger(sub_err_msg);
+            else {
+              this.setState({ newGalleryModal: false });
+              success(`Gallery ${this.newGalleryInput.value} added`);
+            }
+          }
         );
       } else {
         this.setState({ newGalleryModal: false });
+        success(`Gallery ${this.newGalleryInput.value} added`);
       }
     });
   }
