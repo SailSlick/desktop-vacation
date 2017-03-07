@@ -1,8 +1,12 @@
+const async = require('async');
 const DBTools = require('../middleware/db');
 
 const db = new DBTools('galleries');
 
 module.exports = {
+  verifyGalleryName: galleryName =>
+    typeof galleryName === 'string' && galleryName.length > 0,
+
   verGroupname: groupname =>
     typeof groupname === 'string' && groupname.length <= 20 && groupname.length >= 3,
 
@@ -51,6 +55,19 @@ module.exports = {
     db.updateOne({ name: galleryname, uid }, data, (res) => {
       if (res) return cb('updated one gallery');
       return cb('gallery not updated');
+    });
+  },
+
+  addImages: (gid, imageIds, next) => {
+    db.findOne({ _id: gid }, (doc) => {
+      if (!doc) {
+        next('Cannot find gallery');
+      } else {
+        async.filter(imageIds, (id, cb) => cb(null, !(id in imageIds)), (_err, res) => {
+          doc.images.push(...res);
+          return db.updateOne({ _id: gid }, doc, _ => next(null));
+        });
+      }
     });
   },
 

@@ -23,7 +23,7 @@ module.exports = {
             if (err) return next({ status: 500, message: 'creation failed' });
             data.groups.push(doc._id);
             return userModel.update(username, data, () => {
-              next({ status: 200, message: 'group created' });
+              next({ status: 200, message: 'group created', gid: doc._id });
             });
           });
         });

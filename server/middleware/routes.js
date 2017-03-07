@@ -1,7 +1,10 @@
 const express = require('express');
+const multer = require('multer');
 const user = require('../controllers/user');
 const gallery = require('../controllers/gallery');
+const sync = require('../controllers/sync');
 
+const upload = multer({ dest: 'uploads/' });
 const routes = express.Router();
 
 // user functionality
@@ -14,7 +17,9 @@ routes.post('/user/update', user.update);
 routes.post('/user/delete', user.delete);
 
 // gallery
-routes.get('gallery/data', gallery.get);
+routes.use('/gallery/*', user.requireAuth);
+routes.post('/gallery/data', gallery.get);
+routes.use('/gallery/upload', upload.array('images'), sync.upload);
 
 // group management functionality
 routes.use('/group/*', user.requireAuth);
