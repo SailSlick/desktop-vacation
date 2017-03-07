@@ -8,7 +8,7 @@ All of the following requests require the user to be authenticated.
 
 `POST /gallery/sync`
 
-Upon successful request, will upload the send image(s) to the server.
+Upon successful request, will upload the sent image(s) to the server.
 
 ### Parameters
 
@@ -21,13 +21,13 @@ in these types of image uploading scenarios.
 | Name       | Type                 | Description                         |
 |------------|----------------------|-------------------------------------|
 | images     | array of form images | a set of the uploaded images        |
-| gallery-id | string               | a reference to the mongo gallery id |
+| gid        | string               | a reference to the mongo gallery id |
 
 ### Response
 
 The `image-id` key refers to the reference the server has for the image. The
-response array imitates the original file order, so the first image uploaded is
-the first image_id in the array, and so on.
+response array imitates the original file order: the first image uploaded is
+the first image_id in the array and so on.
 
 `Status: 200 OK`
 ```
@@ -41,7 +41,7 @@ the first image_id in the array, and so on.
 
 | Error Message             | Status |
 |---------------------------|--------|
-| `'upload failed'`         |   500  |
+| `'upload failed'`         |   403  |
 | `'gallery doesn't exist'` |   404  |
 
 ## Downloading images
@@ -68,12 +68,12 @@ return a smaller version of the image.
 
 | Error Message             | Status |
 |---------------------------|--------|
-| `'upload failed'`         |   500  |
+| `'upload failed'`         |   403  |
 | `'image doesn't exist'`   |   404  |
 
 ## Downloading galleries
 
-`GET /gallery/<gallery-id:string>/(thumbnail)?`
+`GET /gallery/<gid:string>/(thumbnail)?`
 
 Returns a list of images in the gallery.
 
@@ -84,17 +84,17 @@ image requests.
 
 | Name       | Type      | Description                                       |
 |------------|-----------|---------------------------------------------------|
-| gallery-id | string    | a string referencing a gallery's id on the server |
+| gid        | string    | a string referencing a gallery's id on the server |
 
 ### Response
 
-The `images` field is a list of __relative__ image urls in the gallery,
+The `images` field is a list of image id's in the gallery,
 
 `Status: 200 OK`
-```json
+```
 {
   "message": "gallery found",
-  "images": ["/url/1", "/url/...", "/url/N"]
+  "images": ["ObjectId('542c2b97bac0595474108b48')", ..., ObjectId('542c2b97bac0595474108b4N')]
 }
 ```
 

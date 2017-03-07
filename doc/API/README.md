@@ -2,11 +2,11 @@
 
 ## URL Parameters
 
-When you see `<id:string>` in a URL, it tells you the URL has a constituent that
-is a parameter named `id` of type `string`. It is a required argument.
+`<id:string>` denotes a URL containing an `id` parameter of type `string`.
+It is a required argument.
 
-A constituent labelled `g/(thumbnail)?` describes a fixed optional value.
-For instance, the url `/g/thumbnail` or `/g` would be valid in this case.
+`g/[thumbnail]` denotes a fixed optional value. For instance, the url
+`/g/thumbnail` or `/g` would both be fine.
 
 This can sometimes greatly help to reduce API complexity.
 
