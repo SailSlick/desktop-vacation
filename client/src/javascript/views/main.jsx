@@ -1,9 +1,11 @@
 import React from 'react';
+import { AlertList } from 'react-bs-notifier';
 import { ipcRenderer as ipc } from 'electron';
 import { Navbar, Nav, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup } from 'react-bootstrap';
 import Gallery from './gallery.jsx';
 import Galleries from '../models/galleries';
 import Slideshow from '../helpers/slideshow-client';
+import { success } from '../helpers/notifier';
 
 const BASE_GALLERY_ID = 1;
 
@@ -15,7 +17,8 @@ class Main extends React.Component {
       galleryId: BASE_GALLERY_ID,
       newGalleryModal: false,
       selectGalleryModal: false,
-      imageId: null
+      imageId: null,
+      alerts: []
     };
 
     this.onSelectGallery = this.onSelectGallery.bind(this);
@@ -24,9 +27,12 @@ class Main extends React.Component {
     this.addNewGallery = this.addNewGallery.bind(this);
     this.changeGallery = this.changeGallery.bind(this);
     this.hideModals = this.hideModals.bind(this);
+    this.showAlert = this.showAlert.bind(this);
+    this.dismissAlert = this.dismissAlert.bind(this);
 
     // Events
     document.addEventListener('append_gallery', this.showGallerySelector, false);
+    document.addEventListener('notify', this.showAlert, false);
   }
 
   componentWillUnmount() {
@@ -41,7 +47,9 @@ class Main extends React.Component {
     });
 
     // Add pending item to gallery
-    Galleries.addItem(galleryId, this.state.imageId, () => true);
+    Galleries.addItem(galleryId, this.state.imageId, () => {
+      success('Image added');
+    });
   }
 
   getNewGalleryName() {
@@ -81,6 +89,25 @@ class Main extends React.Component {
       selectGalleryModal: false,
       imageId: null
     });
+  }
+
+  showAlert(event) {
+    const details = event.detail;
+    this.state.alerts.push({
+      id: (new Date()).getTime(),
+      type: details.type,
+      message: details.message,
+      headline: details.headline
+    });
+    this.setState({ alerts: this.state.alerts });
+  }
+
+  dismissAlert(alert) {
+    const idx = this.state.alerts.indexOf(alert);
+    if (idx + 1) {
+      this.state.alerts.splice(idx, 1);
+      this.setState({ alerts: this.state.alerts });
+    }
   }
 
   render() {
@@ -155,6 +182,12 @@ class Main extends React.Component {
             </Grid>
           </Modal.Body>
         </Modal>
+
+        <AlertList
+          alerts={this.state.alerts}
+          timeout={4000}
+          onDismiss={this.dismissAlert}
+        />
       </div>
     );
   }
