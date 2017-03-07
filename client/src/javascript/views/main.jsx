@@ -105,7 +105,6 @@ class Main extends React.Component {
 
   profileView() {
     // This is to show the profile details
-    console.log('changing to profileView');
     this.setState({ page: 1 });
   }
 

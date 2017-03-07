@@ -16,15 +16,19 @@ if (process.env.SRVPORT) {
   server_uri = 'http://127.0.0.1:3000';
 }
 
+request.defaults({ jar: true });
+const cookie_jar = request.jar();
+
 // Exported methods
 const Host = {
   login: (username, password, cb) => {
     host_db.findOne({ username }, (host_doc) => {
-      if (host_doc) return cb('An account already exists. Only one per app.');
+      if (host_doc.username !== username) return cb('An account already exists. Only one per app.');
 
       // post to /user/login
       const options = {
         uri: server_uri.concat('/user/login'),
+        jar: cookie_jar,
         method: 'POST',
         json: {
           username,
@@ -32,7 +36,6 @@ const Host = {
         }
       };
       return request(options, (err, response, body) => {
-        console.log("login body:", body);
         if (body.status !== 200) return cb(body.status, body.error);
         document.dispatchEvent(host_update_event);
         return cb(null, body.message);
@@ -44,11 +47,11 @@ const Host = {
     // post to /user/logout
     const options = {
       uri: server_uri.concat('/user/logout'),
+      jar: cookie_jar,
       method: 'POST',
       json: {}
     };
     request(options, (err, response, body) => {
-      console.log("logout body:", body);
       if (body.status !== 200) return cb(body.status, body.error);
       document.dispatchEvent(host_update_event);
       return cb(null, body.message);
@@ -56,25 +59,28 @@ const Host = {
   },
 
   isAuthed: () => {
+    const cookies = cookie_jar.getCookies(server_uri);
+    if (server_uri.indexOf(cookies[0].domain) > 0) return true;
+    return false;
     // checks if user is logged in || session has expired
-    return true;
   },
 
   createAccount: (username, password, cb) => {
+    request.defaults({ jar: true });
     host_db.findOne({ $loki: { $gt: 0 } }, (host_doc) => {
-      if (host_doc) return cb('An account already exists. Only one per app.');
+      if (host_doc) return cb(500, 'An account already exists. Only one per app.');
 
       // check if username has been taken online && add user server side
       const options = {
         uri: server_uri.concat('/user/create'),
+        jar: cookie_jar,
         method: 'POST',
         json: {
           username,
           password
         }
       };
-      request(options, (err, response, body) => {
-        console.log("createAccount body:", body);
+      return request(options, (err, response, body) => {
         if (body.status !== 200) return cb(body.status, body.error);
         // insert users
         const galname = username.concat('_all');
@@ -90,6 +96,7 @@ const Host = {
           const userData = {
             username,
             gallery: galleryDoc.$loki,
+            jar: cookie_jar,
             slideshowConfig: {
               onstart: false,
               galleryname: username.concat('_all'),
@@ -104,33 +111,6 @@ const Host = {
           });
         });
       });
-
-      // create base gallery
-      const galleryData = {
-        name: username.concat('_all'),
-        tags: [],
-        subgalleries: [],
-        images: []
-      };
-      return gallery_db.insert(galleryData, (mainGal) => {
-        gallery_db.save(() => {
-          // add host to host db
-          const hostData = {
-            username,
-            gallery: mainGal.$loki,
-            slideshowConfig: {
-              onstart: false,
-              galleryname: username.concat('_all'),
-              timer: 0
-            }
-          };
-          host_db.insert(hostData, (ret) => {
-            if (ret.username !== username) return cb('adding to host db failed');
-            document.dispatchEvent(host_update_event);
-            return cb(null);
-          });
-        });
-      });
     });
   },
 
@@ -140,12 +120,12 @@ const Host = {
     // post to /user/delete
     const options = {
       uri: server_uri.concat('/user/delete'),
+      jar: cookie_jar,
       method: 'POST',
       json: {}
     };
     request(options, (err, response, body) => {
-      console.log("deleteAccount body:", body);
-      //if (body.status !== 200) return cb(body.status, body.error);
+      if (body.status !== 200) return cb(body.status, body.error);
 
       // remove presence from client, keep images
       return host_db.emptyCol(() => {
@@ -165,11 +145,11 @@ const Host = {
     // post to /user/update
     const options = {
       uri: server_uri.concat('/user/update'),
+      jar: cookie_jar,
       method: 'POST',
       json: { password }
     };
     request(options, (err, response, body) => {
-      console.log("updateAccount body:", body);
       if (body.status !== 200) return cb(body.status, body.error);
       document.dispatchEvent(host_update_event);
       return cb(null, body.message);
