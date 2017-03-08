@@ -1,11 +1,10 @@
 const MongoClient = require('mongodb');
+const Grid = require('gridfs-stream');
 const debug = require('debug')('vacation');
 const url = require('../../script/db/mongo-url.js');
 
 function errCheck(error, cb) {
-  if (error) {
-    console.error(error);
-  }
+  if (error) console.error(error);
   return cb(error);
 }
 
@@ -15,6 +14,7 @@ class DbConn {
     MongoClient.connect(url, (err, db) => {
       errCheck(err, () => {
         this.col = db.collection(colName);
+        this.gfs = Grid(db, MongoClient);
         debug('Connected to Mongo');
         this.onLoad();
       });
@@ -125,6 +125,12 @@ class DbConn {
           cb(false);
         }
       });
+    });
+  }
+
+  readFile(id) {
+    return this.gfs.createReadStream({
+      _id: id
     });
   }
 

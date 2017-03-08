@@ -14,7 +14,10 @@ module.exports = {
     }
 
     async.map(req.files, (f, cb) => {
-      cb(null, f.id);
+      images.add(req.session.uid, f.id, (err) => {
+        if (err) cb(err, null);
+        else cb(null, f.id);
+      });
     }, (err, imageIds) => {
       if (err) {
         console.error(err);
@@ -39,12 +42,17 @@ module.exports = {
     if (!req.params.id) {
       next({ status: 400, error: 'Invalid image id' });
     }
-    images.get(req.params.id, (err, image) => {
+    images.get(req.session.uid, req.params.id, (err, image) => {
       if (err) {
         console.error(err);
         next({ status: 400, error: err });
       } else {
-        res.send(image);
+        res.set('Content-Type', image.contentType);
+
+        image.file.on('error', () => {
+          next({ status: 500, error: 'failed to retreive file' });
+        });
+        image.file.pipe(res);
       }
     });
   }
