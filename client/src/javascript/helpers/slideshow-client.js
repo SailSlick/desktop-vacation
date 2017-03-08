@@ -1,5 +1,5 @@
 import { ipcRenderer as ipc } from 'electron';
-import Userdata from '../models/userdata';
+import Host from '../models/host';
 import Galleries from '../models/galleries';
 
 const hostIndex = 1;
@@ -9,7 +9,7 @@ export default {
   set: (galleryId, cb) => {
     cb = cb || (() => true);
 
-    Userdata.getIndex(hostIndex, (oldHostData) => {
+    Host.getIndex(hostIndex, (oldHostData) => {
       console.error(oldHostData);
       let mTime = oldHostData.timer;
 
@@ -31,7 +31,7 @@ export default {
       };
 
       // puts the config files into the host db
-      return Userdata.update(oldHostData.username, config, () => {
+      return Host.update(oldHostData.username, config, () => {
         // gets the named gallery from db
         Galleries.get(galleryId, gallery =>
           Galleries.expand(gallery, (subgalleries, images) => {
@@ -57,9 +57,9 @@ export default {
         timer: 0
       }
     };
-    Userdata.getIndex(hostIndex, (host) => {
+    Host.getIndex(hostIndex, (host) => {
       // puts the config files into the host db
-      Userdata.update(host.username, config, () => {
+      Host.update(host.username, config, () => {
         ipc.send('clear-slideshow');
         if (cb) cb();
       });

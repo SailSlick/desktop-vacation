@@ -179,6 +179,22 @@ const Host = {
       document.dispatchEvent(host_update_event);
       cb();
     });
+  },
+
+  get: (username, cb) => {
+    host_db.findOne({ username }, cb);
+  },
+
+  getIndex: (index, cb) => {
+    host_db.findIndex(1, cb);
+  },
+
+  update: (username, data, cb) => {
+    host_db.updateOne({ username }, data, cb);
+  },
+
+  remove: (username) => {
+    host_db.removeOne({ username }, _ => true);
   }
 };
 
