@@ -67,21 +67,17 @@ describe('Main Component', () => {
   });
 
   it('can add new gallery and close modal', (done) => {
-    const addSubgallerySpy = spy(Galleries, 'addSubGallery');
-
     test_component.should.have.state('newGalleryModal', true);
+
     // Attempt to add a duplicate, so nothing actually happens
     test_component.instance().newGalleryInput.value = test_gallery_name;
-    test_component.instance().addNewGallery();
-    test_component.should.have.state('newGalleryModal', false);
-    addSubgallerySpy.called.should.be.ok;
-    addSubgallerySpy.restore();
-
-    // This wait is to account for the fact it fades out
-    setTimeout(() => {
-      document.body.getElementsByClassName('modal').should.be.empty;
-      done();
-    }, 750);
+    test_component.instance().addNewGallery(() => {
+      test_component.should.have.state('newGalleryModal', false);
+      setTimeout(() => {
+        document.body.getElementsByClassName('modal').should.be.empty;
+        done();
+      }, 750);
+    });
   });
 
   it('can open gallery selector modal', (done) => {

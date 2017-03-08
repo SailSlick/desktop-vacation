@@ -75,15 +75,23 @@ class Main extends React.Component {
     });
   }
 
-  addNewGallery() {
+  addNewGallery(cb) {
     Galleries.add(this.newGalleryInput.value, (new_gallery, err_msg) => {
-      if (err_msg) return danger(err_msg);
+      this.setState({ newGalleryModal: false });
+      if (err_msg) {
+        danger(err_msg);
+        return cb(err_msg);
+      }
+      if (this.state.galleryId === BASE_GALLERY_ID) {
+        success(`Gallery ${this.newGalleryInput.value} added`);
+        return cb();
+      }
       return Galleries.addSubGallery(
         this.state.galleryId, new_gallery.$loki,
         (updated_gallery, sub_err_msg) => {
           if (sub_err_msg) danger(sub_err_msg);
           else success(`Gallery ${this.newGalleryInput.value} added`);
-          this.setState({ newGalleryModal: false });
+          if (typeof cb === 'function') cb();
         }
       );
     });
