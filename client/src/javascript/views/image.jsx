@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, MenuItem, Button, Image as BsImage } from 'react-bootstrap';
+import { Modal, MenuItem, Button, Glyphicon, Image as BsImage } from 'react-bootstrap';
 import Wallpaper from '../helpers/wallpaper-client';
 
 const append_gallery_event_name = 'append_gallery';
@@ -13,6 +13,7 @@ class Image extends React.Component {
       deleteConfirmation: false
     };
 
+    this.onClick = this.onClick.bind(this);
     this.setAsWallpaper = this.setAsWallpaper.bind(this);
     this.addToGallery = this.addToGallery.bind(this);
     this.expand = this.expand.bind(this);
@@ -22,6 +23,14 @@ class Image extends React.Component {
     this.confirmDelete = this.confirmDelete.bind(this);
   }
 
+  onClick() {
+    if (this.props.multiSelect) {
+      this.props.onSelect(this.props.dbId);
+    } else {
+      this.expand();
+    }
+  }
+
   setAsWallpaper() {
     Wallpaper.set(this.props.src);
   }
@@ -29,7 +38,7 @@ class Image extends React.Component {
   addToGallery() {
     document.dispatchEvent(new CustomEvent(
       append_gallery_event_name,
-      { detail: this.props.dbId }
+      { detail: [this.props.dbId] }
     ));
   }
 
@@ -58,24 +67,26 @@ class Image extends React.Component {
   }
 
   render() {
+    let classes = 'figure img-card rounded';
+    if (this.props.selected) classes += ' selected';
     return (
-      <figure className="figure img-card rounded">
-        <BsImage responsive src={this.props.src} alt="MISSING" onClick={this.expand} />
+      <figure className={classes}>
+        <BsImage responsive src={this.props.src} alt="MISSING" onClick={this.onClick} />
         <figcaption className="figure-caption rounded-circle">
           ...
           <div className="dropdown-menu img-menu">
             <MenuItem onClick={this.setAsWallpaper}>
-              Set as Wallpaper
+              <Glyphicon glyph="picture" />Set as Wallpaper
             </MenuItem>
             <MenuItem onClick={this.addToGallery}>
-              Add to gallery
+              <Glyphicon glyph="th" />Add to gallery
             </MenuItem>
             <MenuItem divider />
             <MenuItem onClick={this.remove}>
-              Remove
+              <Glyphicon glyph="remove" />Remove
             </MenuItem>
             <MenuItem onClick={this.deleteConfirmation}>
-              Remove &amp; Delete
+              <Glyphicon glyph="trash" />Remove &amp; Delete
             </MenuItem>
           </div>
         </figcaption>
@@ -111,7 +122,16 @@ class Image extends React.Component {
 Image.propTypes = {
   dbId: React.PropTypes.number.isRequired,
   src: React.PropTypes.string.isRequired,
-  onRemove: React.PropTypes.func.isRequired
+  onRemove: React.PropTypes.func.isRequired,
+  onSelect: React.PropTypes.func,
+  multiSelect: React.PropTypes.bool,
+  selected: React.PropTypes.bool
+};
+
+Image.defaultProps = {
+  onSelect: _ => true,
+  multiSelect: false,
+  selected: false
 };
 
 export default Image;

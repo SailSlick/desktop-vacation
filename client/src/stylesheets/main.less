@@ -11,14 +11,26 @@ html, body, main {
 
 .rounded { border-radius: 4px; }
 
-.navbar { border-radius: 0; }
+.selected {
+	border: 3px solid lightblue !important;
+}
 
-.navbar .container { width: 100%; }
+.glyphicon { margin-right: 1em; }
 
 .small-preview {
 	max-width: 256px;
 	max-height: 128px;
 }
+
+/* BEGIN Navbars */
+
+.navbar { border-radius: 0; }
+
+.navbar-inverse { margin-bottom: 0; }
+
+.navbar .container { width: 100%; }
+
+/* END Navbars */
 
 /* BEGIN Image Cards */
 
@@ -26,12 +38,24 @@ html, body, main {
 	min-width: 100%;
 	min-height: 5em;
 	margin-bottom: 1em;
-	padding: 4px;
 	border: 1px solid lightgray;
 	box-sizing: border-box;
 	position: relative;
 	text-align: center;
 	cursor: pointer;
+}
+
+.img-card:not(.selected) {
+	padding: 4px;
+}
+
+.img-card.selected {
+	padding: 2px;
+}
+
+.img-card.selected figcaption {
+	bottom: -2px;
+	left: -2px;
 }
 
 .img-card figcaption {

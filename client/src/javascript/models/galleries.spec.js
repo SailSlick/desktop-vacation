@@ -18,6 +18,10 @@ describe('Galleries model', () => {
   let test_image;
   let test_subgallery;
 
+  beforeEach(() => {
+    Galleries.should_save = false;
+  });
+
   // Create a test image
   before(done =>
     Images.add(test_image_path, (inserted_image) => {

@@ -1,12 +1,13 @@
 import path from 'path';
 import React from 'react';
-import { spy } from 'sinon';
+import { spy, stub } from 'sinon';
 import { mount } from 'enzyme';
 import { use, should as chaiShould } from 'chai';
 import chaiEnzyme from 'chai-enzyme';
 import { Simulate } from 'react-addons-test-utils';
 import Image from './image.jsx';
 import Images from '../models/images';
+import Wallpaper from '../helpers/wallpaper-client';
 
 use(chaiEnzyme());
 chaiShould();
@@ -65,16 +66,20 @@ describe('Image Component', () => {
     done();
   });
 
-  it('can close delete confirmation modal', (done) => {
+  it('can confirm deletion', (done) => {
+    removeSpy.reset();
     test_component.should.have.state('deleteConfirmation', true);
-    Simulate.click(document.body.getElementsByClassName('modal')[0]);
+    test_component.instance().confirmDelete();
     test_component.should.have.state('deleteConfirmation', false);
+    removeSpy.called.should.be.ok;
+    done();
+  });
 
-    // This wait is to account for the fact it fades out
-    setTimeout(() => {
-      document.body.getElementsByClassName('modal').should.be.empty;
-      done();
-    }, 750);
+  it('can set itself as the wallpaper', (done) => {
+    const wallpaperStub = stub(Wallpaper, 'set');
+    test_component.find('.img-menu a').at(0).simulate('click');
+    wallpaperStub.called.should.be.ok;
+    done();
   });
 
   it('can request add to gallery modal', (done) => {
@@ -88,10 +93,10 @@ describe('Image Component', () => {
   });
 
   it('can request remove of element', (done) => {
+    removeSpy.reset();
     removeSpy.called.should.not.be.ok;
     test_component.find('.img-menu a').at(2).simulate('click');
     removeSpy.called.should.be.ok;
-    removeSpy.reset();
     done();
   });
 });

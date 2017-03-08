@@ -1,6 +1,7 @@
 import React from 'react';
+import { each } from 'async';
 import { ipcRenderer as ipc } from 'electron';
-import { Navbar, Nav, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup } from 'react-bootstrap';
+import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup } from 'react-bootstrap';
 import Gallery from './gallery.jsx';
 import Galleries from '../models/galleries';
 import Slideshow from '../helpers/slideshow-client';
@@ -15,7 +16,8 @@ class Main extends React.Component {
       galleryId: BASE_GALLERY_ID,
       newGalleryModal: false,
       selectGalleryModal: false,
-      imageId: null
+      imageSelection: null,
+      multiSelect: false
     };
 
     this.onSelectGallery = this.onSelectGallery.bind(this);
@@ -24,6 +26,7 @@ class Main extends React.Component {
     this.addNewGallery = this.addNewGallery.bind(this);
     this.changeGallery = this.changeGallery.bind(this);
     this.hideModals = this.hideModals.bind(this);
+    this.toggleSelectMode = this.toggleSelectMode.bind(this);
 
     // Events
     document.addEventListener('append_gallery', this.showGallerySelector, false);
@@ -35,13 +38,19 @@ class Main extends React.Component {
   }
 
   onSelectGallery(galleryId) {
-    this.setState({
-      selectGalleryModal: false,
-      imageId: null
+    // Add pending items to gallery
+    Galleries.should_save = false;
+    each(this.state.imageSelection, (imageId, next) =>
+      Galleries.addItem(galleryId, imageId, next),
+    () => {
+      Galleries.should_save = true;
     });
 
-    // Add pending item to gallery
-    Galleries.addItem(galleryId, this.state.imageId, () => true);
+    this.setState({
+      selectGalleryModal: false,
+      imageSelection: null,
+      multiSelect: false
+    });
   }
 
   getNewGalleryName() {
@@ -51,19 +60,14 @@ class Main extends React.Component {
   showGallerySelector(evt) {
     this.setState({
       selectGalleryModal: true,
-      imageId: evt.detail
+      imageSelection: evt.detail
     });
   }
 
   addNewGallery() {
     Galleries.add(this.newGalleryInput.value, (new_gallery) => {
-      if (this.state.galleryId !== BASE_GALLERY_ID) {
-        Galleries.addSubGallery(this.state.galleryId, new_gallery.$loki, () =>
-          this.setState({ newGalleryModal: false })
-        );
-      } else {
-        this.setState({ newGalleryModal: false });
-      }
+      Galleries.addSubGallery(this.state.galleryId, new_gallery.$loki, () => true);
+      this.setState({ newGalleryModal: false });
     });
   }
 
@@ -71,7 +75,11 @@ class Main extends React.Component {
     // This if prevents deleted galleries/non-existent Ids
     // causing big issues
     if (galleryId) {
-      this.setState({ galleryId });
+      this.setState({
+        galleryId,
+        imageSelection: null,
+        multiSelect: false
+      });
     }
   }
 
@@ -79,7 +87,14 @@ class Main extends React.Component {
     this.setState({
       newGalleryModal: false,
       selectGalleryModal: false,
-      imageId: null
+      imageSelection: null,
+      multiSelect: false
+    });
+  }
+
+  toggleSelectMode() {
+    this.setState({
+      multiSelect: !this.state.multiSelect
     });
   }
 
@@ -108,6 +123,7 @@ class Main extends React.Component {
                 </MenuItem>
                 <MenuItem onClick={_ => Slideshow.clear()}>Clear</MenuItem>
               </NavDropdown>
+              <NavItem onClick={this.toggleSelectMode}>Select</NavItem>
             </Nav>
           </Navbar.Collapse>
         </Navbar>
@@ -116,6 +132,7 @@ class Main extends React.Component {
           <Gallery
             dbId={this.state.galleryId}
             onChange={this.changeGallery}
+            multiSelect={this.state.multiSelect}
           />
         </Grid>
 
