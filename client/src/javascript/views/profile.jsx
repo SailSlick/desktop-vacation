@@ -4,6 +4,7 @@ import Host from '../models/host';
 import LoginForm from './loginForm.jsx';
 import CreateForm from './createForm.jsx';
 import SettingsForm from './settingsForm.jsx';
+import { success, danger } from '../helpers/notifier';
 
 
 const ProfileContent = ({ page, parent }) => {
@@ -102,11 +103,11 @@ class Profile extends React.Component {
 
   logout() {
     Host.logout((err, ret) => {
-      if (err) {
-        console.error(ret);
+      if (err) danger(ret);
+      else {
+        success(ret);
+        this.setState({ username: '', loggedIn: false, page: 0 });
       }
-      console.log('logout succesful');
-      this.setState({ username: '', loggedIn: false, page: 0 });
     });
   }
 
@@ -125,10 +126,11 @@ class Profile extends React.Component {
 
   deleteAccount(password) {
     Host.deleteAccount(password, (err, ret) => {
-      if (err) {
-        console.error(ret);
+      if (err) danger(ret);
+      else {
+        success(ret);
+        this.setState({ username: 'please make an account', page: 0 });
       }
-      this.setState({ username: 'please make an account', page: 0 });
     });
   }
 

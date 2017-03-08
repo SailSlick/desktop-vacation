@@ -39,6 +39,18 @@ function createClientAccount(username, successMessage, cb) {
   });
 }
 
+function deleteCookies(err, msg, cb) {
+  const cookies = cookie_jar.getCookies(server_uri);
+  if (cookies.length === 0) return cb(err, msg);
+  // remove cookie from jar
+  return cookie_jar['_jar'].store.removeCookie(cookies[0].domain,
+    cookies[0].path,
+    cookies[0].key, () => {
+      console.log('cookie deleted');
+      return cb(err, msg);
+    });
+}
+
 // Exported methods
 const Host = {
 
@@ -57,12 +69,16 @@ const Host = {
         }
       };
       return request(options, (err, response, body) => {
-        if (!body) return cb(500, 'server down');
-        if (body.status !== 200) return cb(body.status, body.error);
+        if (!body) body = { status: 500, error: 'server down' };
+        if (body.status !== 200) {
+          return deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
+            cb(cookieErr, cookieMsg);
+          });
+        }
         if (!host_doc) {
           console.log('Create client side account for prev account.');
-          return createClientAccount(username, body.message, (ret) => {
-            cb(ret);
+          return createClientAccount(username, body.message, (msg_err, msg) => {
+            cb(msg_err, msg);
           });
         }
         host_doc.jar = cookie_jar.getCookies(server_uri);
@@ -85,15 +101,9 @@ const Host = {
     request(options, (err, response, body) => {
       if (!body) return cb(500, 'server down');
       if (body.status !== 200) return cb(body.status, body.error);
-      const cookies = cookie_jar.getCookies(server_uri);
-      if (cookies.length === 0) return cb(null, body.message);
-      // remove cookie from jar
-      return cookie_jar['_jar'].store.removeCookie(cookies[0].domain,
-        cookies[0].path,
-        cookies[0].key, () => {
-          console.log('cookie deleted');
-          return cb(null, body.message);
-        });
+      return deleteCookies(null, body.message, (cookieErr, cookieMsg) => {
+        cb(cookieErr, cookieMsg);
+      });
     });
   },
 
@@ -117,10 +127,14 @@ const Host = {
         }
       };
       return request(options, (err, response, body) => {
-        if (!body) return cb(500, 'server down');
-        if (body.status !== 200) return cb(body.status, body.error);
-        return createClientAccount(username, body.message, (ret) => {
-          cb(ret);
+        if (!body) body = { status: 500, error: 'server down' };
+        if (body.status !== 200) {
+          return deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
+            cb(cookieErr, cookieMsg);
+          });
+        }
+        return createClientAccount(username, body.message, (msg_err, msg) => {
+          cb(msg_err, msg);
         });
       });
     });
@@ -140,21 +154,17 @@ const Host = {
       if (!body) return cb(500, 'server down');
       if (body.status !== 200) return cb(body.status, body.error);
       // remove cookie from jar
-      const cookies = cookie_jar.getCookies(server_uri);
-      return cookie_jar['_jar'].store.removeCookie(cookies[0].domain,
-        cookies[0].path,
-        cookies[0].key, () => {
-          console.log('cookie deleted');
-          // remove presence from client, keep images
-          return host_db.emptyCol(() => {
-            document.dispatchEvent(host_update_event);
-            return Galleries.clear(() => {
-              Images.clear(() => {
-                cb(null, body.message);
-              });
+      return deleteCookies(null, body.message, (cookieErr, cookieMsg) => {
+        // remove presence from client, keep images
+        host_db.emptyCol(() => {
+          document.dispatchEvent(host_update_event);
+          return Galleries.clear(() => {
+            Images.clear(() => {
+              cb(cookieErr, cookieMsg);
             });
           });
         });
+      });
     });
   },
 

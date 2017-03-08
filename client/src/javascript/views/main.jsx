@@ -104,7 +104,8 @@ class Main extends React.Component {
       }
       if (this.state.galleryId === BASE_GALLERY_ID) {
         success(`Gallery ${this.newGalleryInput.value} added`);
-        return cb();
+        if (typeof cb === 'function') return cb();
+        return null;
       }
       return Galleries.addSubGallery(
         this.state.galleryId, new_gallery.$loki,

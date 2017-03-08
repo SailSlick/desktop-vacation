@@ -1,6 +1,7 @@
 import React from 'react';
 import { Form, FormGroup, FormControl, ControlLabel, HelpBlock, Button, Col, Grid } from 'react-bootstrap';
 import Host from '../models/host';
+import { success, danger } from '../helpers/notifier';
 
 class CreateForm extends React.Component {
   constructor(props) {
@@ -55,16 +56,17 @@ class CreateForm extends React.Component {
     const password = event.target.password.value;
     const password2 = event.target.password2.value;
     if (password !== password2) {
-      this.setState({ equal: false });
+      danger('Passwords do not match');
       return;
     }
     Host.createAccount(username, password, (err, ret) => {
-      if (err) {
-        console.error('Create Account error', err, ret);
-        return;
+      console.log("err", err, "ret", ret);
+      if (err) danger(ret);
+      else {
+        console.log("success");
+        success(ret);
+        this.props.parentPage(true);
       }
-      console.log('ret:', ret);
-      this.props.parentPage(true);
     });
   }
   render() {

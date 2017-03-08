@@ -1,6 +1,7 @@
 import React from 'react';
 import { Form, FormGroup, FormControl, ControlLabel, HelpBlock, Button, Col, Grid } from 'react-bootstrap';
 import Host from '../models/host';
+import { success, danger } from '../helpers/notifier';
 
 class SettingsForm extends React.Component {
   constructor(props) {
@@ -57,27 +58,24 @@ class SettingsForm extends React.Component {
       Host.getIndex(1, (doc) => {
         doc.slideshowConfig.timer = timer;
         Host.update({}, doc, (ret) => {
-          if (ret) {
-            console.log('update time passed', ret);
+          if (!ret) danger('timer update failed');
+          else {
+            success('slideshow timer updated');
             this.props.parentPage(true);
-          } else {
-            // notify
-            console.error("update timer failed");
           }
         });
       });
     }
     if (password && password2) {
       if (password !== password2) {
-        console.log("pws don't match");
+        danger('Passwords do not match');
       } else {
         Host.updateAccount(password, (err, ret) => {
-          if (err) {
-            console.error('pw update error', err, ret);
-            return;
+          if (err) danger(ret);
+          else {
+            success(ret);
+            this.props.parentPage(true);
           }
-          console.log(ret);
-          this.props.parentPage(true);
         });
       }
     }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Form, FormGroup, FormControl, ControlLabel, HelpBlock, Button, Col, Grid } from 'react-bootstrap';
 import Host from '../models/host';
+import { success, danger } from '../helpers/notifier';
 
 class LoginForm extends React.Component {
   constructor(props) {
@@ -45,10 +46,9 @@ class LoginForm extends React.Component {
     const username = event.target.username.value;
     const password = event.target.password.value;
     Host.login(username, password, (err, ret) => {
-      if (err) {
-        console.error('Login error', err, ret);
-      } else {
-        console.log(ret);
+      if (err) danger(ret);
+      else {
+        success(ret);
         this.props.parentPage(true);
       }
     });
