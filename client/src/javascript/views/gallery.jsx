@@ -2,8 +2,9 @@ import React from 'react';
 import { each } from 'async';
 import { Col, Row, Nav, Navbar, NavItem, Glyphicon } from 'react-bootstrap';
 import Image from './image.jsx';
-import Galleries from '../models/galleries';
 import GalleryCard from './gallerycard.jsx';
+import Galleries from '../models/galleries';
+import { success, danger } from '../helpers/notifier';
 
 const append_gallery_event_name = 'append_gallery';
 
@@ -99,7 +100,10 @@ class Gallery extends React.Component {
 
   // eslint-disable-next-line class-methods-use-this
   removeSubgallery(dbId) {
-    Galleries.remove(dbId, () => true);
+    Galleries.remove(dbId, (err_msg) => {
+      if (err_msg) danger(err_msg);
+      else success('Gallery Removed');
+    });
   }
 
   addAllToGallery() {
@@ -111,18 +115,28 @@ class Gallery extends React.Component {
 
   removeItem(id, fsDelete) {
     if (fsDelete) {
-      Galleries.deleteItem(id, () => true);
+      Galleries.deleteItem(id, (err_msg) => {
+        if (err_msg) danger(err_msg);
+        else success('Image Deleted');
+      });
     } else {
-      Galleries.removeItem(this.props.dbId, id, () => true);
+      Galleries.removeItem(this.props.dbId, id, (new_gallery, err_msg) => {
+        if (err_msg) danger(err_msg);
+        else success('Image Removed');
+      });
     }
   }
 
   removeAll(cb) {
     Galleries.should_save = false;
+    const num_items = this.state.selection.length;
     each(this.state.selection, (id, next) =>
-      Galleries.removeItem(this.props.dbId, id, next),
-    () => {
+      Galleries.removeItem(this.props.dbId, id, (update, err_msg) => next(err_msg)),
+    (err_msg) => {
       Galleries.should_save = true;
+      if (err_msg) danger(err_msg);
+      else if (num_items === 1) success('Image removed');
+      else success(`${num_items} images removed`);
       if (typeof cb === 'function') cb();
     });
   }

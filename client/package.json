@@ -39,6 +39,7 @@
     "fs-jetpack": "^0.10.2",
     "lokijs": "^1.4.2",
     "react-bootstrap": "^0.30.7",
+    "react-bs-notifier": "^4.3.0",
     "react-dom": "^15.4.2"
   },
   "devDependencies": {

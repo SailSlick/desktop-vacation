@@ -67,21 +67,17 @@ describe('Main Component', () => {
   });
 
   it('can add new gallery and close modal', (done) => {
-    const addSubgallerySpy = spy(Galleries, 'addSubGallery');
-
     test_component.should.have.state('newGalleryModal', true);
+
     // Attempt to add a duplicate, so nothing actually happens
     test_component.instance().newGalleryInput.value = test_gallery_name;
-    test_component.instance().addNewGallery();
-    test_component.should.have.state('newGalleryModal', false);
-    addSubgallerySpy.called.should.be.ok;
-    addSubgallerySpy.restore();
-
-    // This wait is to account for the fact it fades out
-    setTimeout(() => {
-      document.body.getElementsByClassName('modal').should.be.empty;
-      done();
-    }, 750);
+    test_component.instance().addNewGallery(() => {
+      test_component.should.have.state('newGalleryModal', false);
+      setTimeout(() => {
+        document.body.getElementsByClassName('modal').should.be.empty;
+        done();
+      }, 750);
+    });
   });
 
   it('can open gallery selector modal', (done) => {
@@ -125,6 +121,23 @@ describe('Main Component', () => {
     test_component.should.have.state('galleryId', test_gallery.$loki);
     test_component.instance().changeGallery(null);
     test_component.should.have.state('galleryId', test_gallery.$loki);
+    done();
+  });
+
+  it('can show an alert', (done) => {
+    test_component.instance().showAlert({ detail: {
+      type: 'info',
+      message: 'Land Rovers are the best',
+      headline: 'Info'
+    } });
+    test_component.find('AlertList').props().alerts.should.not.be.empty;
+    done();
+  });
+
+  it('can dismiss an alert', (done) => {
+    const alert = test_component.find('AlertList').props().alerts[0];
+    test_component.instance().dismissAlert(alert);
+    test_component.find('AlertList').props().alerts.should.not.contain(alert);
     done();
   });
 
