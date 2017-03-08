@@ -140,7 +140,7 @@ describe('Gallery Component', () => {
           test_component.find('Image').should.be.empty;
           calls++;
           // Make sure done is called at the right time
-          // I don't know why gallery_updated is fired twice
+          // I don't know why gallery_updated is > once
           if (calls === 1) {
             done();
           }

@@ -123,7 +123,7 @@ class Gallery extends React.Component {
       Galleries.removeItem(this.props.dbId, id, next),
     () => {
       Galleries.should_save = true;
-      cb();
+      if (typeof cb === 'function') cb();
     });
   }
 
