@@ -18,7 +18,6 @@ const PrimaryContent = ({ page, parent }) => {
       onChange={parent.changeGallery}
     />),
     (<Profile
-      page={0}
       onChange={parent.profileView}
     />)
   ][page];

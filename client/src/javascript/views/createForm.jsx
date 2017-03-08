@@ -55,7 +55,7 @@ class CreateForm extends React.Component {
         <Form horizontal onSubmit={this.createAccount}>
           <h1><ControlLabel>Create Account</ControlLabel></h1>
           <FormGroup controlId="formUsername">
-            <Col componentClass={ControlLabel} sm={1}>
+            <Col componentClass={ControlLabel} sm={2}>
               Username
             </Col>
             <Col sm={10}>
@@ -70,7 +70,7 @@ class CreateForm extends React.Component {
             </Col>
           </FormGroup>
           <FormGroup controlId="formPassword">
-            <Col componentClass={ControlLabel} sm={1}>
+            <Col componentClass={ControlLabel} sm={2}>
               Password
             </Col>
             <Col sm={10}>
@@ -84,7 +84,7 @@ class CreateForm extends React.Component {
             </Col>
           </FormGroup>
           <FormGroup controlId="formPassword2">
-            <Col componentClass={ControlLabel} sm={1}>
+            <Col componentClass={ControlLabel} sm={2}>
               Password Check
             </Col>
             <Col sm={10}>

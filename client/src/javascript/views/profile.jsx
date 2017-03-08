@@ -6,18 +6,18 @@ import CreateForm from './createForm.jsx';
 
 
 const ProfileContent = ({ page, parent }) => {
-  parent.state.page = 0;
+  if (parent.isAuthed() && page === 0) page = 1;
   return [
     (<Grid>
       <h1>Profile</h1>
       <Row>
         <Button
-          onClick={parent.loginPage}
+          onClick={_ => parent.changePage(3)}
         >Login</Button>
       </Row>
       <Row>
         <Button
-          onClick={parent.createPage}
+          onClick={_ => parent.changePage(2)}
         >Create Account</Button>
       </Row>
     </Grid>),
@@ -34,11 +34,9 @@ const ProfileContent = ({ page, parent }) => {
       </Row>
     </Grid>),
     (<CreateForm
-      onChange={parent.createPage}
       parentPage={parent.backToPage}
     />),
     (<LoginForm
-      onChange={parent.createPage}
       parentPage={parent.backToPage}
     />)
   ][page];
@@ -52,15 +50,14 @@ class Profile extends React.Component {
     this.state = {
       username: '',
       password: '',
-      page: props.page,
+      page: 0,
       loggedIn: false
     };
 
     // Bind functions
     this.profilePage = this.profilePage.bind(this);
     this.backToPage = this.backToPage.bind(this);
-    this.createPage = this.createPage.bind(this);
-    this.loginPage = this.loginPage.bind(this);
+    this.changePage = this.changePage.bind(this);
     this.logout = this.logout.bind(this);
     this.isAuthed = this.isAuthed.bind(this);
     this.deleteAccount = this.deleteAccount.bind(this);
@@ -82,16 +79,9 @@ class Profile extends React.Component {
     this.setState({ page: pageNumber, loggedIn });
   }
 
-  createPage() {
-    // This is to show the profile details
-    console.log('changing to CreateForm');
-    this.setState({ page: 2 });
-  }
-
-  loginPage() {
-    // This is to show the profile details
-    console.log('changing to loginForm');
-    this.setState({ page: 3 });
+  changePage(page) {
+    console.log('changing to page:', page);
+    this.setState({ page });
   }
 
   logout() {
@@ -100,16 +90,20 @@ class Profile extends React.Component {
         console.error(ret);
       }
       console.log('logout succesful');
-      this.setState({ username: '', password: '' });
+      this.setState({ username: '', password: '', loggedIn: false, page: 0 });
     });
   }
 
   isAuthed() {
-    Host.isAuthed((err, ret) => {
-      if (err) {
-        console.error(ret);
+    return Host.isAuthed((ret) => {
+      if (ret) {
+        this.state.page = 1;
+        this.state.loggedIn = true;
+        return true;
       }
-      this.setState({});
+      this.state.page = 0;
+      this.state.loggedIn = false;
+      return false;
     });
   }
 
@@ -118,7 +112,7 @@ class Profile extends React.Component {
       if (err) {
         console.error(ret);
       }
-      this.setState({ username: '', password: '' });
+      this.setState({ username: '', password: '', page: 0 });
     });
   }
 
@@ -128,13 +122,5 @@ class Profile extends React.Component {
     );
   }
 }
-
-Profile.defaultProps = {
-  page: 0
-};
-
-Profile.propTypes = {
-  page: React.PropTypes.number.isRequired,
-};
 
 export default Profile;

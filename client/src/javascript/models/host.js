@@ -25,7 +25,6 @@ function createClientAccount(username, successMessage, cb) {
     const userData = {
       username,
       gallery: ret,
-      jar: cookie_jar.getCookies(server_uri),
       slideshowConfig: {
         onstart: false,
         galleryname: username.concat('_all'),
@@ -58,6 +57,7 @@ const Host = {
         }
       };
       return request(options, (err, response, body) => {
+        if (!body) return cb(500, 'server down');
         if (body.status !== 200) return cb(body.status, body.error);
         if (!host_doc) {
           console.log('Create client side account for prev account.');
@@ -83,33 +83,41 @@ const Host = {
       json: {}
     };
     request(options, (err, response, body) => {
+      if (!body) return cb(500, 'server down');
       if (body.status !== 200) return cb(body.status, body.error);
-      return cb(null, body.message);
+      const cookies = cookie_jar.getCookies(server_uri);
+      if (cookies.length === 0) return cb(null, body.message);
+      // remove cookie from jar
+      return cookie_jar['_jar'].store.removeCookie(cookies[0].domain,
+        cookies[0].path,
+        cookies[0].key, () => {
+          console.log('cookie deleted');
+          return cb(null, body.message);
+        });
     });
   },
 
-  isAuthed: () => {
-    const cookies = cookie_jar.getCookies(server_uri);
-    if (server_uri.indexOf(cookies[0].domain) > 0) return true;
-    return false;
+  isAuthed: (cb) => {
     // checks if user is logged in || session has expired
+    const cookies = cookie_jar.getCookies(server_uri);
+    if (cookies.length === 0) return cb(false);
+    return cb(true);
   },
 
   createAccount: (username, password, cb) => {
     host_db.findOne({}, (host_doc) => {
       if (host_doc) return cb(500, 'An account already exists. Only one per app.');
-
-      // check if username has been taken online && add user server side
       const options = {
         uri: server_uri.concat('/user/create'),
-        jar: cookie_jar.getCookies(server_uri),
         method: 'POST',
+        jar: cookie_jar,
         json: {
           username,
           password
         }
       };
       return request(options, (err, response, body) => {
+        if (!body) return cb(500, 'server down');
         if (body.status !== 200) return cb(body.status, body.error);
         return createClientAccount(username, body.message, (ret) => {
           cb(ret);
@@ -129,17 +137,24 @@ const Host = {
       json: {}
     };
     request(options, (err, response, body) => {
+      if (!body) return cb(500, 'server down');
       if (body.status !== 200) return cb(body.status, body.error);
-
-      // remove presence from client, keep images
-      return host_db.emptyCol(() => {
-        document.dispatchEvent(host_update_event);
-        return Galleries.clear(() => {
-          Images.clear(() => {
-            cb(null, body.message);
+      // remove cookie from jar
+      const cookies = cookie_jar.getCookies(server_uri);
+      return cookie_jar['_jar'].store.removeCookie(cookies[0].domain,
+        cookies[0].path,
+        cookies[0].key, () => {
+          console.log('cookie deleted');
+          // remove presence from client, keep images
+          return host_db.emptyCol(() => {
+            document.dispatchEvent(host_update_event);
+            return Galleries.clear(() => {
+              Images.clear(() => {
+                cb(null, body.message);
+              });
+            });
           });
         });
-      });
     });
   },
 
@@ -152,6 +167,7 @@ const Host = {
       json: { password }
     };
     request(options, (err, response, body) => {
+      if (!body) return cb(500, 'server down');
       if (body.status !== 200) return cb(body.status, body.error);
       document.dispatchEvent(host_update_event);
       return cb(null, body.message);

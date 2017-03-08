@@ -49,7 +49,7 @@ class LoginForm extends React.Component {
         <Form horizontal onSubmit={this.login}>
           <h1><ControlLabel>Login to Account</ControlLabel></h1>
           <FormGroup controlId="formUsername">
-            <Col componentClass={ControlLabel} sm={1}>
+            <Col componentClass={ControlLabel} sm={2}>
               Username
             </Col>
             <Col sm={10}>
@@ -64,7 +64,7 @@ class LoginForm extends React.Component {
             </Col>
           </FormGroup>
           <FormGroup controlId="formPassword">
-            <Col componentClass={ControlLabel} sm={1}>
+            <Col componentClass={ControlLabel} sm={2}>
               Password
             </Col>
             <Col sm={10}>
