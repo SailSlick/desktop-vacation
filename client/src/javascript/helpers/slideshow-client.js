@@ -11,27 +11,24 @@ export default {
 
     Host.getIndex(hostIndex, (oldHostData) => {
       console.error(oldHostData);
-      let mTime = oldHostData.timer;
 
-      if (mTime <= 0 || isNaN(mTime)) {
-        mTime = 5;
+      if (isNaN(oldHostData.slideshowConfig.timer)) {
+        oldHostData.slideshowConfig.timer = 360000;
       }
       if (galleryId === '' || typeof galleryId !== 'number') {
         console.error(`Invalid gallery ID ${galleryId}`);
         return cb();
       }
-
-      const msTime = mTime * 60000;
       const config = {
         slideshowConfig: {
           onstart: true,
           galleryName: galleryId,
-          timer: msTime
+          timer: oldHostData.slideshowConfig.timer
         }
       };
 
       // puts the config files into the host db
-      return Host.update(oldHostData.username, config, () => {
+      return Host.update({ username: oldHostData.username }, config, () => {
         // gets the named gallery from db
         Galleries.get(galleryId, gallery =>
           Galleries.expand(gallery, (subgalleries, images) => {
@@ -41,7 +38,7 @@ export default {
               console.error('The gallery has no images');
               return cb();
             }
-            ipc.send('set-slideshow', image_paths, msTime);
+            ipc.send('set-slideshow', image_paths, oldHostData.slideshowConfig.timer);
             return cb();
           })
         );
@@ -50,16 +47,11 @@ export default {
   },
 
   clear: (cb) => {
-    const config = {
-      slideshowConfig: {
-        onstart: false,
-        galleryName: BASE_GALLERY_ID,
-        timer: 0
-      }
-    };
     Host.getIndex(hostIndex, (host) => {
+      host.slideshowConfig.onstart = false;
+      host.slideshowConfig.galleryName = BASE_GALLERY_ID;
       // puts the config files into the host db
-      Host.update(host.username, config, () => {
+      Host.update({ username: host.username }, host, () => {
         ipc.send('clear-slideshow');
         if (cb) cb();
       });

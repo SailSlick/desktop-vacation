@@ -3,18 +3,24 @@ import { Button, Grid, Row } from 'react-bootstrap';
 import Host from '../models/host';
 import LoginForm from './loginForm.jsx';
 import CreateForm from './createForm.jsx';
+import SettingsForm from './settingsForm.jsx';
 
 
 const ProfileContent = ({ page, parent }) => {
+  Host.get({ $gt: 0 }, (cb) => {
+    if (cb) parent.state.username = cb.username;
+  });
   if (parent.isAuthed() && page === 0) page = 1;
   return [
     (<Grid>
+      <h1>Hi {parent.state.username}</h1>
       <h1>Profile</h1>
       <Row>
         <Button
           onClick={_ => parent.changePage(3)}
         >Login</Button>
       </Row>
+      <br />
       <Row>
         <Button
           onClick={_ => parent.changePage(2)}
@@ -22,21 +28,32 @@ const ProfileContent = ({ page, parent }) => {
       </Row>
     </Grid>),
     (<Grid>
+      <h1>Hi, {parent.state.username}</h1>
       <Row>
         <Button
           onClick={parent.logout}
         >Logout</Button>
       </Row>
+      <br />
       <Row>
         <Button
           onClick={parent.deleteAccount}
         >Delete Account</Button>
+      </Row>
+      <br />
+      <Row>
+        <Button
+          onClick={_ => parent.changePage(4)}
+        >Change Settings</Button>
       </Row>
     </Grid>),
     (<CreateForm
       parentPage={parent.backToPage}
     />),
     (<LoginForm
+      parentPage={parent.backToPage}
+    />),
+    (<SettingsForm
       parentPage={parent.backToPage}
     />)
   ][page];
@@ -48,8 +65,7 @@ class Profile extends React.Component {
     super(props);
 
     this.state = {
-      username: '',
-      password: '',
+      username: 'please make an account',
       page: 0,
       loggedIn: false
     };
@@ -90,7 +106,7 @@ class Profile extends React.Component {
         console.error(ret);
       }
       console.log('logout succesful');
-      this.setState({ username: '', password: '', loggedIn: false, page: 0 });
+      this.setState({ username: '', loggedIn: false, page: 0 });
     });
   }
 
@@ -112,7 +128,7 @@ class Profile extends React.Component {
       if (err) {
         console.error(ret);
       }
-      this.setState({ username: '', password: '', page: 0 });
+      this.setState({ username: 'please make an account', page: 0 });
     });
   }
 

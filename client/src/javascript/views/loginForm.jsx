@@ -11,9 +11,23 @@ class LoginForm extends React.Component {
       password: '',
     };
 
+    this.pwValidationState = this.pwValidationState.bind(this);
+    this.usernameValidationState = this.usernameValidationState.bind(this);
     this.inputChange = this.inputChange.bind(this);
     this.back = this.back.bind(this);
     this.login = this.login.bind(this);
+  }
+
+  pwValidationState() {
+    const length = this.state.password.length;
+    if (length < 6) return 'warning';
+    return 'success';
+  }
+
+  usernameValidationState() {
+    if (this.state.username.indexOf(' ') !== -1) return 'error';
+    else if (this.state.username.length < 3) return 'warning';
+    return 'success';
   }
 
   inputChange(event) {
@@ -33,10 +47,10 @@ class LoginForm extends React.Component {
     Host.login(username, password, (err, ret) => {
       if (err) {
         console.error('Login error', err, ret);
-        return;
+      } else {
+        console.log(ret);
+        this.props.parentPage(true);
       }
-      console.log(ret);
-      this.props.parentPage(true);
     });
   }
 
@@ -48,7 +62,10 @@ class LoginForm extends React.Component {
         >Back</Button>
         <Form horizontal onSubmit={this.login}>
           <h1><ControlLabel>Login to Account</ControlLabel></h1>
-          <FormGroup controlId="formUsername">
+          <FormGroup
+            controlId="formUsername"
+            validationState={this.usernameValidationState()}
+          >
             <Col componentClass={ControlLabel} sm={2}>
               Username
             </Col>
@@ -63,7 +80,10 @@ class LoginForm extends React.Component {
               <HelpBlock>No spaces allowed in username</HelpBlock>
             </Col>
           </FormGroup>
-          <FormGroup controlId="formPassword">
+          <FormGroup
+            controlId="formPassword"
+            validationState={this.pwValidationState()}
+          >
             <Col componentClass={ControlLabel} sm={2}>
               Password
             </Col>

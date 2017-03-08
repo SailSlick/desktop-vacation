@@ -37,7 +37,7 @@ module.exports = {
   },
 
   update: (req, res, next) => {
-    const { password } = req.body;
+    const password = req.body.password;
 
     // XXX: since password is the only current option changed, just check that
     // Will likely be replaced by something more sophisticated later

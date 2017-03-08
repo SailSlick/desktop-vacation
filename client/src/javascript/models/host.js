@@ -186,11 +186,11 @@ const Host = {
   },
 
   getIndex: (index, cb) => {
-    host_db.findIndex(1, cb);
+    host_db.findIndex(index, cb);
   },
 
-  update: (username, data, cb) => {
-    host_db.updateOne({ username }, data, cb);
+  update: (query, data, cb) => {
+    host_db.updateOne(query, data, cb);
   },
 
   remove: (username) => {
