@@ -28,7 +28,7 @@ export default {
       };
 
       // puts the config files into the host db
-      return Host.update({ username: oldHostData.username }, config, () => {
+      return Host.update({ $loki: oldHostData.$loki }, config, () => {
         // gets the named gallery from db
         Galleries.get(galleryId, gallery =>
           Galleries.expand(gallery, (subgalleries, images) => {
@@ -51,7 +51,7 @@ export default {
       host.slideshowConfig.onstart = false;
       host.slideshowConfig.galleryName = BASE_GALLERY_ID;
       // puts the config files into the host db
-      Host.update({ username: host.username }, host, () => {
+      Host.update({ $loki: host.$loki }, host, () => {
         ipc.send('clear-slideshow');
         if (cb) cb();
       });

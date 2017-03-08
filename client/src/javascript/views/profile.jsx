@@ -11,7 +11,10 @@ const ProfileContent = ({ page, parent }) => {
   Host.get({ $gt: 0 }, (cb) => {
     if (cb) parent.state.username = cb.username;
   });
-  if (parent.isAuthed() && page === 0) page = 1;
+  if (parent.isAuthed(page) && page === 0) {
+    parent.state.page = 1;
+    page = 1;
+  }
   return [
     (<Grid>
       <h1>Hi {parent.state.username}</h1>
@@ -111,14 +114,14 @@ class Profile extends React.Component {
     });
   }
 
-  isAuthed() {
+  isAuthed(page) {
     return Host.isAuthed((ret) => {
       if (ret) {
-        this.state.page = 1;
+        if (page <= 1) this.state.page = 1;
         this.state.loggedIn = true;
         return true;
       }
-      this.state.page = 0;
+      if (page < 2 || page === 4) this.state.page = 0;
       this.state.loggedIn = false;
       return false;
     });

@@ -10,8 +10,7 @@ class CreateForm extends React.Component {
     this.state = {
       username: '',
       password: '',
-      password2: '',
-      equal: true
+      password2: ''
     };
 
     this.pwValidationState = this.pwValidationState.bind(this);
@@ -60,10 +59,8 @@ class CreateForm extends React.Component {
       return;
     }
     Host.createAccount(username, password, (err, ret) => {
-      console.log("err", err, "ret", ret);
       if (err) danger(ret);
       else {
-        console.log("success");
         success(ret);
         this.props.parentPage(true);
       }

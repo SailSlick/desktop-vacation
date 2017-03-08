@@ -39,15 +39,16 @@ function createClientAccount(username, successMessage, cb) {
   });
 }
 
-function deleteCookies(err, msg, cb) {
+function deleteCookies(errCode, msg, cb) {
   const cookies = cookie_jar.getCookies(server_uri);
-  if (cookies.length === 0) return cb(err, msg);
+  if (cookies.length === 0) return cb(errCode, msg);
   // remove cookie from jar
+  // eslint-disable-next-line dot-notation
   return cookie_jar['_jar'].store.removeCookie(cookies[0].domain,
     cookies[0].path,
     cookies[0].key, () => {
       console.log('cookie deleted');
-      return cb(err, msg);
+      return cb(errCode, msg);
     });
 }
 
@@ -69,7 +70,7 @@ const Host = {
         }
       };
       return request(options, (err, response, body) => {
-        if (!body) body = { status: 500, error: 'server down' };
+        body = body || { status: 500, error: 'server down' };
         if (body.status !== 200) {
           return deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
             cb(cookieErr, cookieMsg);
@@ -127,7 +128,7 @@ const Host = {
         }
       };
       return request(options, (err, response, body) => {
-        if (!body) body = { status: 500, error: 'server down' };
+        body = body || { status: 500, error: 'server down' };
         if (body.status !== 200) {
           return deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
             cb(cookieErr, cookieMsg);
