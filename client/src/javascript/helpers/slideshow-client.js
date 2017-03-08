@@ -10,11 +10,10 @@ export default {
     cb = cb || (() => true);
 
     Host.getIndex(hostIndex, (oldHostData) => {
-      console.error(oldHostData);
-
       if (isNaN(oldHostData.slideshowConfig.timer)) {
         oldHostData.slideshowConfig.timer = 360000;
       }
+      oldHostData.slideshowConfig.timer *= 60000;
       if (galleryId === '' || typeof galleryId !== 'number') {
         console.error(`Invalid gallery ID ${galleryId}`);
         return cb();

@@ -28,7 +28,7 @@ function createClientAccount(username, successMessage, cb) {
       slideshowConfig: {
         onstart: false,
         galleryname: username.concat('_all'),
-        timer: 0
+        timer: 30
       }
     };
     return host_db.insert(userData, (userDoc) => {
