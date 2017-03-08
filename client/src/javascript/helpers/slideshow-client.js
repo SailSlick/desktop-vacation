@@ -11,9 +11,9 @@ export default {
 
     Host.getIndex(hostIndex, (oldHostData) => {
       if (isNaN(oldHostData.slideshowConfig.timer)) {
-        oldHostData.slideshowConfig.timer = 360000;
+        oldHostData.slideshowConfig.timer = 5;
       }
-      oldHostData.slideshowConfig.timer *= 60000;
+      const timer = oldHostData.slideshowConfig.timer * 60000;
       if (galleryId === '' || typeof galleryId !== 'number') {
         console.error(`Invalid gallery ID ${galleryId}`);
         return cb();
@@ -37,7 +37,7 @@ export default {
               console.error('The gallery has no images');
               return cb();
             }
-            ipc.send('set-slideshow', image_paths, oldHostData.slideshowConfig.timer);
+            ipc.send('set-slideshow', image_paths, timer);
             return cb();
           })
         );

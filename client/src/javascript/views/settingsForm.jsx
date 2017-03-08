@@ -84,6 +84,7 @@ class SettingsForm extends React.Component {
   render() {
     return (
       <Grid>
+        <br />
         <Button
           onClick={this.back}
         >Back</Button>
