@@ -108,6 +108,23 @@ describe('Main Component', () => {
     done();
   });
 
+  it('can show an alert', (done) => {
+    test_component.instance().showAlert({ detail: {
+      type: 'info',
+      message: 'Land Rovers are the best',
+      headline: 'Info'
+    } });
+    test_component.find('AlertList').props().alerts.should.not.be.empty;
+    done();
+  });
+
+  it('can dismiss an alert', (done) => {
+    const alert = test_component.find('AlertList').props().alerts[0];
+    test_component.instance().dismissAlert(alert);
+    test_component.find('AlertList').props().alerts.should.not.contain(alert);
+    done();
+  });
+
   it('can unmount safely', (done) => {
     test_component.unmount();
     done();

@@ -10,7 +10,7 @@ function sendEvent(type, headline, message) {
 }
 
 export function success(message) {
-  console.log(success);
+  console.log(message);
   sendEvent('success', 'Success', message);
 }
 
