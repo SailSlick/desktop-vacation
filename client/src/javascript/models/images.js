@@ -45,6 +45,13 @@ const Images = {
       console.log(`Removed image ${id}`);
       cb();
     });
+  },
+
+  clear: (cb) => {
+    image_db.emptyCol(() => {
+      image_db.save(_ => console.log('Database saved'));
+      cb();
+    });
   }
 
 };

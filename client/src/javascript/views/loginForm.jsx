@@ -12,8 +12,8 @@ class LoginForm extends React.Component {
     };
 
     this.inputChange = this.inputChange.bind(this);
-    this.login = this.login.bind(this);
     this.back = this.back.bind(this);
+    this.login = this.login.bind(this);
   }
 
   inputChange(event) {

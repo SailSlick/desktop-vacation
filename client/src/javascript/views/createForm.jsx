@@ -12,9 +12,10 @@ class CreateForm extends React.Component {
       password2: '',
       equal: true
     };
-    this.createAccount = this.createAccount.bind(this);
+
     this.inputChange = this.inputChange.bind(this);
     this.back = this.back.bind(this);
+    this.createAccount = this.createAccount.bind(this);
   }
 
   inputChange(event) {
@@ -33,7 +34,7 @@ class CreateForm extends React.Component {
     const password = event.target.password.value;
     const password2 = event.target.password2.value;
     if (password !== password2) {
-      this.setState({ unequal: false });
+      this.setState({ equal: false });
       return;
     }
     Host.createAccount(username, password, (err, ret) => {

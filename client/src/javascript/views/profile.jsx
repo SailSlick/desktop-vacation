@@ -57,13 +57,13 @@ class Profile extends React.Component {
     };
 
     // Bind functions
+    this.profilePage = this.profilePage.bind(this);
+    this.backToPage = this.backToPage.bind(this);
+    this.createPage = this.createPage.bind(this);
+    this.loginPage = this.loginPage.bind(this);
     this.logout = this.logout.bind(this);
     this.isAuthed = this.isAuthed.bind(this);
     this.deleteAccount = this.deleteAccount.bind(this);
-    this.loginPage = this.loginPage.bind(this);
-    this.createPage = this.createPage.bind(this);
-    this.profilePage = this.profilePage.bind(this);
-    this.backToPage = this.backToPage.bind(this);
   }
 
   profilePage() {
@@ -74,12 +74,12 @@ class Profile extends React.Component {
     this.setState({ page: pageNumber });
   }
 
-  backToPage(log) {
+  backToPage(loggedIn) {
     // This is to show the profile details
-    console.log('back to Profile home', log);
+    console.log('back to Profile home', loggedIn);
     let pageNumber = 0;
-    if (log) pageNumber = 1;
-    this.setState({ page: pageNumber, loggedIn: log });
+    if (loggedIn) pageNumber = 1;
+    this.setState({ page: pageNumber, loggedIn });
   }
 
   createPage() {
@@ -99,6 +99,7 @@ class Profile extends React.Component {
       if (err) {
         console.error(ret);
       }
+      console.log('logout succesful');
       this.setState({ username: '', password: '' });
     });
   }

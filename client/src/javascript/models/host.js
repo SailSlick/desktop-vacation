@@ -1,13 +1,11 @@
 import request from 'request';
 import DbConn from '../helpers/db';
+import Images from './images';
+import Galleries from './galleries';
 
 let host_db;
-let gallery_db;
-let image_db;
 
-const gallery_update_event = new Event('gallery_updated');
 const host_update_event = new Event('host_updated');
-const image_update_event = new Event('image_updated');
 
 let server_uri;
 if (process.env.SRVPORT) {
@@ -16,15 +14,38 @@ if (process.env.SRVPORT) {
   server_uri = 'http://127.0.0.1:3000';
 }
 
-request.defaults({ jar: true });
 const cookie_jar = request.jar();
+
+function createClientAccount(username, successMessage, cb) {
+  // insert users
+  const galname = username.concat('_all');
+  Galleries.addBase(galname, (ret) => {
+    if (!ret) return cb(500, "gallery couldn't be made on client");
+    // insert users
+    const userData = {
+      username,
+      gallery: ret,
+      jar: cookie_jar.getCookies(server_uri),
+      slideshowConfig: {
+        onstart: false,
+        galleryname: username.concat('_all'),
+        timer: 0
+      }
+    };
+    return host_db.insert(userData, (userDoc) => {
+      if (!userDoc) return cb(500, "user couldn't be made on client");
+      document.dispatchEvent(host_update_event);
+      return cb(null, successMessage);
+    });
+  });
+}
 
 // Exported methods
 const Host = {
+
   login: (username, password, cb) => {
-    host_db.findOne({ username }, (host_doc) => {
-      if (!host_db) return cb(400, 'You have to create an account before you can login.');
-      if (host_doc.username !== username) return cb(500, 'An account already exists. Only one per app.');
+    host_db.findOne({}, (host_doc) => {
+      if (host_doc && host_doc.username !== username) return cb(500, 'An account already exists. Only one per app.');
 
       // post to /user/login
       const options = {
@@ -38,8 +59,17 @@ const Host = {
       };
       return request(options, (err, response, body) => {
         if (body.status !== 200) return cb(body.status, body.error);
-        document.dispatchEvent(host_update_event);
-        return cb(null, body.message);
+        if (!host_doc) {
+          console.log('Create client side account for prev account.');
+          return createClientAccount(username, body.message, (ret) => {
+            cb(ret);
+          });
+        }
+        host_doc.jar = cookie_jar.getCookies(server_uri);
+        return host_db.updateOne({ username }, host_doc, (ret) => {
+          if (ret) return cb(null, body.message);
+          return cb(500, "user couldn't be made on client");
+        });
       });
     });
   },
@@ -53,11 +83,7 @@ const Host = {
       json: {}
     };
     request(options, (err, response, body) => {
-      console.log("logout body:", body);
-      console.log("logout res:", response);
-      console.log("logout err:", err);
       if (body.status !== 200) return cb(body.status, body.error);
-      document.dispatchEvent(host_update_event);
       return cb(null, body.message);
     });
   },
@@ -70,14 +96,13 @@ const Host = {
   },
 
   createAccount: (username, password, cb) => {
-    request.defaults({ jar: true });
-    host_db.findOne({ $loki: { $gt: 0 } }, (host_doc) => {
+    host_db.findOne({}, (host_doc) => {
       if (host_doc) return cb(500, 'An account already exists. Only one per app.');
 
       // check if username has been taken online && add user server side
       const options = {
         uri: server_uri.concat('/user/create'),
-        jar: cookie_jar,
+        jar: cookie_jar.getCookies(server_uri),
         method: 'POST',
         json: {
           username,
@@ -85,35 +110,9 @@ const Host = {
         }
       };
       return request(options, (err, response, body) => {
-        console.log("createAccount body:", body);
         if (body.status !== 200) return cb(body.status, body.error);
-        // insert users
-        const galname = username.concat('_all');
-        const galleryData = {
-          name: galname,
-          tags: [],
-          subgalleries: [],
-          images: []
-        };
-        return gallery_db.insert(galleryData, (galleryDoc) => {
-          if (!galleryDoc) return cb(500, "gallery couldn't be made on client");
-          // insert users
-          const userData = {
-            username,
-            gallery: galleryDoc.$loki,
-            jar: cookie_jar,
-            slideshowConfig: {
-              onstart: false,
-              galleryname: username.concat('_all'),
-              timer: 0
-            }
-          };
-          document.dispatchEvent(gallery_update_event);
-          return host_db.insert(userData, (userDoc) => {
-            if (!userDoc) return cb(500, "user couldn't be made on client");
-            document.dispatchEvent(host_update_event);
-            return cb(null, body.message);
-          });
+        return createClientAccount(username, body.message, (ret) => {
+          cb(ret);
         });
       });
     });
@@ -130,17 +129,14 @@ const Host = {
       json: {}
     };
     request(options, (err, response, body) => {
-      console.log("deleteAccount body:", body);
-      //if (body.status !== 200) return cb(body.status, body.error);
+      if (body.status !== 200) return cb(body.status, body.error);
 
       // remove presence from client, keep images
       return host_db.emptyCol(() => {
         document.dispatchEvent(host_update_event);
-        return gallery_db.emptyCol(() => {
-          document.dispatchEvent(gallery_update_event);
-          return image_db.emptyCol(() => {
-            document.dispatchEvent(image_update_event);
-            return cb(null, body.message);
+        return Galleries.clear(() => {
+          Images.clear(() => {
+            cb(null, body.message);
           });
         });
       });
@@ -156,10 +152,16 @@ const Host = {
       json: { password }
     };
     request(options, (err, response, body) => {
-      console.log("updateAccount body:", body);
       if (body.status !== 200) return cb(body.status, body.error);
       document.dispatchEvent(host_update_event);
       return cb(null, body.message);
+    });
+  },
+
+  clear: (cb) => {
+    host_db.emptyCol(() => {
+      document.dispatchEvent(host_update_event);
+      cb();
     });
   }
 };
@@ -167,20 +169,10 @@ const Host = {
 // Events
 document.addEventListener('vacation_loaded', () => {
   host_db = new DbConn('host');
-  gallery_db = new DbConn('galleries');
-  image_db = new DbConn('images');
 }, false);
 
 document.addEventListener('host_updated', () => {
   host_db.save(_ => console.log('Host database saved'));
-}, false);
-
-document.addEventListener('gallery_updated', () => {
-  gallery_db.save(_ => console.log('Gallery database saved'));
-}, false);
-
-document.addEventListener('image_updated', () => {
-  image_db.save(_ => console.log('Image database saved'));
 }, false);
 
 export default Host;
