@@ -38,8 +38,14 @@ const Images = {
 
   remove: (id, cb) => {
     image_db.removeOne({ $loki: id }, cb);
-  }
+  },
 
+  clear: (cb) => {
+    image_db.emptyCol(() => {
+      image_db.save(_ => console.log('Database saved'));
+      cb();
+    });
+  }
 };
 
 // Events

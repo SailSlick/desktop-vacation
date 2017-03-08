@@ -5,12 +5,31 @@ import Images from './images';
 
 let gallery_db;
 
-const BASE_GALLERY_ID = 1;
+let BASE_GALLERY_ID = 1;
 
 const gallery_update_event = new Event('gallery_updated');
 
 const Galleries = {
   should_save: true,
+
+  addBase: (name, cb) => {
+    gallery_db.findOne({ name }, (found_gallery) => {
+      if (found_gallery) {
+        console.error(`Gallery ${name} already exists`);
+        return cb(found_gallery);
+      }
+      const doc = {
+        name,
+        tags: [],
+        subgalleries: [],
+        images: []
+      };
+      return gallery_db.insert(doc, (inserted_gallery) => {
+        BASE_GALLERY_ID = inserted_gallery.$loki;
+        return cb(inserted_gallery.$loki);
+      });
+    });
+  },
 
   add: (name, cb) => {
     if (!name || typeof name !== 'string' || name.trim() === '') {
@@ -185,6 +204,13 @@ const Galleries = {
         })
       )
     );
+  },
+
+  clear: (cb) => {
+    gallery_db.emptyCol(() => {
+      document.dispatchEvent(gallery_update_event);
+      cb();
+    });
   }
 };
 

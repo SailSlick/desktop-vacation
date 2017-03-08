@@ -15,6 +15,7 @@ All the following commands should be run from the `client` folder
 | lokijs                  | production  | In-memory database               |
 | react-dom               | production  | Apply components to the DOM      |
 | react-bootstrap         | production  | React components for B.S items   |
+| request                 | production  | simplified http client           |
 | chai                    | dev         | Lovely testing library           |
 | chai-as-promised        | dev         | Promise support for chai         |
 | chai-enzyme             | dev         | Test React VDOM inside chai      |

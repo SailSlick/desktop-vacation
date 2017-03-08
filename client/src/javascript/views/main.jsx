@@ -6,9 +6,26 @@ import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormG
 import Gallery from './gallery.jsx';
 import Galleries from '../models/galleries';
 import Slideshow from '../helpers/slideshow-client';
+import Profile from './profile.jsx';
 import { success, danger } from '../helpers/notifier';
 
 const BASE_GALLERY_ID = 1;
+
+const PrimaryContent = ({ page, parent }) => {
+  Galleries.get({ $gt: 0 }, (cb) => {
+    if (!cb) page = 1;
+  });
+  return [
+    (<Gallery
+      dbId={parent.state.galleryId}
+      onChange={parent.changeGallery}
+      multiSelect={parent.state.multiSelect}
+    />),
+    (<Profile
+      onChange={parent.profileView}
+    />)
+  ][page];
+};
 
 class Main extends React.Component {
   constructor(props) {
@@ -18,6 +35,7 @@ class Main extends React.Component {
       galleryId: BASE_GALLERY_ID,
       newGalleryModal: false,
       selectGalleryModal: false,
+      page: 0,
       imageSelection: null,
       multiSelect: false,
       alerts: []
@@ -29,6 +47,7 @@ class Main extends React.Component {
     this.addNewGallery = this.addNewGallery.bind(this);
     this.changeGallery = this.changeGallery.bind(this);
     this.hideModals = this.hideModals.bind(this);
+    this.profileView = this.profileView.bind(this);
     this.showAlert = this.showAlert.bind(this);
     this.dismissAlert = this.dismissAlert.bind(this);
     this.toggleSelectMode = this.toggleSelectMode.bind(this);
@@ -59,6 +78,7 @@ class Main extends React.Component {
 
     this.setState({
       selectGalleryModal: false,
+      page: 0,
       imageSelection: null,
       multiSelect: false
     });
@@ -77,14 +97,15 @@ class Main extends React.Component {
 
   addNewGallery(cb) {
     Galleries.add(this.newGalleryInput.value, (new_gallery, err_msg) => {
-      this.setState({ newGalleryModal: false });
+      this.setState({ newGalleryModal: false, page: 0 });
       if (err_msg) {
         danger(err_msg);
         return cb(err_msg);
       }
       if (this.state.galleryId === BASE_GALLERY_ID) {
         success(`Gallery ${this.newGalleryInput.value} added`);
-        return cb();
+        if (typeof cb === 'function') return cb();
+        return null;
       }
       return Galleries.addSubGallery(
         this.state.galleryId, new_gallery.$loki,
@@ -104,7 +125,8 @@ class Main extends React.Component {
       this.setState({
         galleryId,
         imageSelection: null,
-        multiSelect: false
+        multiSelect: false,
+        page: 0
       });
     }
   }
@@ -122,6 +144,11 @@ class Main extends React.Component {
     this.setState({
       multiSelect: !this.state.multiSelect
     });
+  }
+
+  profileView() {
+    // This is to show the profile details
+    this.setState({ page: 1 });
   }
 
   showAlert(event) {
@@ -168,17 +195,14 @@ class Main extends React.Component {
                 </MenuItem>
                 <MenuItem onClick={_ => Slideshow.clear()}>Clear</MenuItem>
               </NavDropdown>
+              <NavItem onClick={_ => this.profileView()}>Profile</NavItem>
               <NavItem onClick={this.toggleSelectMode}>Select</NavItem>
             </Nav>
           </Navbar.Collapse>
         </Navbar>
 
         <Grid fluid id="main-content">
-          <Gallery
-            dbId={this.state.galleryId}
-            onChange={this.changeGallery}
-            multiSelect={this.state.multiSelect}
-          />
+          <PrimaryContent page={this.state.page} parent={this} />
         </Grid>
 
         <Modal show={this.state.newGalleryModal} onHide={this.hideModals}>
@@ -196,7 +220,7 @@ class Main extends React.Component {
                   ref={(input) => { this.newGalleryInput = input; }}
                 />
               </FormGroup>
-              <Button type="button" onClick={this.addNewGallery}>
+              <Button type="submit">
                 Add
               </Button>
             </form>
@@ -214,6 +238,9 @@ class Main extends React.Component {
                 dbId={BASE_GALLERY_ID}
                 onChange={this.onSelectGallery}
               />
+              <Profile
+                onChange={this.profileView}
+              />
             </Grid>
           </Modal.Body>
         </Modal>
@@ -227,5 +254,10 @@ class Main extends React.Component {
     );
   }
 }
+
+PrimaryContent.PropTypes = {
+  page: React.PropTypes.number.isRequired,
+  parent: React.PropTypes.instanceOf(Main).isRequired
+};
 
 export default Main;
