@@ -10,6 +10,8 @@ const BASE_GALLERY_ID = 1;
 const gallery_update_event = new Event('gallery_updated');
 
 const Galleries = {
+  should_save: true,
+
   add: (name, cb) => {
     if (!name || typeof name !== 'string' || name.trim() === '') {
       return cb(null, `Invalid gallery name ${name}`);
@@ -191,9 +193,9 @@ document.addEventListener('vacation_loaded', () => {
   gallery_db = new DbConn('galleries');
 }, false);
 
-document.addEventListener('gallery_updated', () => {
-  gallery_db.save(_ => console.log('Database saved'));
-}, false);
+document.addEventListener('gallery_updated', () =>
+  Galleries.should_save && gallery_db.save(_ => console.log('Database saved')),
+false);
 
 // IPC Calls
 ipc.on('selected-directory', (event, files) =>

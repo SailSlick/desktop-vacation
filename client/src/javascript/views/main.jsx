@@ -1,7 +1,8 @@
 import React from 'react';
+import { each } from 'async';
 import { AlertList } from 'react-bs-notifier';
 import { ipcRenderer as ipc } from 'electron';
-import { Navbar, Nav, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup } from 'react-bootstrap';
+import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup } from 'react-bootstrap';
 import Gallery from './gallery.jsx';
 import Galleries from '../models/galleries';
 import Slideshow from '../helpers/slideshow-client';
@@ -17,7 +18,8 @@ class Main extends React.Component {
       galleryId: BASE_GALLERY_ID,
       newGalleryModal: false,
       selectGalleryModal: false,
-      imageId: null,
+      imageSelection: null,
+      multiSelect: false,
       alerts: []
     };
 
@@ -29,6 +31,7 @@ class Main extends React.Component {
     this.hideModals = this.hideModals.bind(this);
     this.showAlert = this.showAlert.bind(this);
     this.dismissAlert = this.dismissAlert.bind(this);
+    this.toggleSelectMode = this.toggleSelectMode.bind(this);
 
     // Events
     document.addEventListener('append_gallery', this.showGallerySelector, false);
@@ -42,15 +45,22 @@ class Main extends React.Component {
   }
 
   onSelectGallery(galleryId) {
-    this.setState({
-      selectGalleryModal: false,
-      imageId: null
+    // Add pending items to gallery
+    Galleries.should_save = false;
+    const num_items = this.state.imageSelection.length;
+    each(this.state.imageSelection, (imageId, next) =>
+      Galleries.addItem(galleryId, imageId, (new_gal, err_msg) => next(err_msg)),
+    (err_msg) => {
+      Galleries.should_save = true;
+      if (err_msg) danger(err_msg);
+      else if (num_items === 1) success('Image added');
+      else success(`${num_items} images added`);
     });
 
-    // Add pending item to gallery
-    Galleries.addItem(galleryId, this.state.imageId, (new_gallery, err_msg) => {
-      if (err_msg) danger(err_msg);
-      else success('Image added');
+    this.setState({
+      selectGalleryModal: false,
+      imageSelection: null,
+      multiSelect: false
     });
   }
 
@@ -61,28 +71,21 @@ class Main extends React.Component {
   showGallerySelector(evt) {
     this.setState({
       selectGalleryModal: true,
-      imageId: evt.detail
+      imageSelection: evt.detail
     });
   }
 
   addNewGallery() {
     Galleries.add(this.newGalleryInput.value, (new_gallery, err_msg) => {
-      if (err_msg) danger(err_msg);
-      else if (this.state.galleryId !== BASE_GALLERY_ID) {
-        Galleries.addSubGallery(
-          this.state.galleryId, new_gallery.$loki,
-          (updated_gallery, sub_err_msg) => {
-            if (sub_err_msg) danger(sub_err_msg);
-            else {
-              this.setState({ newGalleryModal: false });
-              success(`Gallery ${this.newGalleryInput.value} added`);
-            }
-          }
-        );
-      } else {
-        this.setState({ newGalleryModal: false });
-        success(`Gallery ${this.newGalleryInput.value} added`);
-      }
+      if (err_msg) return danger(err_msg);
+      return Galleries.addSubGallery(
+        this.state.galleryId, new_gallery.$loki,
+        (updated_gallery, sub_err_msg) => {
+          if (sub_err_msg) danger(sub_err_msg);
+          else success(`Gallery ${this.newGalleryInput.value} added`);
+          this.setState({ newGalleryModal: false });
+        }
+      );
     });
   }
 
@@ -90,7 +93,11 @@ class Main extends React.Component {
     // This if prevents deleted galleries/non-existent Ids
     // causing big issues
     if (galleryId) {
-      this.setState({ galleryId });
+      this.setState({
+        galleryId,
+        imageSelection: null,
+        multiSelect: false
+      });
     }
   }
 
@@ -98,7 +105,14 @@ class Main extends React.Component {
     this.setState({
       newGalleryModal: false,
       selectGalleryModal: false,
-      imageId: null
+      imageSelection: null,
+      multiSelect: false
+    });
+  }
+
+  toggleSelectMode() {
+    this.setState({
+      multiSelect: !this.state.multiSelect
     });
   }
 
@@ -146,6 +160,7 @@ class Main extends React.Component {
                 </MenuItem>
                 <MenuItem onClick={_ => Slideshow.clear()}>Clear</MenuItem>
               </NavDropdown>
+              <NavItem onClick={this.toggleSelectMode}>Select</NavItem>
             </Nav>
           </Navbar.Collapse>
         </Navbar>
@@ -154,6 +169,7 @@ class Main extends React.Component {
           <Gallery
             dbId={this.state.galleryId}
             onChange={this.changeGallery}
+            multiSelect={this.state.multiSelect}
           />
         </Grid>
 

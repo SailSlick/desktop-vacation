@@ -20,6 +20,10 @@ describe('GalleryCard Component', () => {
   let test_image;
   let test_component;
 
+  beforeEach(() => {
+    Galleries.should_save = false;
+  });
+
   before(done =>
     // Create test image
     Images.add(test_image_path, (inserted_image) => {

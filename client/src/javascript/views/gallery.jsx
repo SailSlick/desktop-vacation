@@ -1,9 +1,49 @@
 import React from 'react';
-import { Col, Row } from 'react-bootstrap';
+import { each } from 'async';
+import { Col, Row, Nav, Navbar, NavItem, Glyphicon } from 'react-bootstrap';
 import Image from './image.jsx';
 import GalleryCard from './gallerycard.jsx';
 import Galleries from '../models/galleries';
 import { success, danger } from '../helpers/notifier';
+
+const append_gallery_event_name = 'append_gallery';
+
+const SelectTools = ({ multiSelect, addAllToGallery, selectAll, removeAll }) => {
+  if (!multiSelect) {
+    return <br />;
+  }
+  return (
+    <Navbar collapseOnSelect>
+      <Navbar.Header>
+        <Navbar.Brand>
+          Tools
+        </Navbar.Brand>
+        <Navbar.Toggle />
+      </Navbar.Header>
+      <Nav bsStyle="pills">
+        <NavItem onClick={_ => selectAll(true)}>
+          <Glyphicon glyph="plus" />Select All
+        </NavItem>
+        <NavItem onClick={_ => selectAll(false)}>
+          <Glyphicon glyph="minus" />Deselect All
+        </NavItem>
+        <NavItem onClick={addAllToGallery}>
+          <Glyphicon glyph="th" />Add To Gallery
+        </NavItem>
+        <NavItem onClick={removeAll}>
+          <Glyphicon glyph="remove" />Remove
+        </NavItem>
+      </Nav>
+    </Navbar>
+  );
+};
+
+SelectTools.propTypes = {
+  multiSelect: React.PropTypes.bool.isRequired,
+  addAllToGallery: React.PropTypes.func.isRequired,
+  selectAll: React.PropTypes.func.isRequired,
+  removeAll: React.PropTypes.func.isRequired
+};
 
 class Gallery extends React.Component {
   constructor(props) {
@@ -11,13 +51,18 @@ class Gallery extends React.Component {
 
     this.state = {
       subgalleries: [],
-      images: []
+      images: [],
+      selection: []
     };
 
     // Bind functions
     this.refresh = this.refresh.bind(this);
     this.removeSubgallery = this.removeSubgallery.bind(this);
+    this.addAllToGallery = this.addAllToGallery.bind(this);
     this.removeItem = this.removeItem.bind(this);
+    this.removeAll = this.removeAll.bind(this);
+    this.selectItem = this.selectItem.bind(this);
+    this.selectAll = this.selectAll.bind(this);
 
     // Hook event to catch when an image is added
     document.addEventListener('gallery_updated', this.refresh, false);
@@ -43,7 +88,8 @@ class Gallery extends React.Component {
       Galleries.expand(gallery, (subgalleries, images) =>
         this.setState({
           subgalleries,
-          images
+          images,
+          selection: []
         }, () => {
           console.log('Gallery refreshed');
           this.props.onRefresh();
@@ -60,6 +106,13 @@ class Gallery extends React.Component {
     });
   }
 
+  addAllToGallery() {
+    document.dispatchEvent(new CustomEvent(
+      append_gallery_event_name,
+      { detail: this.state.selection }
+    ));
+  }
+
   removeItem(id, fsDelete) {
     if (fsDelete) {
       Galleries.deleteItem(id, (err_msg) => {
@@ -72,6 +125,40 @@ class Gallery extends React.Component {
         else success('Image Removed');
       });
     }
+  }
+
+  removeAll(cb) {
+    Galleries.should_save = false;
+    const num_items = this.state.selection.length;
+    each(this.state.selection, (id, next) =>
+      Galleries.removeItem(this.props.dbId, id, (update, err_msg) => next(err_msg)),
+    (err_msg) => {
+      Galleries.should_save = true;
+      if (err_msg) danger(err_msg);
+      else if (num_items === 1) success('Image removed');
+      else success(`${num_items} images removed`);
+      if (typeof cb === 'function') cb();
+    });
+  }
+
+  selectItem(id) {
+    // Avoid calling setState by making in-place changes
+    const pos = this.state.selection.indexOf(id);
+    if (pos === -1) {
+      this.state.selection.push(id);
+    } else {
+      this.state.selection.splice(pos, 1);
+    }
+    // Dummy argument, really we just want to trigger a render
+    this.setState({
+      selection: this.state.selection
+    });
+  }
+
+  selectAll(should_select, cb) {
+    this.setState({
+      selection: (should_select) ? this.state.images.map(val => val.$loki) : []
+    }, cb);
   }
 
   render() {
@@ -94,11 +181,22 @@ class Gallery extends React.Component {
           dbId={image.$loki}
           src={image.location}
           onRemove={this.removeItem}
+          onSelect={this.selectItem}
+          multiSelect={this.props.multiSelect}
+          selected={this.state.selection.indexOf(image.$loki) !== -1}
         />
       ));
     }
     return (
       <Row>
+        <Col xs={12}>
+          <SelectTools
+            multiSelect={this.props.multiSelect}
+            addAllToGallery={this.addAllToGallery}
+            selectAll={this.selectAll}
+            removeAll={this.removeAll}
+          />
+        </Col>
         <Col xs={4}>
           {items.map((item, i) => (i % 3 === 0 && item) || null)}
         </Col>
@@ -117,11 +215,13 @@ Gallery.propTypes = {
   dbId: React.PropTypes.number.isRequired,
   onChange: React.PropTypes.func.isRequired,
   onRefresh: React.PropTypes.func,
-  simple: React.PropTypes.bool
+  simple: React.PropTypes.bool,
+  multiSelect: React.PropTypes.bool
 };
 
 Gallery.defaultProps = {
   simple: false,
+  multiSelect: false,
   onRefresh: () => true
 };
 
