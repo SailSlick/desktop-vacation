@@ -1,5 +1,6 @@
 import path from 'path';
 import React from 'react';
+import { spy } from 'sinon';
 import { mount } from 'enzyme';
 import { use, should as chaiShould } from 'chai';
 import { Simulate } from 'react-addons-test-utils';
@@ -18,6 +19,10 @@ describe('Main Component', () => {
   let test_gallery;
   let test_image;
   let test_component;
+
+  beforeEach(() => {
+    Galleries.should_save = false;
+  });
 
   before(done =>
     // Create test image
@@ -61,31 +66,42 @@ describe('Main Component', () => {
     done();
   });
 
-  it('can close gallery name modal', (done) => {
+  it('can add new gallery and close modal', (done) => {
     test_component.should.have.state('newGalleryModal', true);
-    Simulate.click(document.body.getElementsByClassName('modal')[0]);
-    test_component.should.have.state('newGalleryModal', false);
 
-    // This wait is to account for the fact it fades out
-    setTimeout(() => {
-      document.body.getElementsByClassName('modal').should.be.empty;
-      done();
-    }, 750);
+    // Attempt to add a duplicate, so nothing actually happens
+    test_component.instance().newGalleryInput.value = test_gallery_name;
+    test_component.instance().addNewGallery(() => {
+      test_component.should.have.state('newGalleryModal', false);
+      setTimeout(() => {
+        document.body.getElementsByClassName('modal').should.be.empty;
+        done();
+      }, 750);
+    });
   });
 
   it('can open gallery selector modal', (done) => {
     test_component.should.have.state('selectGalleryModal', false);
-    test_component.instance().showGallerySelector({ detail: test_image.$loki });
+    test_component.instance().showGallerySelector({ detail: [test_image.$loki] });
     test_component.should.have.state('selectGalleryModal', true);
-    test_component.should.have.state('imageId', test_image.$loki);
+    test_component.state().imageSelection.should.contain(test_image.$loki);
     done();
   });
 
-  it('can close gallery selector modal', (done) => {
-    test_component.should.have.state('selectGalleryModal', true);
-    Simulate.click(document.body.getElementsByClassName('modal')[0]);
+  it('can add selected images to selected gallery', (done) => {
+    const addSpy = spy(Galleries, 'addItem');
+    test_component.instance().onSelectGallery(test_gallery.$loki);
     test_component.should.have.state('selectGalleryModal', false);
-    test_component.should.have.state('imageId', null);
+    test_component.should.have.state('imageSelection', null);
+    addSpy.called.should.be.ok;
+    addSpy.restore();
+    done();
+  });
+
+  it('can close all modals', (done) => {
+    test_component.instance().getNewGalleryName();
+    Simulate.click(document.body.getElementsByClassName('modal')[0]);
+    test_component.should.have.state('newGalleryModal', false);
 
     // This wait is to account for the fact it fades out
     setTimeout(() => {
@@ -105,6 +121,32 @@ describe('Main Component', () => {
     test_component.should.have.state('galleryId', test_gallery.$loki);
     test_component.instance().changeGallery(null);
     test_component.should.have.state('galleryId', test_gallery.$loki);
+    done();
+  });
+
+  it('can show an alert', (done) => {
+    test_component.instance().showAlert({ detail: {
+      type: 'info',
+      message: 'Land Rovers are the best',
+      headline: 'Info'
+    } });
+    test_component.find('AlertList').props().alerts.should.not.be.empty;
+    done();
+  });
+
+  it('can dismiss an alert', (done) => {
+    const alert = test_component.find('AlertList').props().alerts[0];
+    test_component.instance().dismissAlert(alert);
+    test_component.find('AlertList').props().alerts.should.not.contain(alert);
+    done();
+  });
+
+  it('can toggle select modes', (done) => {
+    test_component.should.have.state('multiSelect', false);
+    test_component.instance().toggleSelectMode();
+    test_component.should.have.state('multiSelect', true);
+    test_component.instance().toggleSelectMode();
+    test_component.should.have.state('multiSelect', false);
     done();
   });
 

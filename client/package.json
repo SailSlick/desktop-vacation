@@ -41,7 +41,8 @@
     "lokijs": "^1.4.2",
     "react-bootstrap": "^0.30.7",
     "react-dom": "^15.4.2",
-    "request": "^2.80.0"
+    "request": "^2.80.0",
+    "react-bs-notifier": "^4.3.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",

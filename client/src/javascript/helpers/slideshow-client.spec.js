@@ -16,6 +16,10 @@ describe('Slideshow Helper (Client)', () => {
   let test_image;
   let test_gallery;
 
+  beforeEach(() => {
+    Galleries.should_save = false;
+  });
+
   before(done =>
     // Create test image
     Images.add(test_image_path, (inserted_image) => {

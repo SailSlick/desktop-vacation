@@ -30,21 +30,14 @@ const Images = {
     Images.get(id, image =>
       // Check file exists & we have write access
       fs.access(image.location, fs.constants.W_OK, (err) => {
-        if (!err) {
-          fs.unlink(image.location, cb);
-        } else {
-          console.error(`Couldn't access ${image.location}`);
-          cb(err);
-        }
+        if (err) return cb(`Couldn't access ${image.location}: ${err}`);
+        return fs.unlink(image.location, cb);
       })
     );
   },
 
   remove: (id, cb) => {
-    image_db.removeOne({ $loki: id }, () => {
-      console.log(`Removed image ${id}`);
-      cb();
-    });
+    image_db.removeOne({ $loki: id }, cb);
   },
 
   clear: (cb) => {
@@ -53,7 +46,6 @@ const Images = {
       cb();
     });
   }
-
 };
 
 // Events
