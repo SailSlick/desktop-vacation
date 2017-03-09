@@ -79,7 +79,6 @@ const Host = {
             cb(cookieErr, cookieMsg);
           });
         }
-        console.log("after login cookies", Host.cookie_jar.getCookies(server_uri));
         if (!host_doc) {
           console.log('Create client side account for prev account.');
           return createClientAccount(username, body.message, (msg_err, msg) => {

@@ -80,7 +80,7 @@ const Groups = {
         });
       }
       if (body.status !== 200) return cb(body.status, body.error);
-      if (mongoId !== id) {
+      if (id !== -1) {
         return Galleries.remove(id, (err_msg) => {
           if (err_msg) return cb(500, err);
           return cb(null, body.message);

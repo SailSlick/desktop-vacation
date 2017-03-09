@@ -15,7 +15,6 @@ const BASE_GALLERY_ID = 1;
 const BASE_GROUP_ID = 1;
 
 const PrimaryContent = ({ page, parent }) => {
-  console.log("changing to page:", page);
   Galleries.get({ $gt: 0 }, (cb) => {
     if (!cb) page = 1;
   });
@@ -105,6 +104,10 @@ class Main extends React.Component {
     this.setState({ newGalleryModal: true });
   }
 
+  getNewGroupName() {
+    this.setState({ newGroupModal: true });
+  }
+
   showGallerySelector(evt) {
     this.setState({
       selectGalleryModal: true,
@@ -112,26 +115,29 @@ class Main extends React.Component {
     });
   }
 
-  addNewGallery(event) {
+  addNewGallery(event, cb) {
     event.preventDefault();
     const galleryname = event.target.galleryname.value;
     return Galleries.add(galleryname, (new_gallery, err_msg) => {
       this.setState({ newGalleryModal: false, page: 0 });
       if (err_msg) {
         danger(err_msg);
-        return;
+        return cb(err_msg);
       }
       if (this.state.galleryId === BASE_GALLERY_ID) {
         success(`Gallery ${galleryname} added`);
         this.state.galleryname = '';
-        return;
+        if (typeof cb === 'function') return cb();
+        return null;
       }
-      Galleries.addSubGallery(
+      return Galleries.addSubGallery(
         this.state.galleryId, new_gallery.$loki,
         (updated_gallery, sub_err_msg) => {
           if (sub_err_msg) return danger(sub_err_msg);
           this.state.galleryname = '';
-          return success(`Gallery ${galleryname} added`);
+          success(`Gallery ${galleryname} added`);
+          if (typeof cb === 'function') return cb();
+          return null;
         }
       );
     });
@@ -168,13 +174,9 @@ class Main extends React.Component {
 
   gallerynameValidationState() {
     const galname = this.state.galleryname;
-    if (galname.indexOf(' ') !== -1 || galname.trim() === '') return 'error';
+    if (galname.trim() === '') return 'error';
     else if (galname.length < 3) return 'warning';
     return 'success';
-  }
-
-  getNewGroupName() {
-    this.setState({ newGroupModal: true });
   }
 
   addNewGroup(event) {
@@ -255,6 +257,7 @@ class Main extends React.Component {
               <NavDropdown title="Groups" id="groups">
                 <MenuItem onClick={_ => this.changeGroup(BASE_GALLERY_ID)}>View</MenuItem>
                 <MenuItem onClick={this.getNewGroupName}>Add</MenuItem>
+                <MenuItem onClick={this.getNewGroupName}>Invites</MenuItem>
               </NavDropdown>
               <NavDropdown title="Slideshow" id="slideshow">
                 <MenuItem onClick={_ => Slideshow.set(this.state.galleryId)}>
