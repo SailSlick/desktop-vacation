@@ -43,7 +43,7 @@ const Groups = {
       json: { groupname }
     };
     Galleries.get(id, (doc) => {
-      if (doc) return cb(404, 'DGallery not found');
+      if (!doc) return cb(404, 'Gallery not found');
       return request(options, (err, res, body) => {
         if (!body) return cb(500, 'server down');
         if (body.status !== 200) return cb(body.status, body.error);
@@ -117,6 +117,14 @@ const Groups = {
       if (!body) return cb(500, 'server down');
       if (body.status !== 200) return cb(body.status, body.error);
       return cb(null, body.message);
+    });
+  },
+
+  leaveGroup: (gid, cb) => {
+    Host.getIndex(1, (doc) => {
+      Groups.removeUser(gid, doc.username, (err, msg) => {
+        cb(err, msg);
+      });
     });
   },
 

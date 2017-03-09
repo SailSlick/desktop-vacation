@@ -23,7 +23,7 @@ module.exports = {
         if (correct) {
           req.session.username = username;
           req.session.uid = data._id;
-          return next({ status: 200, message: 'user logged in' });
+          return next({ status: 200, message: 'user logged in', uid: data._id });
         }
         return next({ status: 401, error: 'incorrect credentials' });
       });
@@ -77,7 +77,7 @@ module.exports = {
         if (ret === 'database communication error') return next({ status: 400, error: ret });
         req.session.username = username;
         req.session.uid = ret;
-        return next({ status: 200, message: 'user created and logged in' });
+        return next({ status: 200, message: 'user created and logged in', uid: ret });
       });
     });
   },

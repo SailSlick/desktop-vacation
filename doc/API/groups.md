@@ -271,7 +271,7 @@ group.
     "uid": ObjectId("542c2b97bac0595474108b48"),
     "users": ["m1cr0man","Sully"],
     "tags": ["blam"],
-    "subgallaries": [
+    "subgalleries": [
       ObjectId("hk4c2b97bac0595474108b48"),
       ObjectId("2g6c2b97bac0595474108b48")
     ],

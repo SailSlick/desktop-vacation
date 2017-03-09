@@ -54,8 +54,9 @@ function deleteCookies(cookie_jar, errCode, msg, cb) {
 // Exported methods
 const Host = {
 
-
   cookie_jar: request.jar(),
+
+  uid: '',
 
   login: (username, password, cb) => {
     host_db.findOne({}, (host_doc) => {
@@ -84,11 +85,8 @@ const Host = {
             cb(msg_err, msg);
           });
         }
-        host_doc.jar = Host.cookie_jar.getCookies(server_uri);
-        return host_db.updateOne({ username }, host_doc, (ret) => {
-          if (ret) return cb(null, body.message);
-          return cb(500, "user couldn't be made on client");
-        });
+        Host.uid = body.uid;
+        return cb(null, body.message);
       });
     });
   },
@@ -137,6 +135,7 @@ const Host = {
           });
         }
         return createClientAccount(username, body.message, (msg_err, msg) => {
+          Host.uid = body.uid;
           cb(msg_err, msg);
         });
       });

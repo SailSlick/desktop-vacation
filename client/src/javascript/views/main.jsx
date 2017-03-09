@@ -9,13 +9,13 @@ import Slideshow from '../helpers/slideshow-client';
 import Profile from './profile.jsx';
 import Group from './group.jsx';
 import Groups from '../models/groups';
-import GroupManager from './groupManager.jsx';
 import { success, danger } from '../helpers/notifier';
 
 const BASE_GALLERY_ID = 1;
 const BASE_GROUP_ID = 1;
 
 const PrimaryContent = ({ page, parent }) => {
+  console.log("changing to page:", page);
   Galleries.get({ $gt: 0 }, (cb) => {
     if (!cb) page = 1;
   });
@@ -157,7 +157,6 @@ class Main extends React.Component {
       selectGalleryModal: false,
       imageSelection: null,
       multiSelect: false,
-      groupUsersModal: false,
     });
   }
 
@@ -340,15 +339,6 @@ class Main extends React.Component {
                 onChange={this.profileView}
               />
             </Grid>
-          </Modal.Body>
-        </Modal>
-
-        <Modal show={this.state.groupUsersModal} onHide={this.hideModals}>
-          <Modal.Header closeButton>
-            <Modal.Title>Group Users</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <GroupManager />
           </Modal.Body>
         </Modal>
 

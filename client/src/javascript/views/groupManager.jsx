@@ -1,9 +1,10 @@
 import React from 'react';
-import { Form, FormGroup, FormControl, ControlLabel, HelpBlock, Button, Grid, ListGroup, ListGroupItem, Row, Col } from 'react-bootstrap';
+import { Form, FormGroup, FormControl, ControlLabel, HelpBlock, InputGroup, Button, Grid, ListGroup, ListGroupItem, Row, Col } from 'react-bootstrap';
 import Groups from '../models/groups';
+import Host from '../models/host';
 import { success, danger } from '../helpers/notifier';
 
-export class GroupManager extends React.Component {
+class GroupManager extends React.Component {
   constructor(props) {
     super(props);
 
@@ -27,8 +28,8 @@ export class GroupManager extends React.Component {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  leaveGroup(username) {
-    Groups.delete(this.props.mongoId, username, (err, msg) => {
+  leaveGroup() {
+    Groups.leaveGroup(this.props.mongoId, (err, msg) => {
       if (err) danger(msg);
       else success(msg);
     });
@@ -36,7 +37,7 @@ export class GroupManager extends React.Component {
 
   // eslint-disable-next-line class-methods-use-this
   inviteUser(username) {
-    Groups.delete(this.props.mongoId, username, (err, msg) => {
+    Groups.inviteUser(this.props.mongoId, username, (err, msg) => {
       if (err) danger(msg);
       else success(msg);
     });
@@ -44,7 +45,7 @@ export class GroupManager extends React.Component {
 
   // eslint-disable-next-line class-methods-use-this
   removeUser(username) {
-    Groups.delete(this.props.mongoId, username, (err, msg) => {
+    Groups.removeUser(this.props.mongoId, username, (err, msg) => {
       if (err) danger(msg);
       else success(msg);
     });
@@ -63,12 +64,23 @@ export class GroupManager extends React.Component {
   }
 
   render() {
-    const users = this.props.users.map(user => <ListGroupItem>{user}</ListGroupItem>);
+    console.log("here");
+    const users = this.props.users.map(user =>
+      <ListGroupItem>
+        <InputGroup>
+          <p>{user}</p>
+          <InputGroup.Button
+            onClick={_ => this.removeUser({ user })}
+          >Remove User</InputGroup.Button>
+        </InputGroup>
+      </ListGroupItem>
+    );
+    console.log("here2");
 
     let management_buttons = [<Button onClick={this.leaveGroup} >Leave Group</Button>];
+    console.log("here3");
 
-    // TOOD Get CURRENT_UID
-    if (this.props.uid === CURRENT_UID) {
+    if (this.props.uid === Host.uid) {
       management_buttons = [
         (<Form horizontal onSubmit={this.inviteUser}>
           <FormGroup
@@ -93,9 +105,11 @@ export class GroupManager extends React.Component {
         <Button onClick={this.deleteGroup} >Delete Group</Button>
       ];
     }
+    console.log("here4");
 
     return (
       <Grid fluid>
+        <h1>TESTS</h1>
         <Row>
           <Col sm={6} xs={12}>
             <h1><ControlLabel>Group Users</ControlLabel></h1>
@@ -119,7 +133,7 @@ GroupManager.propTypes = {
   dbId: React.PropTypes.number.isRequired,
   mongoId: React.PropTypes.string.isRequired,
   uid: React.PropTypes.string.isRequired,
-  users: React.PropTypes.array.isRequired
+  users: React.PropTypes.arrayOf(React.PropTypes.string).isRequired
 };
 
 export default GroupManager;
