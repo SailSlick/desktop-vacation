@@ -118,7 +118,7 @@ GalleryCard.propTypes = {
   thumbnail: React.PropTypes.string,
   onClick: React.PropTypes.func.isRequired,
   onRemove: React.PropTypes.func.isRequired,
-  groupSwitch: React.PropTypes.func.isRequired,
+  groupSwitch: React.PropTypes.func,
   group: React.PropTypes.bool,
   simple: React.PropTypes.bool,
   mongoId: React.PropTypes.string,
@@ -128,6 +128,7 @@ GalleryCard.propTypes = {
 
 GalleryCard.defaultProps = {
   thumbnail: '',
+  groupSwitch: () => true,
   simple: false,
   group: false,
   mongoId: '',

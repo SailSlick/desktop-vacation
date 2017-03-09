@@ -32,7 +32,7 @@ const Galleries = {
   },
 
   add: (name, cb) => {
-    if (!name || typeof name !== 'string' || name.trim() === '' || name.indexOf(' ') !== -1) {
+    if (!name || typeof name !== 'string' || name.trim() === '') {
       return cb(null, `Invalid gallery name ${name}`);
     }
     return gallery_db.findOne({ name }, (found_gallery) => {
