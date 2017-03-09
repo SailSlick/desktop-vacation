@@ -12,7 +12,7 @@ Upon successful request, logs a user in.
 
 | Name      | Type   | Description                              |
 |-----------|--------|------------------------------------------|
-| user      | string | the username of the user                 |
+| username  | string | the username of the user                 |
 | password  | string | the password the user                    |
 
 ### Responses
@@ -48,7 +48,6 @@ entry.
 | Name      | Type   | Description                              |
 |-----------|--------|------------------------------------------|
 | username  | string | the username of the user                 |
-| email     | string | the email of the user                    |
 | password  | string | the password the user entered            |
 
 ### Response

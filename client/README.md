@@ -6,28 +6,35 @@ All the following commands should be run from the `client` folder
 
 # Dependencies Table
 
-|         Name           | Environment |              Purpose             |
-|------------------------|-------------|----------------------------------|
-| bootstrap              | production  | CSS styling                      |
-| tether                 | production  | Bootstrap dependency             |
-| jquery                 | production  | Javascript DOM manipulation      |
-| fs-jetpack             | production  | Ease of use FS API               |
-| mustache               | production  | Simple templating engine         |
-| lokijs                 | production  | In-memory database               |
-| async                  | dev         | Better handling of async tasks   |
-| chai                   | dev         | Lovely testing library           |
-| chai-as-promised       | dev         | Promise support for chai         |
-| electron               | dev         | API for building desktop webapps |
-| electron-builder       | dev         | Compile electron app for distro. |
-| gulp                   | dev         | Task manager                     |
-| istanbul               | dev         | Code coverage reporter           |
-| minimist               | dev         | Arguments parser                 |
-| mocha                  | dev         | Unit testing suite               |
-| mocha-jenkins-reporter | dev         | Compiles Jenkins-friendly report |
-| rollup                 | dev         | Minifier and compiler for ES     |
-| source-map-support     | dev         | Improves stack tracing           |
-| spectron               | dev         | E2E testing suite                |
-| xvfb-maybe             | dev         | Creates virtual X framebuffer    |
+|         Name            | Environment |              Purpose             |
+|-------------------------|-------------|----------------------------------|
+| async                   | production  | Better handling of async tasks   |
+| bootstrap               | production  | CSS styling                      |
+| electron                | production  | API for building desktop webapps |
+| fs-jetpack              | production  | Ease of use FS API               |
+| lokijs                  | production  | In-memory database               |
+| react-dom               | production  | Apply components to the DOM      |
+| react-bootstrap         | production  | React components for B.S items   |
+| request                 | production  | simplified http client           |
+| chai                    | dev         | Lovely testing library           |
+| chai-as-promised        | dev         | Promise support for chai         |
+| chai-enzyme             | dev         | Test React VDOM inside chai      |
+| chai-things             | dev         | Assertions for iterables         |
+| electron-builder        | dev         | Compile electron app for distro. |
+| electron-mocha          | dev         | Test electron without a human    |
+| electron-react-devtools | dev         | Inspect element for VDOM         |
+| enzyme                  | dev         | Assertions for React Components  |
+| eslint                  | dev         | Code style checker               |
+| istanbul                | dev         | Code coverage reporter           |
+| minimist                | dev         | Arguments parser                 |
+| mocha                   | dev         | Unit testing suite               |
+| mocha-jenkins-reporter  | dev         | Compiles Jenkins-friendly report |
+| react                   | dev         | Component based dom manipulation |
+| rollup                  | dev         | Minifier and compiler for ES     |
+| sinon                   | dev         | Spies, stupds and mocks          |
+| source-map-support      | dev         | Improves stack tracing           |
+| spectron                | dev         | E2E testing suite                |
+| xvfb-maybe              | dev         | Creates virtual X framebuffer    |
 
 # Installation
 

@@ -5,19 +5,39 @@ html, body, main {
   padding: 0;
 }
 
-h3, h4 { color: lightgray; }
-
-.inverted h1, .inverted h2, .inverted label { color: white; }
-
-.centered h1, .centered h2, .centered h3, .centered h4 { text-align: center; }
+.centered { text-align: center; }
 
 .padded { padding: 0 1em; }
 
+.rounded { border-radius: 4px; }
+
+.selected {
+	border: 3px solid lightblue !important;
+}
+
+.glyphicon { margin-right: 1em; }
+
+.small-preview {
+	max-width: 256px;
+	max-height: 128px;
+}
+
+/* BEGIN Navbars */
+
+.navbar { border-radius: 0; }
+
+.navbar-inverse { margin-bottom: 0; }
+
+.navbar .container { width: 100%; }
+
+/* END Navbars */
+
+/* BEGIN Image Cards */
+
 .img-card {
 	min-width: 100%;
-	min-height: 100px;
+	min-height: 5em;
 	margin-bottom: 1em;
-	padding: 4px;
 	border: 1px solid lightgray;
 	box-sizing: border-box;
 	position: relative;
@@ -25,14 +45,27 @@ h3, h4 { color: lightgray; }
 	cursor: pointer;
 }
 
+.img-card:not(.selected) {
+	padding: 4px;
+}
+
+.img-card.selected {
+	padding: 2px;
+}
+
+.img-card.selected figcaption {
+	bottom: -2px;
+	left: -2px;
+}
+
 .img-card figcaption {
 	width: 1em;
 	height: 1em;
 	margin: 8px;
-	padding-left: 0.1em;
 	position: absolute;
 	bottom: 0;
 	left: 0;
+	border-radius: 0.5em;
 	background-color: #292b2c;
 	color: white;
 	font-size: 1.3em;
@@ -45,10 +78,13 @@ h3, h4 { color: lightgray; }
 	top: 0;
 }
 
-.img-card .img-menu * { height: 1em; }
+/* END Image Cards */
+
+/* BEGIN Gallery Cards */
 
 .gallery-card h2 {
 	width: 100%;
+	margin: 0;
 	padding: 0.1em 0;
 	box-sizing: border-box;
 	position: absolute;
@@ -60,10 +96,41 @@ h3, h4 { color: lightgray; }
 	border-bottom-left-radius: 0;
 }
 
-.gallery-card img {
-	max-height: 256px;
-	max-width: 100%;
+/* END Gallery Cards */
+
+/* BEGIN Modals */
+
+.big-modal .modal-dialog {
+	width: 95%;
+	height: 90%;
+	margin: 56px auto 0 auto;
 }
+
+.big-modal .modal-content {
+	height: 100%;
+	background-color: rgba(61, 62, 62, 0.95);
+}
+
+.big-modal .modal-header .close { color: ghostwhite; }
+
+.big-modal .modal-title { color: lightgray; }
+
+.big-modal .modal-body {
+	height: 90%;
+	text-align: center;
+}
+
+.big-modal .modal-body img.img-responsive {
+	display: inline-block;
+	max-height: 100%;
+}
+
+.big-modal .modal-body>.container-fluid {
+	height: 100%;
+	overflow-y: auto;
+}
+
+/* END Modals */
 
 #notification {
 	position: absolute;
@@ -75,26 +142,4 @@ h3, h4 { color: lightgray; }
 #notification p {
 	margin-right: 2em;
 	margin-bottom: 0;
-}
-
-#hover-content {
-	width: 100%;
-	height: 100%;
-	padding-top: 56px;
-	padding-bottom: 15px;
-	position: fixed;
-	top: 0;
-	left: 0;
-	background-color: rgba(61, 62, 62, 0.95);
-	display: none;
-}
-
-#img-expanded, #img-expanded>* {
-	height: 100%;
-	text-align: center;
-}
-
-#img-expanded img {
-	max-width: 100%;
-	max-height: 100%;
 }

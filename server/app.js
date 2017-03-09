@@ -1,7 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
+const MongoStore = require('connect-mongo')(session);
 const routes = require('./middleware/routes');
+const url = require('../script/db/mongo-url.js');
 
 const app = express();
 
@@ -9,7 +11,13 @@ app.use(bodyParser.json());
 app.use(session({
   secret: 'hunter7',
   resave: false,
-  saveUninitialized: 'false'
+  saveUninitialized: 'false',
+  cookie: { maxAge: 900000 },
+  store: new MongoStore({
+    url,
+    autoRemove: 'interval',
+    autoRemoveInterval: 15
+  }),
 }));
 app.use('/', routes);
 
