@@ -109,15 +109,14 @@ class GroupManager extends React.Component {
       <Grid fluid>
         <Row>
           <Col sm={6} xs={12}>
-            <h1><ControlLabel>Group Users</ControlLabel></h1>
-            <p>Add remove user button</p>
+            <h3><ControlLabel>Group Users</ControlLabel></h3>
             <ListGroup>
               {users}
             </ListGroup>
           </Col>
 
           <Col sm={6} xs={12}>
-            <h1><ControlLabel>Group Management</ControlLabel></h1>
+            <h3><ControlLabel>Group Management</ControlLabel></h3>
             {management_buttons}
           </Col>
         </Row>

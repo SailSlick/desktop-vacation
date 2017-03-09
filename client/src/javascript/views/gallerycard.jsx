@@ -73,7 +73,6 @@ class GalleryCard extends React.Component {
   }
 
   groupMenu() {
-    console.log("Switching to group manager modal");
     this.setState({ groupManagerModal: true });
   }
 
@@ -130,7 +129,7 @@ GalleryCard.propTypes = {
 GalleryCard.defaultProps = {
   thumbnail: '',
   simple: false,
-  group: true,
+  group: false,
   mongoId: '',
   uid: '',
   users: [],
