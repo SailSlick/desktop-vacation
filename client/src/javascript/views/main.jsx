@@ -27,7 +27,7 @@ const PrimaryContent = ({ page, parent }) => {
     />),
     (<Group
       dbId={parent.state.galleryId}
-      onChange={parent.changeGallery}
+      onChange={parent.changeGroup}
       multiSelect={parent.state.multiSelect}
     />),
     (<Profile

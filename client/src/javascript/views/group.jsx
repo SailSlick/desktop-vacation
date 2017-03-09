@@ -89,6 +89,7 @@ class Group extends React.Component {
 
     return (
       <Row>
+        <br />
         <Col xs={4}>
           {items.map((item, i) => (i % 3 === 0 && item) || null)}
         </Col>
