@@ -181,7 +181,8 @@ describe('Group API', () => {
           res.body.should.have.property('message');
           res.body.message.should.equal('user groups found');
           res.body.should.have.property('data');
-          res.body.data.should.have.lengthOf(3);
+          res.body.data.should.have.property('subgalleries');
+          res.body.data.subgalleries.should.have.lengthOf(3);
           done();
         });
     });
