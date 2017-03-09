@@ -4,7 +4,7 @@ const userModel = require('../models/user');
 
 module.exports = {
 
-  create: (req, res, next) => {
+  createGroup: (req, res, next) => {
     const uid = req.session.uid;
     const username = req.session.username;
     const groupname = req.body.groupname;
@@ -12,23 +12,47 @@ module.exports = {
     if (!galleryModel.verGroupname(groupname)) {
       return next({ status: 400, error: 'invalid groupname' });
     }
-    return galleryModel.create(groupname, uid, (ret) => {
-      if (ret === 'user already has db of that name') {
-        return next({ status: 400, error: ret });
-      } else if (ret === 'gallery could not be inserted') {
-        return next({ status: 403, error: ret });
-      } else if (isNaN(ret)) {
-        return galleryModel.get(groupname, uid, (cb, doc) => {
-          userModel.get(username, (err, data) => {
-            if (err) return next({ status: 500, message: 'creation failed' });
-            data.groups.push(doc._id);
-            return userModel.update(username, data, () => {
-              next({ status: 200, message: 'group created', gid: doc._id });
+    return userModel.getBaseGallery(uid, (_, baseGalleryId) =>
+      galleryModel.create(groupname, baseGalleryId, uid, (ret) => {
+        if (ret === 'user already has db of that name') {
+          return next({ status: 400, error: ret });
+        } else if (ret === 'gallery could not be inserted') {
+          return next({ status: 403, error: ret });
+        } else if (isNaN(ret)) {
+          return galleryModel.get(groupname, uid, (cb, doc) => {
+            userModel.get(username, (err, data) => {
+              if (err) return next({ status: 500, message: 'creation failed' });
+              data.groups.push(doc._id);
+              return userModel.update(username, data, () => {
+                next({ status: 200, message: 'group created', gid: doc._id });
+              });
             });
           });
-        });
-      }
-      return next({ status: 500, message: 'creation failed' });
+        }
+        return next({ status: 500, message: 'creation failed' });
+      })
+    );
+  },
+
+  create: (req, res, next) => {
+    const uid = req.session.uid;
+    const groupname = req.body.groupname;
+
+    if (!galleryModel.verGroupname(groupname)) {
+      return next({ status: 400, error: 'invalid groupname' });
+    }
+    return userModel.getBaseGallery(uid, (_, baseGalleryId) => {
+      console.log(groupname, baseGalleryId, uid);
+      galleryModel.create(groupname, baseGalleryId, uid, (ret) => {
+        if (ret === 'user already has db of that name') {
+          return next({ status: 400, error: ret });
+        } else if (ret === 'gallery could not be inserted') {
+          return next({ status: 403, error: ret });
+        } else if (isNaN(ret)) {
+          return res.status(200).json({ message: 'gallery created', gid: ret });
+        }
+        return next({ status: 500, message: 'creation failed' });
+      });
     });
   },
 
@@ -244,10 +268,15 @@ module.exports = {
 
   get: (req, res, next) => {
     const uid = req.session.uid;
-    const galleryname = req.body.galleryname;
+    const gid = req.body.gid;
 
-    galleryModel.get(galleryname, uid, (err, doc) => {
+    galleryModel.getGid(gid, (err, doc) => {
       if (err) return next({ status: 404, error: 'gallery doesn\'t exist' });
+
+      if (doc.uid !== uid) {
+        return next({ status: 400, error: 'incorrect permissions' });
+      }
+
       return next({
         status: 200,
         message: 'gallery found',

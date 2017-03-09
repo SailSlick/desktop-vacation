@@ -1,6 +1,7 @@
 const async = require('async');
 const images = require('../models/image');
 const galleries = require('../models/gallery');
+const user = require('../models/user');
 
 module.exports = {
   upload: (req, res, next) => {
@@ -13,29 +14,44 @@ module.exports = {
       return;
     }
 
-    async.map(req.files, (f, cb) => {
-      images.add(req.session.uid, f.id, (err) => {
-        if (err) cb(err, null);
-        else cb(null, f.id);
-      });
-    }, (err, imageIds) => {
-      if (err) {
-        console.error(err);
-        next({ status: 400, error: err });
-        return;
-      }
-      galleries.addImages(req.body.gid, imageIds, (error) => {
-        if (error) {
-          console.error(error);
-          next({ error, status: 400 });
-        } else {
-          res.status(200).json({
-            'image-ids': imageIds,
-            message: 'images uploaded'
-          });
+    async.map(req.files,
+      (f, cb) => {
+        images.add(req.session.uid, f.id, (err) => {
+          if (err) cb(err, null);
+          else cb(null, f.id.toString());
+        });
+      },
+      (err, imageIds) => {
+        if (err) {
+          console.error(err);
+          next({ status: 400, error: err });
+          return;
         }
-      });
-    });
+        user.getBaseGallery(req.session.uid, (baseGalleryErr, baseGalleryId) => {
+          if (baseGalleryErr) {
+            console.error(baseGalleryErr);
+            next({ error: baseGalleryErr, status: 500 });
+            return;
+          }
+          galleries.addImages(
+            req.body.gid,
+            baseGalleryId,
+            req.session.uid,
+            imageIds,
+            (add_error) => {
+              if (add_error) {
+                console.error(add_error);
+                next({ error: add_error, status: 400 });
+              } else {
+                res.status(200).json({
+                  'image-ids': imageIds,
+                  message: 'images uploaded'
+                });
+              }
+            });
+        });
+      }
+    );
   },
 
   download: (req, res, next) => {

@@ -23,7 +23,7 @@ module.exports = {
         if (correct) {
           req.session.username = username;
           req.session.uid = data._id;
-          return res.status(200).json({ message: 'user logged in' });
+          return res.status(200).json({ message: 'user logged in', gallery: data.gallery });
         }
         return next({ status: 401, error: 'incorrect credentials' });
       });
@@ -73,11 +73,14 @@ module.exports = {
 
     return bcrypt.hash(password, SALT_N, (err, hash) => {
       if (err) return next({ status: 500, error: err });
-      return userModel.add(username, hash, (ret) => {
-        if (ret === 'database communication error') return next({ status: 400, error: ret });
+      return userModel.add(username, hash, (add_err, added) => {
+        if (add_err) return next({ status: 400, error: add_err });
         req.session.username = username;
-        req.session.uid = ret;
-        return res.status(200).json({ message: 'user created and logged in' });
+        req.session.uid = added.uid;
+        return res.status(200).json({
+          message: 'user created and logged in',
+          gallery: added.baseGalleryId
+        });
       });
     });
   },

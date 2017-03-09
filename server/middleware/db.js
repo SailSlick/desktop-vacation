@@ -83,6 +83,9 @@ class DbConn {
   // updateOne: update one doc in the collection (e.g. add email to user)
   // query in {x:y} format, data in {x:y} format
   updateOne(query, data, cb) {
+    if (query._id && typeof query._id === 'string') {
+      query._id = new MongoClient.ObjectID(query._id);
+    }
     return this.col.updateOne(query, { $set: data }, (err, result) => {
       errCheck(err, () => {
         if (result.matchedCount === 1 && result.modifiedCount === 1) {

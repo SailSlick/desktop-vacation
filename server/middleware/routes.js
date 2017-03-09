@@ -30,12 +30,13 @@ routes.post('/user/delete', user.delete);
 // gallery
 routes.use('/gallery/*', user.requireAuth);
 routes.post('/gallery/data', gallery.get);
+routes.post('/gallery/create', gallery.create);
 routes.use('/gallery/upload', upload.array('images'), sync.upload);
 routes.get('/image/:id/', sync.download);
 
 // group management functionality
 routes.use('/group/*', user.requireAuth);
-routes.post('/group/create', gallery.create);
+routes.post('/group/create', gallery.createGroup);
 routes.post('/group/switch', gallery.switch);
 routes.post('/group/delete', gallery.delete);
 routes.get('/group/', gallery.getGroupList);

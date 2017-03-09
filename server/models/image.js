@@ -6,7 +6,7 @@ module.exports = {
   add(uid, imageId, next) {
     db.updateOne({ _id: imageId }, { uid }, (success) => {
       if (!success) {
-        next('Failure setting user to image');
+        next('Failure adding user id to image');
       } else {
         next(null);
       }
@@ -14,15 +14,10 @@ module.exports = {
   },
 
   get(uid, id, next) {
-    db.findOne({ _id: id }, (doc) => {
+    db.findOne({ _id: id, uid }, (doc) => {
       if (!doc) {
-        next('cannot find image', null);
-      } else if (uid !== doc.uid) {
-        console.log(uid);
-        console.log(doc.uid);
-        next('invalid permissions', null);
+        next('cannot find image, or invalid permissions', null);
       } else {
-        console.log(doc);
         next(null, {
           file: db.readFile(id),
           contentType: doc.contentType

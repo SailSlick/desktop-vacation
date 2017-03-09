@@ -22,11 +22,11 @@ module.exports = {
       };
       return db.insertOne(userData, (added) => {
         if (added) {
-          galleryModel.create(username.concat('_all'), added, (g_id) => {
+          galleryModel.create(username.concat('_all'), null, added.toString(), (g_id) => {
             userData.gallery = g_id;
             return db.updateOne({ _id: added }, userData, (res) => {
-              if (res) return cb(added);
-              return cb('database communication error');
+              if (res) return cb(null, { uid: added, baseGalleryId: g_id });
+              return cb('database communication error', null);
             });
           });
         }
@@ -49,14 +49,25 @@ module.exports = {
   },
 
   delete: (username, cb) => {
+    console.log(username);
     db.findOne({ username }, (doc) => {
       db.removeOne({ username }, (res) => {
         if (!res) return cb('database communication error');
-        return galleryModel.remove(username.concat('_all'), doc._id, (check) => {
+        return galleryModel.remove(username.concat('_all'), doc._id.toString(), (check) => {
           if (check === 'gallery deleted') return cb(null);
           return cb('database communication error');
         });
       });
+    });
+  },
+
+  getBaseGallery: (uid, cb) => {
+    db.findOne({ _id: uid }, (doc) => {
+      if (!doc) {
+        cb('invalid user', null);
+      } else {
+        cb(null, doc.gallery);
+      }
     });
   }
 };
