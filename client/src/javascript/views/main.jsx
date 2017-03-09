@@ -9,11 +9,11 @@ import Slideshow from '../helpers/slideshow-client';
 import Profile from './profile.jsx';
 import Group from './group.jsx';
 import Groups from '../models/groups';
+import GroupManager from './groupManager.jsx';
 import { success, danger } from '../helpers/notifier';
 
 const BASE_GALLERY_ID = 1;
 const BASE_GROUP_ID = 1;
-
 
 const PrimaryContent = ({ page, parent }) => {
   Galleries.get({ $gt: 0 }, (cb) => {
@@ -50,7 +50,8 @@ class Main extends React.Component {
       imageSelection: null,
       multiSelect: false,
       alerts: [],
-      galleryname: ''
+      galleryname: '',
+      groupUsersModal: false
     };
 
     this.onSelectGallery = this.onSelectGallery.bind(this);
@@ -155,7 +156,8 @@ class Main extends React.Component {
       newGroupModal: false,
       selectGalleryModal: false,
       imageSelection: null,
-      multiSelect: false
+      multiSelect: false,
+      groupUsersModal: false,
     });
   }
 
@@ -338,6 +340,15 @@ class Main extends React.Component {
                 onChange={this.profileView}
               />
             </Grid>
+          </Modal.Body>
+        </Modal>
+
+        <Modal show={this.state.groupUsersModal} onHide={this.hideModals}>
+          <Modal.Header closeButton>
+            <Modal.Title>Group Users</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <GroupManager />
           </Modal.Body>
         </Modal>
 
