@@ -268,9 +268,13 @@ module.exports = {
 
   get: (req, res, next) => {
     const uid = req.session.uid;
-    const gid = req.body.gid;
+    const gid = req.params.gid;
 
-    galleryModel.getGid(gid, (err, doc) => {
+    if (!galleryModel.verGid(gid)) {
+      return next({ status: 400, error: 'invalid gid' });
+    }
+
+    return galleryModel.getGid(gid, (err, doc) => {
       if (err) return next({ status: 404, error: 'gallery doesn\'t exist' });
 
       if (doc.uid !== uid) {

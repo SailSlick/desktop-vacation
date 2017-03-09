@@ -27,12 +27,15 @@ routes.post('/user/logout', user.logout);
 routes.post('/user/update', user.update);
 routes.post('/user/delete', user.delete);
 
+// images
+routes.use('/images/*', user.requireAuth);
+routes.get('/image/:id/', sync.download);
+
 // gallery
 routes.use('/gallery/*', user.requireAuth);
-routes.post('/gallery/data', gallery.get);
 routes.post('/gallery/create', gallery.create);
 routes.use('/gallery/upload', upload.array('images'), sync.upload);
-routes.get('/image/:id/', sync.download);
+routes.post('/gallery/:gid', gallery.get);
 
 // group management functionality
 routes.use('/group/*', user.requireAuth);
