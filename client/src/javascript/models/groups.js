@@ -74,7 +74,7 @@ const Groups = {
     };
     request(options, (err, res, body) => {
       if (!body) return cb(500, 'server down');
-      if (body.status === 401) {
+      if (body.status === 401 && body.error === 'not logged in') {
         return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
           cb(cookieErr, cookieMsg);
         });
@@ -119,9 +119,9 @@ const Groups = {
         username
       }
     };
-    request(options, (err, res, body) => {
+    return request(options, (err, res, body) => {
       if (!body) return cb(500, 'server down');
-      if (body.status === 401) {
+      if (body.status === 401 && body.error === 'not logged in') {
         return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
           cb(cookieErr, cookieMsg);
         });
@@ -141,9 +141,9 @@ const Groups = {
         username
       }
     };
-    request(options, (err, res, body) => {
+    return request(options, (err, res, body) => {
       if (!body) return cb(500, 'server down');
-      if (body.status === 401) {
+      if (body.status === 401 && body.error === 'not logged in') {
         return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
           cb(cookieErr, cookieMsg);
         });
@@ -173,7 +173,7 @@ const Groups = {
     };
     request(options, (err, res, body) => {
       if (!body) return cb(500, 'server down');
-      if (body.status === 401) {
+      if (body.status === 401 && body.error === 'not logged in') {
         return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
           cb(cookieErr, cookieMsg);
         });
@@ -202,7 +202,6 @@ const Groups = {
         });
       }
       if (body.status !== 200) return cb(body.status, body.error);
-      // TODO remove invite from user list
       return cb(null, body.message);
     });
   },
@@ -238,7 +237,7 @@ const Groups = {
     };
     request(options, (err, res, body) => {
       if (!body) return cb(500, 'server down');
-      if (body.status === 401) {
+      if (body.status === 401 && body.error === 'not logged in') {
         return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
           cb(cookieErr, cookieMsg);
         });
@@ -261,7 +260,7 @@ const Groups = {
     };
     request(options, (err, res, body) => {
       if (!body) return cb(500, 'server down');
-      if (body.status === 401) {
+      if (body.status === 401 && body.error === 'not logged in') {
         return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
           cb(cookieErr, cookieMsg);
         });
@@ -276,7 +275,6 @@ const Groups = {
   //   - Subgalleries with thumbnail locations
   //   - Images with full details
   expand: (gallery, cb) => {
-    console.log(gallery);
     cb(gallery.subgalleries, gallery.images);
   }
 };

@@ -2,13 +2,14 @@ import React from 'react';
 import { each } from 'async';
 import { AlertList } from 'react-bs-notifier';
 import { ipcRenderer as ipc } from 'electron';
-import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup, FormControl } from 'react-bootstrap';
+import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup, FormControl, ControlLabel, ListGroup, ListGroupItem, InputGroup } from 'react-bootstrap';
 import Gallery from './gallery.jsx';
 import Galleries from '../models/galleries';
 import Slideshow from '../helpers/slideshow-client';
 import Profile from './profile.jsx';
 import Group from './group.jsx';
 import Groups from '../models/groups';
+import Host from '../models/host';
 import { success, danger } from '../helpers/notifier';
 
 const BASE_GALLERY_ID = 1;
@@ -35,6 +36,39 @@ const PrimaryContent = ({ page, parent }) => {
   ][page];
 };
 
+const InvitesContent = (parent) => {
+  let invites;
+  Host.isAuthed((ret) => {
+    if (ret) {
+      // gotta show all invites with accept or deny button
+      Groups.getAllInvites((err, msg, data) => {
+        invites = data.map(invite =>
+          <ListGroupItem>
+            <InputGroup>
+              <p>{invite.groupname}</p>
+              <InputGroup.Button
+                onClick={_ => parent.joinGroup(invite.gid, invite.groupname)}
+              >Join</InputGroup.Button>
+              <InputGroup.Button
+                onClick={_ => parent.refuseInvite(invite.gid, invite.groupname)}
+              >Refuse</InputGroup.Button>
+            </InputGroup>
+          </ListGroupItem>
+        );
+      });
+    }
+  });
+
+  return (
+    <Grid fluid>
+      <h3><ControlLabel>Group Users</ControlLabel></h3>
+      <ListGroup>
+        {invites}
+      </ListGroup>
+    </Grid>
+  );
+};
+
 class Main extends React.Component {
   constructor(props) {
     super(props);
@@ -50,7 +84,8 @@ class Main extends React.Component {
       multiSelect: false,
       alerts: [],
       galleryname: '',
-      groupUsersModal: false
+      groupUsersModal: false,
+      invitesModal: false
     };
 
     this.onSelectGallery = this.onSelectGallery.bind(this);
@@ -67,6 +102,9 @@ class Main extends React.Component {
     this.addNewGroup = this.addNewGroup.bind(this);
     this.changeGroup = this.changeGroup.bind(this);
     this.inputChange = this.inputChange.bind(this);
+    this.getInvitesModal = this.getInvitesModal.bind(this);
+    this.joinGroup = this.joinGroup.bind(this);
+    this.refuseInvite = this.refuseInvite.bind(this);
 
     // Events
     document.addEventListener('append_gallery', this.showGallerySelector, false);
@@ -101,11 +139,15 @@ class Main extends React.Component {
   }
 
   getNewGalleryName() {
-    this.setState({ newGalleryModal: true });
+    this.setState({ galleryname: '', newGalleryModal: true });
   }
 
   getNewGroupName() {
-    this.setState({ newGroupModal: true });
+    this.setState({ galleryname: '', newGroupModal: true });
+  }
+
+  getInvitesModal() {
+    this.setState({ invitesModal: true });
   }
 
   showGallerySelector(evt) {
@@ -163,6 +205,7 @@ class Main extends React.Component {
       selectGalleryModal: false,
       imageSelection: null,
       multiSelect: false,
+      invitesModal: false
     });
   }
 
@@ -184,10 +227,11 @@ class Main extends React.Component {
     const galleryname = event.target.galleryname.value;
 
     Groups.create(galleryname, (err, msg) => {
-      if (err) danger(msg);
-      else {
+      if (err) {
+        danger(msg);
+      } else {
         success(msg);
-        this.setState({ galleryname: '', newGroupModal: false });
+        this.setState({ newGroupModal: false });
       }
     });
   }
@@ -208,6 +252,28 @@ class Main extends React.Component {
   inputChange(event) {
     this.setState({
       [event.target.name]: event.target.value
+    });
+  }
+
+  joinGroup(gid, groupname) {
+    Groups.join(gid, groupname, (err, msg) => {
+      if (err) {
+        danger(msg);
+      } else {
+        success(msg);
+        this.setState({ invitesModal: true });
+      }
+    });
+  }
+
+  refuseInvite(gid, groupname) {
+    Groups.refuse(gid, groupname, (err, msg) => {
+      if (err) {
+        danger(msg);
+      } else {
+        success(msg);
+        this.setState({ invitesModal: true });
+      }
     });
   }
 
@@ -257,7 +323,7 @@ class Main extends React.Component {
               <NavDropdown title="Groups" id="groups">
                 <MenuItem onClick={_ => this.changeGroup(BASE_GALLERY_ID)}>View</MenuItem>
                 <MenuItem onClick={this.getNewGroupName}>Add</MenuItem>
-                <MenuItem onClick={this.getNewGroupName}>Invites</MenuItem>
+                <MenuItem onClick={this.getInvitesModal}>Invites</MenuItem>
               </NavDropdown>
               <NavDropdown title="Slideshow" id="slideshow">
                 <MenuItem onClick={_ => Slideshow.set(this.state.galleryId)}>
@@ -327,6 +393,15 @@ class Main extends React.Component {
           </Modal.Body>
         </Modal>
 
+        <Modal show={this.state.invitesModal} onHide={this.hideModals}>
+          <Modal.Header closeButton>
+            <Modal.Title>Invites</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <InvitesContent parent={this} />
+          </Modal.Body>
+        </Modal>
+
         <Modal show={this.state.selectGalleryModal} onHide={this.hideModals}>
           <Modal.Header closeButton>
             <Modal.Title>Select a Gallery</Modal.Title>
@@ -354,6 +429,10 @@ class Main extends React.Component {
 
 PrimaryContent.PropTypes = {
   page: React.PropTypes.number.isRequired,
+  parent: React.PropTypes.instanceOf(Main).isRequired
+};
+
+InvitesContent.PropTypes = {
   parent: React.PropTypes.instanceOf(Main).isRequired
 };
 

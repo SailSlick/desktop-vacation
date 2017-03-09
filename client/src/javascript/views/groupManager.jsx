@@ -38,18 +38,19 @@ class GroupManager extends React.Component {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  inviteUser(username) {
-    Groups.inviteUser(this.props.mongoId, username, (err, msg) => {
-      if (err) danger(msg);
-      else success(msg);
+  inviteUser(event) {
+    const username = event.target.username.value;
+    return Groups.inviteUser(this.props.mongoId, username, (err, msg) => {
+      if (err) return danger(msg);
+      return success(msg);
     });
   }
 
   // eslint-disable-next-line class-methods-use-this
   removeUser(username) {
-    Groups.removeUser(this.props.mongoId, username, (err, msg) => {
-      if (err) danger(msg);
-      else success(msg);
+    return Groups.removeUser(this.props.mongoId, username, (err, msg) => {
+      if (err) return danger(msg);
+      return success(msg);
     });
   }
 
@@ -86,20 +87,23 @@ class GroupManager extends React.Component {
             controlId="formUsername"
             validationState={this.usernameValidationState()}
           >
-            <Col componentClass={ControlLabel} sm={2}>
+            <Col componentClass={ControlLabel} sm={3}>
               Username
             </Col>
-            <Col sm={10}>
+            <Col sm={7}>
               <FormControl
                 name="username"
                 type="text"
-                placeholder="Enter user to invite"
+                placeholder="User to invite"
                 value={this.state.username}
                 onChange={this.inputChange}
               />
-              <HelpBlock>No spaces allowed in username</HelpBlock>
+            </Col>
+            <Col sm={1}>
+              <Button type="submit">Invite</Button>
             </Col>
           </FormGroup>
+          <HelpBlock>No spaces allowed in username</HelpBlock>
         </Form>),
         <Button onClick={this.deleteGroup} >Delete Group</Button>
       ];
@@ -108,14 +112,14 @@ class GroupManager extends React.Component {
     return (
       <Grid fluid>
         <Row>
-          <Col sm={6} xs={12}>
+          <Col sm={5} xs={12}>
             <h3><ControlLabel>Group Users</ControlLabel></h3>
             <ListGroup>
               {users}
             </ListGroup>
           </Col>
 
-          <Col sm={6} xs={12}>
+          <Col sm={7} xs={12}>
             <h3><ControlLabel>Group Management</ControlLabel></h3>
             {management_buttons}
           </Col>

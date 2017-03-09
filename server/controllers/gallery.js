@@ -97,7 +97,7 @@ module.exports = {
 
     // check to see if user exists
     return userModel.get(toAddName, (err, result) => {
-      if (err) return next({ status: 404, message: 'user doesn\'t exist' });
+      if (err) return next({ status: 404, error: 'user doesn\'t exist' });
       // check if gallery exists
       return galleryModel.getGid(gid, (error, doc) => {
         if (error) return next({ status: 404, error: 'group doesn\'t exist' });
@@ -112,7 +112,7 @@ module.exports = {
         // add invite to user list
         result.invites.push({ groupname: doc.name, gid: doc._id.toHexString() });
         return userModel.update(toAddName, result, (check) => {
-          if (check) return next({ status: 500, message: 'invite failed' });
+          if (check) return next({ status: 500, error: 'invite failed' });
           return next({ status: 200, message: 'user invited to group' });
         });
       });
