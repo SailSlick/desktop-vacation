@@ -17,12 +17,15 @@ Upon successful request, logs a user in.
 
 ### Responses
 
+The gallery field is the user's base gallery on the server.
+
 ```
 Status: 200 OK
 ```
 ```json
 {
-  "message": "user logged in"
+  "message": "user logged in",
+  "gallery": "58c1639bbc15aa11fcceddf8"
 }
 ```
 
@@ -55,7 +58,8 @@ Status: 200 OK
 ```
 ```json
 {
-  "message": "user created and logged in"
+  "message": "user created and logged in",
+  "gallery": "58c1639bbc15aa11fcceddf8"
 }
 ```
 

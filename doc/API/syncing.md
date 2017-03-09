@@ -58,6 +58,8 @@ Downloads an image given the image id.
 
 ### Response
 
+#### Note: this will be an image file, see Content-Type header for exact type.
+
 `Status: 200 OK`
 ```
 <image_data>
@@ -84,13 +86,27 @@ Returns the associated gallery information from the server database.
 
 ### Response
 
-The `images` field is a list of image id's in the gallery,
+Refer to the [db spec](../galleries.md) for more information on this response.
 
 `Status: 200 OK`
 ```
 {
+  "status": 200,
   "message": "gallery found",
-  "images": ["ObjectId('542c2b97bac0595474108b48')", ..., ObjectId('542c2b97bac0595474108b4N')]
+  "data": {
+    "_id": "58c1639bbc15aa11fcceddf8",
+    "name": "Sully_all",
+    "uid": "58c1639bbc15aa11fcceddf7",
+    "users": [],
+    "tags": [],
+    "subgallaries": [
+      "58c163a6bc15aa11fcceddf9"
+    ],
+    "images": [
+      "58c163e3bc15aa11fcceddfa",
+      "58c163e4bc15aa11fcceddfd"
+    ]
+  }
 }
 ```
 
@@ -98,4 +114,5 @@ The `images` field is a list of image id's in the gallery,
 
 | Error Message             | Status |
 |---------------------------|--------|
+| `'invalid gid'`           |   400  |
 | `'gallery doesn't exist'` |   404  |
