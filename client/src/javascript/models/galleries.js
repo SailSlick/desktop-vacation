@@ -1,5 +1,7 @@
 import { map, each } from 'async';
 import { ipcRenderer as ipc } from 'electron';
+import request from 'request';
+import { cookie_jar } from './host';
 import DbConn from '../helpers/db';
 import Images from './images';
 

@@ -14,9 +14,7 @@ if (process.env.SRVPORT) {
   server_uri = 'http://127.0.0.1:3000';
 }
 
-const cookie_jar = request.jar();
-
-function createClientAccount(username, successMessage, cb) {
+function createClientAccount(username, res, cb) {
   // insert users
   const galname = username.concat('_all');
   Galleries.addBase(galname, (ret) => {
@@ -25,6 +23,7 @@ function createClientAccount(username, successMessage, cb) {
     const userData = {
       username,
       gallery: ret,
+      remoteGallery: res.gallery,
       slideshowConfig: {
         onstart: false,
         galleryname: username.concat('_all'),
@@ -34,12 +33,12 @@ function createClientAccount(username, successMessage, cb) {
     return host_db.insert(userData, (userDoc) => {
       if (!userDoc) return cb(500, "user couldn't be made on client");
       document.dispatchEvent(host_update_event);
-      return cb(null, successMessage);
+      return cb(null, res.message);
     });
   });
 }
 
-function deleteCookies(errCode, msg, cb) {
+function deleteCookies(cookie_jar, errCode, msg, cb) {
   const cookies = cookie_jar.getCookies(server_uri);
   if (cookies.length === 0) return cb(errCode, msg);
   // remove cookie from jar
@@ -54,6 +53,7 @@ function deleteCookies(errCode, msg, cb) {
 
 // Exported methods
 const Host = {
+  cookie_jar: request.jar(),
 
   login: (username, password, cb) => {
     host_db.findOne({}, (host_doc) => {
@@ -62,7 +62,7 @@ const Host = {
       // post to /user/login
       const options = {
         uri: server_uri.concat('/user/login'),
-        jar: cookie_jar,
+        jar: Host.cookie_jar,
         method: 'POST',
         json: {
           username,
@@ -72,21 +72,17 @@ const Host = {
       return request(options, (err, response, body) => {
         body = body || { status: 500, error: 'server down' };
         if (body.status !== 200) {
-          return deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
+          return deleteCookies(Host.cookie_jar, body.status, body.error, (cookieErr, cookieMsg) => {
             cb(cookieErr, cookieMsg);
           });
         }
         if (!host_doc) {
           console.log('Create client side account for prev account.');
-          return createClientAccount(username, body.message, (msg_err, msg) => {
+          return createClientAccount(username, body, (msg_err, msg) => {
             cb(msg_err, msg);
           });
         }
-        host_doc.jar = cookie_jar.getCookies(server_uri);
-        return host_db.updateOne({ username }, host_doc, (ret) => {
-          if (ret) return cb(null, body.message);
-          return cb(500, "user couldn't be made on client");
-        });
+        return cb(null, body.message);
       });
     });
   },
@@ -95,14 +91,14 @@ const Host = {
     // post to /user/logout
     const options = {
       uri: server_uri.concat('/user/logout'),
-      jar: cookie_jar,
+      jar: Host.cookie_jar,
       method: 'POST',
       json: {}
     };
     request(options, (err, response, body) => {
       if (!body) return cb(500, 'server down');
       if (body.status !== 200) return cb(body.status, body.error);
-      return deleteCookies(null, body.message, (cookieErr, cookieMsg) => {
+      return deleteCookies(Host.cookie_jar, null, body.message, (cookieErr, cookieMsg) => {
         cb(cookieErr, cookieMsg);
       });
     });
@@ -110,7 +106,7 @@ const Host = {
 
   isAuthed: (cb) => {
     // checks if user is logged in || session has expired
-    const cookies = cookie_jar.getCookies(server_uri);
+    const cookies = Host.cookie_jar.getCookies(server_uri);
     if (cookies.length === 0) return cb(false);
     return cb(true);
   },
@@ -121,7 +117,7 @@ const Host = {
       const options = {
         uri: server_uri.concat('/user/create'),
         method: 'POST',
-        jar: cookie_jar,
+        jar: Host.cookie_jar,
         json: {
           username,
           password
@@ -130,11 +126,11 @@ const Host = {
       return request(options, (err, response, body) => {
         body = body || { status: 500, error: 'server down' };
         if (body.status !== 200) {
-          return deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
+          return deleteCookies(Host.cookie_jar, body.status, body.error, (cookieErr, cookieMsg) => {
             cb(cookieErr, cookieMsg);
           });
         }
-        return createClientAccount(username, body.message, (msg_err, msg) => {
+        return createClientAccount(username, body, (msg_err, msg) => {
           cb(msg_err, msg);
         });
       });
@@ -147,7 +143,7 @@ const Host = {
     // post to /user/delete
     const options = {
       uri: server_uri.concat('/user/delete'),
-      jar: cookie_jar,
+      jar: Host.cookie_jar,
       method: 'POST',
       json: {}
     };
@@ -155,7 +151,7 @@ const Host = {
       if (!body) return cb(500, 'server down');
       if (body.status !== 200) return cb(body.status, body.error);
       // remove cookie from jar
-      return deleteCookies(null, body.message, (cookieErr, cookieMsg) => {
+      return deleteCookies(Host.cookie_jar, null, body.message, (cookieErr, cookieMsg) => {
         // remove presence from client, keep images
         host_db.emptyCol(() => {
           document.dispatchEvent(host_update_event);
@@ -173,7 +169,7 @@ const Host = {
     // post to /user/update
     const options = {
       uri: server_uri.concat('/user/update'),
-      jar: cookie_jar,
+      jar: Host.cookie_jar,
       method: 'POST',
       json: { password }
     };
