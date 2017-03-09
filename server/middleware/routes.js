@@ -35,7 +35,7 @@ routes.get('/image/:id/', sync.download);
 routes.use('/gallery/*', user.requireAuth);
 routes.post('/gallery/create', gallery.create);
 routes.use('/gallery/upload', upload.array('images'), sync.upload);
-routes.post('/gallery/:gid', gallery.get);
+routes.get('/gallery/:gid', gallery.get);
 
 // group management functionality
 routes.use('/group/*', user.requireAuth);
