@@ -32,8 +32,8 @@ routes.post('/group/user/join', gallery.join);
 routes.post('/group/user/refuse', gallery.refuse);
 
 // group data functionality
-routes.get('/group/data', gallery.getGroup);
-routes.post('/group/data/add', gallery.addGroupItem);
-routes.post('/group/data/remove', gallery.removeGroupItem);
+routes.get('/group/:gid', gallery.getGroup);
+routes.post('/group/:gid/add', gallery.addGroupItem);
+routes.post('/group/:gid/remove', gallery.removeGroupItem);
 
 module.exports = routes;

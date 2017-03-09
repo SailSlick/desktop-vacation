@@ -72,12 +72,12 @@ const Groups = {
     });
   },
 
-  getAll: (cb) => {
+  get: (gid, cb) => {
     const options = {
-      uri: server_uri.concat('/group/'),
+      uri: server_uri.concat(`/group/${gid || ''}`),
       method: 'GET',
       jar: cookie_jar,
-      json: {}
+      json: true
     };
     request(options, (err, res, body) => {
       if (!body) return cb(500, 'server down', null);
@@ -170,20 +170,6 @@ const Groups = {
     });
   },
 
-  getData: (gid, cb) => {
-    const options = {
-      uri: server_uri.concat('/group/data'),
-      method: 'POST',
-      jar: cookie_jar,
-      json: { gid }
-    };
-    request(options, (err, res, body) => {
-      if (!body) return cb(500, 'server down', null);
-      if (body.status !== 200) return cb(body.status, body.error, null);
-      return cb(null, body.message, body.data);
-    });
-  },
-
   addToGroup: (gid, groupdata, cb) => {
     const options = {
       uri: server_uri.concat('/group/data/add'),
@@ -218,6 +204,14 @@ const Groups = {
       // update group view
       return cb(null, body.message);
     });
+  },
+
+  // Returns:
+  //   - Subgalleries with thumbnail locations
+  //   - Images with full details
+  expand: (gallery, cb) => {
+    console.log(gallery);
+    cb(gallery.subgalleries, gallery.images);
   }
 };
 

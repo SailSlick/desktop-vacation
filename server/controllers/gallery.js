@@ -1,6 +1,6 @@
 const galleryModel = require('../models/gallery');
 const userModel = require('../models/user');
-
+const async = require('async');
 
 module.exports = {
 
@@ -73,19 +73,6 @@ module.exports = {
           return next({ status: 200, message: ret });
         }
         return next({ status: 500, error: ret });
-      });
-    });
-  },
-
-  getGroupList: (req, res, next) => {
-    const username = req.session.username;
-
-    // get list from userDB
-    return userModel.get(username, (err, data) => {
-      next({
-        status: 200,
-        message: 'user groups found',
-        data: data.groups
       });
     });
   },
@@ -259,7 +246,7 @@ module.exports = {
   getGroup: (req, res, next) => {
     const username = req.session.username;
     const uid = req.session.uid;
-    const gid = req.body.gid;
+    const gid = req.params.gid;
 
     galleryModel.getGid(gid, (err, doc) => {
       if (err) return next({ status: 404, error: 'group doesn\'t exist' });
@@ -275,10 +262,51 @@ module.exports = {
     });
   },
 
+  getGroupList: (req, res, next) => {
+    const username = req.session.username;
+
+    // get list from userDB
+    return userModel.get(username, (err, data) => {
+      if (err) {
+        return next({
+          status: 500,
+          error: 'failed to get user'
+        });
+      }
+      return async.map(data.groups, (gid, cb) => {
+        galleryModel.getGid(gid, (map_err, gallery) => {
+          if (map_err) return cb(err, {});
+          return cb(null, {
+            _id: gallery._id,
+            name: gallery.name,
+            uid: gallery.uid,
+            users: gallery.users,
+            images: []
+          });
+        });
+      }, (map_err, galleries) => {
+        if (map_err) {
+          return next({
+            status: 500,
+            error: 'failed to get group list'
+          });
+        }
+        return next({
+          status: 200,
+          message: 'user groups found',
+          data: {
+            subgalleries: galleries,
+            images: []
+          }
+        });
+      });
+    });
+  },
+
   addGroupItem: (req, res, next) => {
     const username = req.session.username;
     const uid = req.session.uid;
-    const gid = req.body.gid;
+    const gid = req.params.gid;
     // const updateData = req.body.updateData;
 
     galleryModel.getGid(gid, (err, doc) => {
@@ -298,7 +326,7 @@ module.exports = {
   removeGroupItem: (req, res, next) => {
     const username = req.session.username;
     const uid = req.session.uid;
-    const gid = req.body.gid;
+    const gid = req.params.gid;
     // const updateData = req.body.updateData;
 
     galleryModel.getGid(gid, (err, doc) => {

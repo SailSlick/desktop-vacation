@@ -10,17 +10,13 @@ class Group extends React.Component {
     super(props);
 
     this.state = {
-      subgroups: [],
-      images: [],
-      selection: []
+      subgalleries: [],
+      images: []
     };
 
     // Bind functions
     this.refresh = this.refresh.bind(this);
     this.deleteGroup = this.deleteGroup.bind(this);
-
-    // Hook event to catch when an image is added
-    document.addEventListener('gallery_updated', this.refresh, false);
   }
 
   componentDidMount() {
@@ -31,37 +27,20 @@ class Group extends React.Component {
     this.refresh(nextProps.dbId);
   }
 
-  componentWillUnmount() {
-    // Unhook all events
-    document.removeEventListener('gallery_updated', this.refresh, false);
-  }
-
   refresh(dbId) {
     dbId = (typeof dbId === 'number') ? dbId : this.props.dbId;
-    if (dbId === 1) {
-      Groups.getAll((err, msg, data) => {
-        if (err) return danger(msg);
-        data.forEach((groupDetails) => {
-          const baseView = {
-            mongoId: groupDetails._id,
-            name: groupDetails.name,
-            users: groupDetails.users,
-            uid: groupDetails.uid
-          };
 
-          this.setState({ subgroups, images });
-        });
-        return success(msg);
-      });
-    }
-    // dbId is a group mongo id is here
-    Groups.get(dbId, (gallery) => {
-      Groups.expand(gallery, (subgroups, images) =>
+    // Null the group ID if we're looking at the base group
+    if (dbId === 1) dbId = null;
+
+    Groups.get(dbId, (err, res, gallery) => {
+      if (err) return danger(`${err}: ${res}`);
+      return Groups.expand(gallery, (subgalleries, images) =>
         this.setState({
-          subgroups,
+          subgalleries,
           images
         }, () => {
-          console.log('Gallery refreshed');
+          console.log('Group refreshed');
         })
       );
     });
@@ -86,28 +65,28 @@ class Group extends React.Component {
   }
 
   render() {
-    let items = this.state.subgroups.map(subgallery =>
+    const items = this.state.subgalleries.map(subgallery =>
       <GalleryCard
-        key={`g${subgallery.$loki}`}
-        dbId={subgallery.$loki}
+        group
+        key={`g${subgallery._id}`}
+        dbId={-1}
+        mongoId={subgallery._id}
         name={subgallery.name}
+        uid={subgallery.uid}
+        users={subgallery.users}
         thumbnail={subgallery.thumbnail}
-        onClick={_ => this.props.onChange(subgallery.$loki)}
-        onRemove={this.removeSubgallery}
-        simple={this.props.simple}
+        onClick={_ => this.props.onChange(subgallery._id)}
+        onRemove={_ => true}
       />
-    );
+    ).concat(this.state.images.map(image =>
+      <Image
+        key={image.$loki}
+        dbId={image.$loki}
+        src={image.location}
+        onRemove={this.removeItem}
+      />
+    ));
 
-    if (!this.props.simple) {
-      items = items.concat(this.state.images.map(image =>
-        <Image
-          key={image.$loki}
-          dbId={image.$loki}
-          src={image.location}
-          onRemove={this.removeItem}
-        />
-      ));
-    }
     return (
       <Row>
         <Col xs={4}>
@@ -125,13 +104,12 @@ class Group extends React.Component {
 }
 
 Group.propTypes = {
-  dbId: React.PropTypes.number.isRequired,
-  onChange: React.PropTypes.func.isRequired,
-  simple: React.PropTypes.bool
+  dbId: React.PropTypes.number,
+  onChange: React.PropTypes.func.isRequired
 };
 
 Group.defaultProps = {
-  simple: false,
+  dbId: null
 };
 
 export default Group;
