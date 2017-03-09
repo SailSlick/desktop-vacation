@@ -24,6 +24,11 @@ const Groups = {
     };
     return request(options, (err, res, body) => {
       if (!body) return cb(500, 'server down');
+      if (body.status === 401) {
+        return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
+          cb(cookieErr, cookieMsg);
+        });
+      }
       if (body.status !== 200) return cb(body.status, body.error);
       return Galleries.add(groupname, (doc, err_msg) => {
         if (err_msg) return cb(500, err_msg);
@@ -46,6 +51,11 @@ const Groups = {
       if (!doc) return cb(404, 'Gallery not found');
       return request(options, (err, res, body) => {
         if (!body) return cb(500, 'server down');
+        if (body.status === 401) {
+          return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
+            cb(cookieErr, cookieMsg);
+          });
+        }
         if (body.status !== 200) return cb(body.status, body.error);
         return Galleries.convertToGroup(doc.$loki, body.data, (ret) => {
           if (ret) return cb(null, body.message);
@@ -64,11 +74,18 @@ const Groups = {
     };
     request(options, (err, res, body) => {
       if (!body) return cb(500, 'server down');
+      if (body.status === 401) {
+        return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
+          cb(cookieErr, cookieMsg);
+        });
+      }
       if (body.status !== 200) return cb(body.status, body.error);
-      return Galleries.remove(id, (err_msg) => {
-        if (err_msg) return cb(500, err);
-        return cb(null, body.message);
-      });
+      if (mongoId !== id) {
+        return Galleries.remove(id, (err_msg) => {
+          if (err_msg) return cb(500, err);
+          return cb(null, body.message);
+        });
+      }
     });
   },
 
@@ -81,6 +98,11 @@ const Groups = {
     };
     request(options, (err, res, body) => {
       if (!body) return cb(500, 'server down', null);
+      if (body.status === 401) {
+        return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
+          cb(cookieErr, cookieMsg);
+        });
+      }
       if (body.status !== 200) return cb(body.status, body.error, null);
       return cb(null, body.message, body.data);
     });
@@ -98,6 +120,11 @@ const Groups = {
     };
     request(options, (err, res, body) => {
       if (!body) return cb(500, 'server down');
+      if (body.status === 401) {
+        return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
+          cb(cookieErr, cookieMsg);
+        });
+      }
       if (body.status !== 200) return cb(body.status, body.error);
       return cb(null, body.message);
     });
@@ -115,6 +142,11 @@ const Groups = {
     };
     request(options, (err, res, body) => {
       if (!body) return cb(500, 'server down');
+      if (body.status === 401) {
+        return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
+          cb(cookieErr, cookieMsg);
+        });
+      }
       if (body.status !== 200) return cb(body.status, body.error);
       return cb(null, body.message);
     });
@@ -140,6 +172,11 @@ const Groups = {
     };
     request(options, (err, res, body) => {
       if (!body) return cb(500, 'server down');
+      if (body.status === 401) {
+        return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
+          cb(cookieErr, cookieMsg);
+        });
+      }
       if (body.status !== 200) return cb(body.status, body.error);
       // TODO getData or update user group view with x?
       return cb(null, body.message);
@@ -158,6 +195,11 @@ const Groups = {
     };
     request(options, (err, res, body) => {
       if (!body) return cb(500, 'server down');
+      if (body.status === 401) {
+        return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
+          cb(cookieErr, cookieMsg);
+        });
+      }
       if (body.status !== 200) return cb(body.status, body.error);
       // TODO remove invite from user list
       return cb(null, body.message);
@@ -173,6 +215,11 @@ const Groups = {
     };
     request(options, (err, res, body) => {
       if (!body) return cb(500, 'server down', null);
+      if (body.status === 401) {
+        return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
+          cb(cookieErr, cookieMsg);
+        });
+      }
       if (body.status !== 200) return cb(body.status, body.error, null);
       return cb(null, body.message, body.data);
     });
@@ -187,6 +234,11 @@ const Groups = {
     };
     request(options, (err, res, body) => {
       if (!body) return cb(500, 'server down', null);
+      if (body.status === 401) {
+        return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
+          cb(cookieErr, cookieMsg);
+        });
+      }
       if (body.status !== 200) return cb(body.status, body.error, null);
       return cb(null, body.message, body.data);
     });
@@ -204,6 +256,11 @@ const Groups = {
     };
     request(options, (err, res, body) => {
       if (!body) return cb(500, 'server down');
+      if (body.status === 401) {
+        return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
+          cb(cookieErr, cookieMsg);
+        });
+      }
       if (body.status !== 200) return cb(body.status, body.error);
       // Update group view
       return cb(null, body.message);
@@ -222,6 +279,11 @@ const Groups = {
     };
     request(options, (err, res, body) => {
       if (!body) return cb(500, 'server down');
+      if (body.status === 401) {
+        return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
+          cb(cookieErr, cookieMsg);
+        });
+      }
       if (body.status !== 200) return cb(body.status, body.error);
       // update group view
       return cb(null, body.message);

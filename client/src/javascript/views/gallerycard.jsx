@@ -83,16 +83,16 @@ class GalleryCard extends React.Component {
 
   render() {
     return (
-      <figure className="figure img-card gallery-card rounded" onClick={this.props.onClick}>
-        <BsImage responsive src={this.props.thumbnail} alt="" />
-        <h2 className="rounded">{this.props.name}</h2>
+      <figure className="figure img-card gallery-card rounded">
+        <BsImage responsive src={this.props.thumbnail} alt="" onClick={this.props.onClick} />
+        <h2 className="rounded" onClick={this.props.onClick}>{this.props.name}</h2>
         <ActionMenu
           simple={this.props.simple}
           group={this.props.group}
           setSlideshow={this.setSlideshow}
           onRemove={this.remove}
           switchG={this.switchG}
-          groupMenu={_ => this.groupMenu()}
+          groupMenu={this.groupMenu}
         />
 
         <Modal show={this.state.groupManagerModal} onHide={this.hideModals}>

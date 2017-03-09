@@ -335,9 +335,6 @@ class Main extends React.Component {
                 dbId={BASE_GALLERY_ID}
                 onChange={this.onSelectGallery}
               />
-              <Profile
-                onChange={this.profileView}
-              />
             </Grid>
           </Modal.Body>
         </Modal>

@@ -8,7 +8,9 @@ class GroupManager extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {};
+    this.state = {
+      username: ''
+    };
 
     // Bind functions
     this.deleteGroup = this.deleteGroup.bind(this);
@@ -64,7 +66,6 @@ class GroupManager extends React.Component {
   }
 
   render() {
-    console.log("here");
     const users = this.props.users.map(user =>
       <ListGroupItem>
         <InputGroup>
@@ -75,10 +76,8 @@ class GroupManager extends React.Component {
         </InputGroup>
       </ListGroupItem>
     );
-    console.log("here2");
 
     let management_buttons = [<Button onClick={this.leaveGroup} >Leave Group</Button>];
-    console.log("here3");
 
     if (this.props.uid === Host.uid) {
       management_buttons = [
@@ -105,11 +104,9 @@ class GroupManager extends React.Component {
         <Button onClick={this.deleteGroup} >Delete Group</Button>
       ];
     }
-    console.log("here4");
 
     return (
       <Grid fluid>
-        <h1>TESTS</h1>
         <Row>
           <Col sm={6} xs={12}>
             <h1><ControlLabel>Group Users</ControlLabel></h1>
