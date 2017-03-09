@@ -16,7 +16,7 @@ const BASE_GROUP_ID = 1;
 
 const PrimaryContent = ({ page, parent }) => {
   Galleries.get({ $gt: 0 }, (cb) => {
-    if (!cb) page = 1;
+    if (!cb) page = 2;
   });
   return [
     (<Gallery
@@ -187,7 +187,7 @@ class Main extends React.Component {
       if (err) danger(msg);
       else {
         success(msg);
-        this.state.galleryname = '';
+        this.setState({ galleryname: '', newGroupModal: false });
       }
     });
   }

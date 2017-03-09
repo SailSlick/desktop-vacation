@@ -86,6 +86,7 @@ const Groups = {
           return cb(null, body.message);
         });
       }
+      return (null, body.message);
     });
   },
 

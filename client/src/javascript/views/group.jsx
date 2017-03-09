@@ -2,6 +2,7 @@ import React from 'react';
 import { Col, Row } from 'react-bootstrap';
 import Image from './image.jsx';
 import Groups from '../models/groups';
+import Host from '../models/host';
 import GalleryCard from './gallerycard.jsx';
 import { success, danger } from '../helpers/notifier';
 
@@ -11,7 +12,8 @@ class Group extends React.Component {
 
     this.state = {
       subgalleries: [],
-      images: []
+      images: [],
+      loggedIn: false,
     };
 
     // Bind functions
@@ -32,17 +34,20 @@ class Group extends React.Component {
 
     // Null the group ID if we're looking at the base group
     if (dbId === 1) dbId = null;
-
-    Groups.get(dbId, (err, res, gallery) => {
-      if (err) return danger(`${err}: ${res}`);
-      return Groups.expand(gallery, (subgalleries, images) =>
-        this.setState({
-          subgalleries,
-          images
-        }, () => {
-          console.log('Group refreshed');
-        })
-      );
+    Host.isAuthed((ret) => {
+      if (ret) {
+        Groups.get(dbId, (err, res, gallery) => {
+          if (err) return danger(`${err}: ${res}`);
+          return Groups.expand(gallery, (subgalleries, images) =>
+            this.setState({
+              subgalleries,
+              images
+            }, () => {
+              console.log('Group refreshed');
+            })
+          );
+        });
+      }
     });
   }
 

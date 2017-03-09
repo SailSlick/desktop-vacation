@@ -33,7 +33,6 @@ describe('Gallery Component', () => {
         // Add test image to test gallery
         Galleries.addItem(inserted_gallery.$loki, test_image.$loki, (updated_gallery) => {
           test_gallery = updated_gallery;
-          console.log("RESFRESHONG");
           test_component = mount(<Gallery
             key={test_gallery.$loki}
             dbId={test_gallery.$loki}
