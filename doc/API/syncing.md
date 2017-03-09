@@ -14,7 +14,7 @@ Upon successful request, will upload the sent image(s) to the server.
 
 #### MIME Type
 
-Since images are being sent to the database, the request can't simple be
+Since images are being sent to the database, the request can't simply be
 `application/json`. We settled on `multipart/form-data` as it's the standard
 in these types of image uploading scenarios.
 
@@ -46,13 +46,12 @@ the first image_id in the array and so on.
 
 ## Downloading images
 
-`GET /image/<image-id:string>/(thumbnail)?`
+`GET /image/<image-id:string>/`
 
-Downloads an image. The thumbnail argument is optional and if included will
-return a smaller version of the image.
+Downloads an image given the image id.
 
 ### URL Parameters
-
+``
 | Name       | Type        | Description                                   |
 |------------|-------------|-----------------------------------------------|
 | image-id   | string      | a string referencing image's id on the server |
@@ -68,17 +67,14 @@ return a smaller version of the image.
 
 | Error Message             | Status |
 |---------------------------|--------|
-| `'upload failed'`         |   403  |
+| `'upload failed'`         |   500  |
 | `'image doesn't exist'`   |   404  |
 
 ## Downloading galleries
 
-`GET /gallery/<gid:string>/(thumbnail)?`
+`GET /gallery/<gid:string>/`
 
-Returns a list of images in the gallery.
-
-The thumbnail arument is optional and if included will add `/thumbnail` to the
-image requests.
+Returns the associated gallery information from the server database.
 
 ### URL Parameters
 
