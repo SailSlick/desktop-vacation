@@ -21,7 +21,6 @@ class GroupManager extends React.Component {
     this.inputChange = this.inputChange.bind(this);
   }
 
-  // eslint-disable-next-line class-methods-use-this
   deleteGroup() {
     Groups.delete(this.props.mongoId, this.props.dbId, (err, msg) => {
       if (err) danger(msg);
@@ -29,7 +28,6 @@ class GroupManager extends React.Component {
     });
   }
 
-  // eslint-disable-next-line class-methods-use-this
   leaveGroup() {
     Groups.leaveGroup(this.props.mongoId, (err, msg) => {
       if (err) danger(msg);
@@ -37,7 +35,6 @@ class GroupManager extends React.Component {
     });
   }
 
-  // eslint-disable-next-line class-methods-use-this
   inviteUser(event) {
     const username = event.target.username.value;
     return Groups.inviteUser(this.props.mongoId, username, (err, msg) => {
@@ -46,7 +43,6 @@ class GroupManager extends React.Component {
     });
   }
 
-  // eslint-disable-next-line class-methods-use-this
   removeUser(username) {
     return Groups.removeUser(this.props.mongoId, username, (err, msg) => {
       if (err) return danger(msg);

@@ -45,16 +45,16 @@ const Host = {
 
   uid: '',
 
-  deleteCookies: (errCode, msg, cb) => {
+  deleteCookies: (cb) => {
     const cookies = Host.cookie_jar.getCookies(server_uri);
-    if (cookies.length === 0) return cb(errCode, msg);
+    if (cookies.length === 0) return cb();
     // remove cookie from jar
     // eslint-disable-next-line dot-notation
     return Host.cookie_jar['_jar'].store.removeCookie(cookies[0].domain,
       cookies[0].path,
       cookies[0].key, () => {
         console.log('cookie deleted');
-        return cb(errCode, msg);
+        return cb();
       });
   },
 
@@ -75,8 +75,8 @@ const Host = {
       return request(options, (err, response, body) => {
         body = body || { status: 500, error: 'server down' };
         if (body.status !== 200) {
-          return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
-            cb(cookieErr, cookieMsg);
+          return Host.deleteCookies(() => {
+            cb(body.status, body.error);
           });
         }
         if (!host_doc) {
@@ -102,17 +102,17 @@ const Host = {
     request(options, (err, response, body) => {
       if (!body) return cb(500, 'server down');
       if (body.status !== 200) return cb(body.status, body.error);
-      return Host.deleteCookies(null, body.message, (cookieErr, cookieMsg) => {
-        cb(cookieErr, cookieMsg);
+      return Host.deleteCookies(() => {
+        cb(null, body.message);
       });
     });
   },
 
-  isAuthed: (cb) => {
+  isAuthed: () => {
     // checks if user is logged in || session has expired
     const cookies = Host.cookie_jar.getCookies(server_uri);
-    if (cookies.length === 0) return cb(false);
-    return cb(true);
+    if (cookies.length === 0) return false;
+    return true;
   },
 
   createAccount: (username, password, cb) => {
@@ -130,8 +130,8 @@ const Host = {
       return request(options, (err, response, body) => {
         body = body || { status: 500, error: 'server down' };
         if (body.status !== 200) {
-          return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
-            cb(cookieErr, cookieMsg);
+          return Host.deleteCookies(() => {
+            cb(body.status, body.error);
           });
         }
         return createClientAccount(username, body.message, (msg_err, msg) => {
@@ -156,13 +156,13 @@ const Host = {
       if (!body) return cb(500, 'server down');
       if (body.status !== 200) return cb(body.status, body.error);
       // remove cookie from jar
-      return Host.deleteCookies(null, body.message, (cookieErr, cookieMsg) => {
+      return Host.deleteCookies(() => {
         // remove presence from client, keep images
         host_db.emptyCol(() => {
           document.dispatchEvent(host_update_event);
           return Galleries.clear(() => {
             Images.clear(() => {
-              cb(cookieErr, cookieMsg);
+              cb(null, body.message);
             });
           });
         });

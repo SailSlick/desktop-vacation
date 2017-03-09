@@ -34,21 +34,20 @@ class Group extends React.Component {
 
     // Null the group ID if we're looking at the base group
     if (dbId === 1) dbId = null;
-    Host.isAuthed((ret) => {
-      if (ret) {
-        Groups.get(dbId, (err, res, gallery) => {
-          if (err) return danger(`${err}: ${res}`);
-          return Groups.expand(gallery, (subgalleries, images) =>
-            this.setState({
-              subgalleries,
-              images
-            }, () => {
-              console.log('Group refreshed');
-            })
-          );
-        });
-      }
-    });
+    const ret = Host.isAuthed();
+    if (ret) {
+      Groups.get(dbId, (err, res, gallery) => {
+        if (err) return danger(`${err}: ${res}`);
+        return Groups.expand(gallery, (subgalleries, images) =>
+          this.setState({
+            subgalleries,
+            images
+          }, () => {
+            console.log('Group refreshed');
+          })
+        );
+      });
+    }
   }
 
   // eslint-disable-next-line class-methods-use-this

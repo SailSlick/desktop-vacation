@@ -4,7 +4,7 @@ import Galleries from './galleries';
 
 let server_uri = 'http://127.0.0.1:';
 if (process.env.SRVPORT) {
-  server_uri = server_uri.concat(process.env.SRVPORT.toString());
+  server_uri = 'http://vaca.m1cr0man.com';
 } else {
   server_uri = server_uri.concat('3000');
 }
@@ -14,8 +14,8 @@ const cookie_jar = Host.cookie_jar;
 function requestHandler(body, cb) {
   if (!body) return cb(500, 'server down');
   if (body.status === 401 && body.error === 'not logged in') {
-    return Host.deleteCookies(body.status, body.error, (cookieErr, cookieMsg) => {
-      cb(cookieErr, cookieMsg);
+    return Host.deleteCookies(() => {
+      cb(body.status, body.error);
     });
   }
   if (body.status !== 200) return cb(body.status, body.error);
@@ -24,7 +24,7 @@ function requestHandler(body, cb) {
 
 const Groups = {
   create: (groupname, cb) => {
-    if (!groupname || typeof groupname !== 'string' || groupname.trim() === '' || groupname.indexOf(' ') !== -1) {
+    if (typeof groupname !== 'string' || groupname.trim() === '' || groupname.indexOf(' ') !== -1) {
       return cb(400, `Invalid gallery name ${groupname}`);
     }
     const options = {

@@ -16,8 +16,8 @@ const BASE_GALLERY_ID = 1;
 const BASE_GROUP_ID = 1;
 
 const PrimaryContent = ({ page, parent }) => {
-  Galleries.get({ $gt: 0 }, (cb) => {
-    if (!cb) page = 2;
+  Galleries.get({ $gt: 0 }, (gallery) => {
+    if (!gallery) page = 2;
   });
   return [
     (<Gallery
@@ -38,26 +38,25 @@ const PrimaryContent = ({ page, parent }) => {
 
 const InvitesContent = (parent) => {
   let invites;
-  Host.isAuthed((ret) => {
-    if (ret) {
-      // gotta show all invites with accept or deny button
-      Groups.getAllInvites((err, msg, data) => {
-        invites = data.map(invite =>
-          <ListGroupItem>
-            <InputGroup>
-              <p>{invite.groupname}</p>
-              <InputGroup.Button
-                onClick={_ => parent.joinGroup(invite.gid, invite.groupname)}
-              >Join</InputGroup.Button>
-              <InputGroup.Button
-                onClick={_ => parent.refuseInvite(invite.gid, invite.groupname)}
-              >Refuse</InputGroup.Button>
-            </InputGroup>
-          </ListGroupItem>
-        );
-      });
-    }
-  });
+  const ret = Host.isAuthed();
+  if (ret) {
+    // gotta show all invites with accept or deny button
+    Groups.getAllInvites((err, msg, data) => {
+      invites = data.map(invite =>
+        <ListGroupItem>
+          <InputGroup>
+            <p>{invite.groupname}</p>
+            <InputGroup.Button
+              onClick={_ => parent.joinGroup(invite.gid, invite.groupname)}
+            >Join</InputGroup.Button>
+            <InputGroup.Button
+              onClick={_ => parent.refuseInvite(invite.gid, invite.groupname)}
+            >Refuse</InputGroup.Button>
+          </InputGroup>
+        </ListGroupItem>
+      );
+    });
+  }
 
   return (
     <Grid fluid>

@@ -13,22 +13,16 @@ module.exports = {
       return next({ status: 400, error: 'invalid groupname' });
     }
     return galleryModel.create(groupname, uid, (ret) => {
-      if (ret === 'user already has db of that name') {
-        return next({ status: 400, error: ret });
-      } else if (ret === 'gallery could not be inserted') {
-        return next({ status: 403, error: ret });
-      } else if (isNaN(ret)) {
-        return galleryModel.get(groupname, uid, (cb, doc) => {
-          userModel.get(username, (err, data) => {
-            if (err) return next({ status: 500, error: 'creation failed' });
-            data.groups.push(doc._id);
-            return userModel.update(username, data, () => {
-              next({ status: 200, message: 'group created', data: doc._id });
-            });
+      if (typeof ret === 'string') return next({ status: 400, error: ret });
+      return galleryModel.get(groupname, uid, (cb, doc) => {
+        userModel.get(username, (err, data) => {
+          if (err) return next({ status: 500, error: 'creation failed' });
+          data.groups.push(doc._id);
+          return userModel.update(username, data, () => {
+            next({ status: 200, message: 'group created', data: doc._id });
           });
         });
-      }
-      return next({ status: 500, error: 'creation failed' });
+      });
     });
   },
 

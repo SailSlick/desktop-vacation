@@ -19,7 +19,7 @@ Upon successful request, creates a new group gallery.
 
 ### Parameters
 
-| Name      | Type   | Description                   s|
+| Name      | Type   | Description                   |
 |-----------|--------|-------------------------------|
 | groupname | string | The name of the group to make |
 
@@ -92,30 +92,6 @@ Upon successful request, deletes a group gallery.
 | `'group doesn't exist'`             |   404  |
 | `'incorrect permissions for group'` |   401  |
 | `'invalid gid'`                     |   400  |
-
-## Get all your Groups
-
-`GET /group/`
-
-Upon successful request, returns a list of the user's group galleries.
-
-### Response
-
-` Status: 200 OK `
-```json
-{
-  "message": "user groups found",
-  "subgalleries": [{
-    "_id": ObjectId("2g6c2b97bac0595474108b48"),
-    "name": "scenery",
-    "uid": ObjectId("542c2b97bac0595474108b48"),
-    "users": ["m1cr0man","Sully"],
-    "tags": ["blam"],
-    "images": []
-  }],
-  "images": []
-}
-```
 
 ## Invite user to group
 
@@ -248,12 +224,21 @@ Upon successful request, returns a list of the user's invites to groups.
 }
 ```
 
+## Get all your Groups
+
+`GET /group/`
+
+Upon successful request, returns a list of the user's group galleries.
+
+### Response
+
+
 ## Get Group data
 
-`GET /group/data`
+`GET /group/<gid>`
 
 Upon successful request, returns all of the image/gallery data stored in the
-group.
+group. if there is no gid it will return all the user's groups.
 
 ### Parameters
 
@@ -263,6 +248,7 @@ group.
 
 ### Response
 
+`/group/2g6c2b97bac0595474108b48`
 ` Status: 200 OK `
 ```json
 {
@@ -283,6 +269,24 @@ group.
       ObjectId("fg6c2jghbac0595474108b48")
     ]
   }
+}
+```
+
+`/group/`
+` Status: 200 OK `
+```json
+{
+  "message": "user groups found",
+  "data": {
+    "subgalleries": [{
+      "_id": ObjectId("2g6c2b97bac0595474108b48"),
+      "name": "scenery",
+      "uid": ObjectId("542c2b97bac0595474108b48"),
+      "users": ["m1cr0man","Sully"],
+      "images": []
+    }],
+    "images": []
+    }
 }
 ```
 

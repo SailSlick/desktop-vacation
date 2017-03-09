@@ -3,7 +3,7 @@ import { MenuItem, Glyphicon, Image as BsImage, Modal } from 'react-bootstrap';
 import Slideshow from '../helpers/slideshow-client';
 import GroupManager from './groupManager.jsx';
 
-const ActionMenu = ({ simple, group, setSlideshow, onRemove, switchG, groupMenu }) => {
+const ActionMenu = ({ simple, group, setSlideshow, onRemove, switchGroup, groupMenu }) => {
   if (simple) {
     return <figcaption style={{ display: 'none' }} />;
   }
@@ -27,7 +27,7 @@ const ActionMenu = ({ simple, group, setSlideshow, onRemove, switchG, groupMenu 
           <Glyphicon glyph="remove" />Remove
         </MenuItem>
         {gMenu}
-        <MenuItem onClick={switchG}>
+        <MenuItem onClick={switchGroup}>
           <Glyphicon glyph="transfer" />Switch to Group
         </MenuItem>
       </div>
@@ -40,7 +40,7 @@ ActionMenu.propTypes = {
   group: React.PropTypes.bool.isRequired,
   setSlideshow: React.PropTypes.func.isRequired,
   onRemove: React.PropTypes.func.isRequired,
-  switchG: React.PropTypes.func.isRequired,
+  switchGroup: React.PropTypes.func.isRequired,
   groupMenu: React.PropTypes.func.isRequired
 };
 
@@ -55,7 +55,7 @@ class GalleryCard extends React.Component {
     // Bind onClick to this object
     this.remove = this.remove.bind(this);
     this.setSlideshow = this.setSlideshow.bind(this);
-    this.switchG = this.switchG.bind(this);
+    this.switchGroup = this.switchGroup.bind(this);
     this.groupMenu = this.groupMenu.bind(this);
     this.hideModals = this.hideModals.bind(this);
   }
@@ -68,7 +68,7 @@ class GalleryCard extends React.Component {
     this.props.onRemove(this.props.dbId);
   }
 
-  switchG() {
+  switchGroup() {
     this.props.groupSwitch(this.props.name, this.props.dbId);
   }
 
@@ -90,7 +90,7 @@ class GalleryCard extends React.Component {
           group={this.props.group}
           setSlideshow={this.setSlideshow}
           onRemove={this.remove}
-          switchG={this.switchG}
+          switchGroup={this.switchGroup}
           groupMenu={this.groupMenu}
         />
 
