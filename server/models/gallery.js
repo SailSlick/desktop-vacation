@@ -13,7 +13,6 @@ module.exports = {
   verGid: gid => typeof gid === 'string' && gid.length === 24,
 
   create: (galleryname, baseGalleryId, uid, cb) => {
-    console.log(galleryname, baseGalleryId, uid, cb);
     db.findOne({ name: galleryname, uid }, (doc) => {
       if (doc) return cb('user already has db of that name');
       const galleryData = {
@@ -33,10 +32,7 @@ module.exports = {
         return db.col.updateOne(
         { _id: baseGalleryId, uid },
         { $addToSet: { subgallaries: res.toString() } },
-        (baseGallery) => {
-          console.log(baseGallery);
-          return cb(res);
-        });
+        _ => cb(res));
       });
     });
   },
@@ -77,7 +73,6 @@ module.exports = {
       return;
     }
     db.findOne({ uid, _id: gid }, (galleryDoc) => {
-      console.log(uid, gid, galleryDoc);
       if (!galleryDoc) {
         next('Cannot find gallery, or incorrect permissions');
       } else {
@@ -85,7 +80,6 @@ module.exports = {
         (id, cb) => cb(null, !(id in imageIds)),
         (_err, newIds) => {
           galleryDoc.images.push(...newIds);
-          console.log(galleryDoc);
           db.updateOne({ _id: gid }, { images: galleryDoc.images }, () => {
             if (gid === baseGalleryId) {
               next(null);

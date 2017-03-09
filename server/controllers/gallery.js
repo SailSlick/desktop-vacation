@@ -42,7 +42,6 @@ module.exports = {
       return next({ status: 400, error: 'invalid groupname' });
     }
     return userModel.getBaseGallery(uid, (_, baseGalleryId) => {
-      console.log(groupname, baseGalleryId, uid);
       galleryModel.create(groupname, baseGalleryId, uid, (ret) => {
         if (ret === 'user already has db of that name') {
           return next({ status: 400, error: ret });

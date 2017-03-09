@@ -95,6 +95,11 @@ class DbConn {
     this.col.chain().find(query).remove();
     return cb();
   }
+
+  emptyCol(cb) {
+    this.col.clear();
+    cb();
+  }
 }
 
 export default DbConn;

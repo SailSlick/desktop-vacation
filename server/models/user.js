@@ -49,7 +49,6 @@ module.exports = {
   },
 
   delete: (username, cb) => {
-    console.log(username);
     db.findOne({ username }, (doc) => {
       db.removeOne({ username }, (res) => {
         if (!res) return cb('database communication error');
