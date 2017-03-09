@@ -104,6 +104,10 @@ class Main extends React.Component {
     this.setState({ newGalleryModal: true });
   }
 
+  getNewGroupName() {
+    this.setState({ newGroupModal: true });
+  }
+
   showGallerySelector(evt) {
     this.setState({
       selectGalleryModal: true,
@@ -173,10 +177,6 @@ class Main extends React.Component {
     if (galname.trim() === '') return 'error';
     else if (galname.length < 3) return 'warning';
     return 'success';
-  }
-
-  getNewGroupName() {
-    this.setState({ newGroupModal: true });
   }
 
   addNewGroup(event) {
