@@ -11,7 +11,8 @@ class Group extends React.Component {
 
     this.state = {
       subgroups: [],
-      images: []
+      images: [],
+      selection: []
     };
 
     // Bind functions
@@ -40,11 +41,21 @@ class Group extends React.Component {
     if (dbId === 1) {
       Groups.getAll((err, msg, data) => {
         if (err) return danger(msg);
-        data.forEach()
+        data.forEach((groupDetails) => {
+          const baseView = {
+            mongoId: groupDetails._id,
+            name: groupDetails.name,
+            users: groupDetails.users,
+            uid: groupDetails.uid
+          };
+
+          this.setState({ subgroups, images });
+        });
         return success(msg);
       });
     }
-    Groups.get(dbId, gallery =>
+    // dbId is a group mongo id is here
+    Groups.get(dbId, (gallery) => {
       Groups.expand(gallery, (subgroups, images) =>
         this.setState({
           subgroups,
@@ -52,8 +63,8 @@ class Group extends React.Component {
         }, () => {
           console.log('Gallery refreshed');
         })
-      )
-    );
+      );
+    });
   }
 
   // eslint-disable-next-line class-methods-use-this

@@ -14,6 +14,7 @@ routes.post('/user/update', user.update);
 routes.post('/user/delete', user.delete);
 
 // gallery
+routes.use('/gallery/*', user.requireAuth);
 routes.get('gallery/data', gallery.get);
 
 // group management functionality
