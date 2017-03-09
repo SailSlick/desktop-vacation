@@ -1,8 +1,6 @@
 import request from 'request';
-import DbConn from '../helpers/db';
-
-let group_db;
-const group_update_event = new Event('group_updated');
+import Host from './host';
+import Galleries from './galleries';
 
 let server_uri = 'http://127.0.0.1:';
 if (process.env.SRVPORT) {
@@ -11,45 +9,66 @@ if (process.env.SRVPORT) {
   server_uri = server_uri.concat('3000');
 }
 
+const cookie_jar = Host.cookie_jar;
+
 const Groups = {
   create: (groupname, cb) => {
+    if (!groupname || typeof groupname !== 'string' || groupname.trim() === '' || groupname.indexOf(' ') !== -1) {
+      return cb(400, `Invalid gallery name ${groupname}`);
+    }
     const options = {
       uri: server_uri.concat('/group/create'),
       method: 'POST',
+      jar: cookie_jar,
       json: { groupname }
     };
-    request(options, (err, res, body) => {
-      console.log("body:", body);
-      if (res.status !== 200) return cb(res.status, res.error);
-      // insert into clientside db
-      return cb(null, res.message);
+    return request(options, (err, res, body) => {
+      if (!body) return cb(500, 'server down');
+      if (body.status !== 200) return cb(body.status, body.error);
+      return Galleries.add(groupname, (doc, err_msg) => {
+        if (err_msg) return cb(500, err_msg);
+        return Galleries.convertToGroup(doc.$loki, body.data, (ret) => {
+          if (ret) return cb(null, body.message);
+          return cb(500, 'convert To group failed');
+        });
+      });
     });
   },
 
-  switch: (groupname, cb) => {
+  switch: (groupname, id, cb) => {
     const options = {
       uri: server_uri.concat('/group/switch'),
       method: 'POST',
+      jar: cookie_jar,
       json: { groupname }
     };
-    request(options, (err, res, body) => {
-      console.log("body:", body);
-      if (res.status !== 200) return cb(res.status, res.error);
-      // change gallery item property so it displays group tab only?
-      return cb(null, res.message);
+    Galleries.get(id, (doc) => {
+      if (doc) return cb(404, 'DGallery not found');
+      return request(options, (err, res, body) => {
+        if (!body) return cb(500, 'server down');
+        if (body.status !== 200) return cb(body.status, body.error);
+        return Galleries.convertToGroup(doc.$loki, body.data, (ret) => {
+          if (ret) return cb(null, body.message);
+          return cb(500, 'convert To group failed');
+        });
+      });
     });
   },
 
-  delete: (gid, cb) => {
+  delete: (mongoId, id, cb) => {
     const options = {
       uri: server_uri.concat('/group/delete'),
       method: 'POST',
-      json: { gid }
+      jar: cookie_jar,
+      json: { gid: mongoId }
     };
     request(options, (err, res, body) => {
-      console.log("body:", body);
-      if (res.status !== 200) return cb(res.status, res.error);
-      return cb(null, res.message);
+      if (!body) return cb(500, 'server down');
+      if (body.status !== 200) return cb(body.status, body.error);
+      return Galleries.remove(id, (err_msg) => {
+        if (err_msg) return cb(500, err);
+        return cb(null, body.message);
+      });
     });
   },
 
@@ -57,13 +76,13 @@ const Groups = {
     const options = {
       uri: server_uri.concat('/group/'),
       method: 'GET',
+      jar: cookie_jar,
       json: {}
     };
     request(options, (err, res, body) => {
-      console.log("body:", body);
-      if (res.status !== 200) return cb(res.status, res.error);
-      // return the data and message
-      return cb(null, res);
+      if (!body) return cb(500, 'server down', null);
+      if (body.status !== 200) return cb(body.status, body.error, null);
+      return cb(null, body.message, body.data);
     });
   },
 
@@ -71,15 +90,16 @@ const Groups = {
     const options = {
       uri: server_uri.concat('/group/user/invite'),
       method: 'POST',
+      jar: cookie_jar,
       json: {
         gid,
         username
       }
     };
     request(options, (err, res, body) => {
-      console.log("body:", body);
-      if (res.status !== 200) return cb(res.status, res.error);
-      return cb(null, res.message);
+      if (!body) return cb(500, 'server down');
+      if (body.status !== 200) return cb(body.status, body.error);
+      return cb(null, body.message);
     });
   },
 
@@ -87,15 +107,16 @@ const Groups = {
     const options = {
       uri: server_uri.concat('/group/user/remove'),
       method: 'POST',
+      jar: cookie_jar,
       json: {
         gid,
         username
       }
     };
     request(options, (err, res, body) => {
-      console.log("body:", body);
-      if (res.status !== 200) return cb(res.status, res.error);
-      return cb(null, res.message);
+      if (!body) return cb(500, 'server down');
+      if (body.status !== 200) return cb(body.status, body.error);
+      return cb(null, body.message);
     });
   },
 
@@ -103,16 +124,17 @@ const Groups = {
     const options = {
       uri: server_uri.concat('/group/user/join'),
       method: 'POST',
+      jar: cookie_jar,
       json: {
         gid,
         groupname
       }
     };
     request(options, (err, res, body) => {
-      console.log("body:", body);
-      if (res.status !== 200) return cb(res.status, res.error);
-      // getData or update user group view with x?
-      return cb(null, res.message);
+      if (!body) return cb(500, 'server down');
+      if (body.status !== 200) return cb(body.status, body.error);
+      // TODO getData or update user group view with x?
+      return cb(null, body.message);
     });
   },
 
@@ -120,16 +142,17 @@ const Groups = {
     const options = {
       uri: server_uri.concat('/group/user/refuse'),
       method: 'POST',
+      jar: cookie_jar,
       json: {
         gid,
         groupname
       }
     };
     request(options, (err, res, body) => {
-      console.log("body:", body);
-      if (res.status !== 200) return cb(res.status, res.error);
-      // remove from user invite view
-      return cb(null, res.message);
+      if (!body) return cb(500, 'server down');
+      if (body.status !== 200) return cb(body.status, body.error);
+      // TODO remove invite from user list
+      return cb(null, body.message);
     });
   },
 
@@ -137,13 +160,13 @@ const Groups = {
     const options = {
       uri: server_uri.concat('/group/user/'),
       method: 'GET',
+      jar: cookie_jar,
       json: {}
     };
     request(options, (err, res, body) => {
-      console.log("body:", body);
-      if (res.status !== 200) return cb(res.status, res.error);
-      // return the succesful message and data
-      return cb(null, res);
+      if (!body) return cb(500, 'server down', null);
+      if (body.status !== 200) return cb(body.status, body.error, null);
+      return cb(null, body.message, body.data);
     });
   },
 
@@ -151,58 +174,51 @@ const Groups = {
     const options = {
       uri: server_uri.concat('/group/data'),
       method: 'POST',
+      jar: cookie_jar,
       json: { gid }
     };
     request(options, (err, res, body) => {
-      console.log("body:", body);
-      if (res.status !== 200) return cb(res.status, res.error);
-      // return the succesful message and data
-      return cb(null, res);
+      if (!body) return cb(500, 'server down', null);
+      if (body.status !== 200) return cb(body.status, body.error, null);
+      return cb(null, body.message, body.data);
     });
   },
 
   addToGroup: (gid, groupdata, cb) => {
     const options = {
-      uri: server_uri.concat('/group/user/remove'),
+      uri: server_uri.concat('/group/data/add'),
       method: 'POST',
+      jar: cookie_jar,
       json: {
         gid,
         groupdata
       }
     };
     request(options, (err, res, body) => {
-      console.log("body:", body);
-      if (res.status !== 200) return cb(res.status, res.error);
-      // update user group view with data
-      return cb(null, res.message);
+      if (!body) return cb(500, 'server down');
+      if (body.status !== 200) return cb(body.status, body.error);
+      // Update group view
+      return cb(null, body.message);
     });
   },
 
   removeFromGroup: (gid, groupdata, cb) => {
     const options = {
-      uri: server_uri.concat('/group/user/remove'),
+      uri: server_uri.concat('/group/data/remove'),
       method: 'POST',
+      jar: cookie_jar,
       json: {
         gid,
         groupdata
       }
     };
     request(options, (err, res, body) => {
-      console.log("body:", body);
-      if (res.status !== 200) return cb(res.status, res.error);
-      // update user view of group data
-      return cb(null, res.message);
+      if (!body) return cb(500, 'server down');
+      if (body.status !== 200) return cb(body.status, body.error);
+      // update group view
+      return cb(null, body.message);
     });
   }
 };
-
-// Events
-document.addEventListener('vacation_loaded', () => {
-  group_db = new DbConn('galleries');
-}, false);
-
-document.addEventListener('group_updated', () => {
-  group_db.save(_ => console.log('Database saved'));
-}, false);
 
 export default Groups;

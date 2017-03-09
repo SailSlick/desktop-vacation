@@ -20,15 +20,15 @@ module.exports = {
       } else if (isNaN(ret)) {
         return galleryModel.get(groupname, uid, (cb, doc) => {
           userModel.get(username, (err, data) => {
-            if (err) return next({ status: 500, message: 'creation failed' });
+            if (err) return next({ status: 500, error: 'creation failed' });
             data.groups.push(doc._id);
             return userModel.update(username, data, () => {
-              next({ status: 200, message: 'group created' });
+              next({ status: 200, message: 'group created', data: doc._id });
             });
           });
         });
       }
-      return next({ status: 500, message: 'creation failed' });
+      return next({ status: 500, error: 'creation failed' });
     });
   },
 

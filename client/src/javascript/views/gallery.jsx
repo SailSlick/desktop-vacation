@@ -92,7 +92,6 @@ class Gallery extends React.Component {
           selection: []
         }, () => {
           console.log('Gallery refreshed');
-          this.props.onRefresh();
         })
       )
     );
@@ -214,15 +213,13 @@ class Gallery extends React.Component {
 Gallery.propTypes = {
   dbId: React.PropTypes.number.isRequired,
   onChange: React.PropTypes.func.isRequired,
-  onRefresh: React.PropTypes.func,
   simple: React.PropTypes.bool,
   multiSelect: React.PropTypes.bool
 };
 
 Gallery.defaultProps = {
   simple: false,
-  multiSelect: false,
-  onRefresh: () => true
+  multiSelect: false
 };
 
 export default Gallery;

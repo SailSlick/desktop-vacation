@@ -2,14 +2,18 @@ import React from 'react';
 import { each } from 'async';
 import { AlertList } from 'react-bs-notifier';
 import { ipcRenderer as ipc } from 'electron';
-import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup } from 'react-bootstrap';
+import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup, FormControl } from 'react-bootstrap';
 import Gallery from './gallery.jsx';
 import Galleries from '../models/galleries';
 import Slideshow from '../helpers/slideshow-client';
 import Profile from './profile.jsx';
+import Group from './group.jsx';
+import Groups from '../models/groups';
 import { success, danger } from '../helpers/notifier';
 
 const BASE_GALLERY_ID = 1;
+const BASE_GROUP_ID = 1;
+
 
 const PrimaryContent = ({ page, parent }) => {
   Galleries.get({ $gt: 0 }, (cb) => {
@@ -17,6 +21,11 @@ const PrimaryContent = ({ page, parent }) => {
   });
   return [
     (<Gallery
+      dbId={parent.state.galleryId}
+      onChange={parent.changeGallery}
+      multiSelect={parent.state.multiSelect}
+    />),
+    (<Group
       dbId={parent.state.galleryId}
       onChange={parent.changeGallery}
       multiSelect={parent.state.multiSelect}
@@ -33,12 +42,15 @@ class Main extends React.Component {
 
     this.state = {
       galleryId: BASE_GALLERY_ID,
+      groupId: BASE_GROUP_ID,
       newGalleryModal: false,
       selectGalleryModal: false,
+      newGroupModal: false,
       page: 0,
       imageSelection: null,
       multiSelect: false,
-      alerts: []
+      alerts: [],
+      galleryname: ''
     };
 
     this.onSelectGallery = this.onSelectGallery.bind(this);
@@ -51,6 +63,10 @@ class Main extends React.Component {
     this.showAlert = this.showAlert.bind(this);
     this.dismissAlert = this.dismissAlert.bind(this);
     this.toggleSelectMode = this.toggleSelectMode.bind(this);
+    this.getNewGroupName = this.getNewGroupName.bind(this);
+    this.addNewGroup = this.addNewGroup.bind(this);
+    this.changeGroup = this.changeGroup.bind(this);
+    this.inputChange = this.inputChange.bind(this);
 
     // Events
     document.addEventListener('append_gallery', this.showGallerySelector, false);
@@ -95,24 +111,26 @@ class Main extends React.Component {
     });
   }
 
-  addNewGallery(cb) {
-    Galleries.add(this.newGalleryInput.value, (new_gallery, err_msg) => {
+  addNewGallery(event) {
+    event.preventDefault();
+    const galleryname = event.target.galleryname.value;
+    return Galleries.add(galleryname, (new_gallery, err_msg) => {
       this.setState({ newGalleryModal: false, page: 0 });
       if (err_msg) {
         danger(err_msg);
-        return cb(err_msg);
+        return;
       }
       if (this.state.galleryId === BASE_GALLERY_ID) {
-        success(`Gallery ${this.newGalleryInput.value} added`);
-        if (typeof cb === 'function') return cb();
-        return null;
+        success(`Gallery ${galleryname} added`);
+        this.state.galleryname = '';
+        return;
       }
-      return Galleries.addSubGallery(
+      Galleries.addSubGallery(
         this.state.galleryId, new_gallery.$loki,
         (updated_gallery, sub_err_msg) => {
-          if (sub_err_msg) danger(sub_err_msg);
-          else success(`Gallery ${this.newGalleryInput.value} added`);
-          if (typeof cb === 'function') cb();
+          if (sub_err_msg) return danger(sub_err_msg);
+          this.state.galleryname = '';
+          return success(`Gallery ${galleryname} added`);
         }
       );
     });
@@ -134,6 +152,7 @@ class Main extends React.Component {
   hideModals() {
     this.setState({
       newGalleryModal: false,
+      newGroupModal: false,
       selectGalleryModal: false,
       imageSelection: null,
       multiSelect: false
@@ -146,9 +165,52 @@ class Main extends React.Component {
     });
   }
 
+  gallerynameValidationState() {
+    const galname = this.state.galleryname;
+    if (galname.indexOf(' ') !== -1 || galname.trim() === '') return 'error';
+    else if (galname.length < 3) return 'warning';
+    return 'success';
+  }
+
+  getNewGroupName() {
+    this.setState({ newGroupModal: true });
+  }
+
+  addNewGroup(event) {
+    event.preventDefault();
+    const galleryname = event.target.galleryname.value;
+
+    Groups.create(galleryname, (err, msg) => {
+      if (err) danger(msg);
+      else {
+        success(msg);
+        this.state.galleryname = '';
+      }
+    });
+  }
+
+  changeGroup(groupId) {
+    // This if prevents deleted galleries/non-existent Ids
+    // causing big issues
+    if (groupId) {
+      this.setState({
+        groupId,
+        imageSelection: null,
+        multiSelect: false,
+        page: 1
+      });
+    }
+  }
+
+  inputChange(event) {
+    this.setState({
+      [event.target.name]: event.target.value
+    });
+  }
+
   profileView() {
     // This is to show the profile details
-    this.setState({ page: 1 });
+    this.setState({ page: 2 });
   }
 
   showAlert(event) {
@@ -189,6 +251,10 @@ class Main extends React.Component {
                 <MenuItem onClick={_ => this.changeGallery(BASE_GALLERY_ID)}>View</MenuItem>
                 <MenuItem onClick={this.getNewGalleryName}>Add</MenuItem>
               </NavDropdown>
+              <NavDropdown title="Groups" id="groups">
+                <MenuItem onClick={_ => this.changeGroup(BASE_GALLERY_ID)}>View</MenuItem>
+                <MenuItem onClick={this.getNewGroupName}>Add</MenuItem>
+              </NavDropdown>
               <NavDropdown title="Slideshow" id="slideshow">
                 <MenuItem onClick={_ => Slideshow.set(this.state.galleryId)}>
                   Use Current Gallery
@@ -211,13 +277,43 @@ class Main extends React.Component {
           </Modal.Header>
 
           <Modal.Body>
-            <form onSubmit={e => e.preventDefault() || this.addNewGallery()}>
-              <FormGroup>
-                <input
+            <form onSubmit={this.addNewGallery}>
+              <FormGroup
+                validationState={this.gallerynameValidationState()}
+              >
+                <FormControl
                   id="galleryName"
+                  name="galleryname"
                   type="text"
                   placeholder="Gallery Name"
-                  ref={(input) => { this.newGalleryInput = input; }}
+                  value={this.state.galleryname}
+                  onChange={this.inputChange}
+                />
+              </FormGroup>
+              <Button type="submit">
+                Add
+              </Button>
+            </form>
+          </Modal.Body>
+        </Modal>
+
+        <Modal show={this.state.newGroupModal} onHide={this.hideModals}>
+          <Modal.Header closeButton>
+            <Modal.Title>Adding New Group</Modal.Title>
+          </Modal.Header>
+
+          <Modal.Body>
+            <form onSubmit={this.addNewGroup}>
+              <FormGroup
+                validationState={this.gallerynameValidationState()}
+              >
+                <FormControl
+                  id="galleryName"
+                  name="galleryname"
+                  type="text"
+                  placeholder="Group Name"
+                  value={this.state.galleryname}
+                  onChange={this.inputChange}
                 />
               </FormGroup>
               <Button type="submit">

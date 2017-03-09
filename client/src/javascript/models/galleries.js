@@ -32,7 +32,7 @@ const Galleries = {
   },
 
   add: (name, cb) => {
-    if (!name || typeof name !== 'string' || name.trim() === '') {
+    if (!name || typeof name !== 'string' || name.trim() === '' || name.indexOf(' ') !== -1) {
       return cb(null, `Invalid gallery name ${name}`);
     }
     return gallery_db.findOne({ name }, (found_gallery) => {
@@ -41,6 +41,7 @@ const Galleries = {
       }
       const doc = {
         name,
+        group: false,
         tags: [],
         subgalleries: [],
         images: []
@@ -55,7 +56,14 @@ const Galleries = {
     });
   },
 
-  addSubGallery(id, subgallery_id, cb) {
+  convertToGroup: (id, mongoId, cb) => {
+    gallery_db.updateOne({ $loki: id }, {
+      group: true,
+      mongoId
+    }, cb);
+  },
+
+  addSubGallery: (id, subgallery_id, cb) => {
     if (id === subgallery_id) {
       return cb(null, `Tried to add gallery ${id} to itself`);
     }

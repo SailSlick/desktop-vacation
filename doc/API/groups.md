@@ -239,7 +239,10 @@ Upon successful request, returns a list of the user's invites to groups.
 ```json
 {
   "message": "user groups found",
-  "data": [ObjectId("2g6c2b97bac0595474108b48")]
+  "data": [{
+    "groupname": "funtimes",
+    "gid": ObjectId("2g6c2b97bac0595474108b48")
+  }]
 }
 ```
 
