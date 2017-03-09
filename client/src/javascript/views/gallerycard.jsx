@@ -1,5 +1,5 @@
 import React from 'react';
-import { MenuItem, Image as BsImage } from 'react-bootstrap';
+import { MenuItem, Glyphicon, Image as BsImage } from 'react-bootstrap';
 import Slideshow from '../helpers/slideshow-client';
 
 const ActionMenu = ({ simple, setSlideshow, onRemove }) => {
@@ -11,11 +11,11 @@ const ActionMenu = ({ simple, setSlideshow, onRemove }) => {
       ...
       <div className="dropdown-menu img-menu">
         <MenuItem onClick={setSlideshow}>
-          Slideshow
+          <Glyphicon glyph="film" />Slideshow
         </MenuItem>
         <MenuItem divider />
         <MenuItem onClick={onRemove}>
-          Remove
+          <Glyphicon glyph="remove" />Remove
         </MenuItem>
       </div>
     </figcaption>

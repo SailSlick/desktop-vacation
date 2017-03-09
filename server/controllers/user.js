@@ -23,7 +23,7 @@ module.exports = {
         if (correct) {
           req.session.username = username;
           req.session.uid = data._id;
-          return res.status(200).json({ message: 'user logged in' });
+          return next({ status: 200, message: 'user logged in' });
         }
         return next({ status: 401, error: 'incorrect credentials' });
       });
@@ -33,12 +33,12 @@ module.exports = {
   logout: (req, res, next) => {
     req.session.destroy((err) => {
       if (err) return next({ status: 500, error: err });
-      return res.status(200).json({ message: 'user logged out' });
+      return next({ status: 200, message: 'user logged out' });
     });
   },
 
   update: (req, res, next) => {
-    const { password } = req.body;
+    const password = req.body.password;
 
     // XXX: since password is the only current option changed, just check that
     // Will likely be replaced by something more sophisticated later
@@ -50,7 +50,7 @@ module.exports = {
       if (bcrypt_err) return next({ status: 500, error: bcrypt_err });
       return userModel.update(req.session.username, { password: hash }, (err) => {
         if (err) return next({ status: 500, error: err });
-        return res.status(200).json({ message: 'user updated' });
+        return next({ status: 200, message: 'user updated' });
       });
     });
   },
@@ -77,7 +77,7 @@ module.exports = {
         if (ret === 'database communication error') return next({ status: 400, error: ret });
         req.session.username = username;
         req.session.uid = ret;
-        return res.status(200).json({ message: 'user created and logged in' });
+        return next({ status: 200, message: 'user created and logged in' });
       });
     });
   },
@@ -85,7 +85,7 @@ module.exports = {
   delete: (req, res, next) => {
     userModel.delete(req.session.username, (err) => {
       if (err) return next({ status: 500, error: err });
-      return res.status(200).json({ message: 'user deleted' });
+      return next({ status: 200, message: 'user deleted' });
     });
   }
 };

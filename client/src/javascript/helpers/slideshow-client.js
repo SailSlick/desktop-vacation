@@ -1,36 +1,33 @@
 import { ipcRenderer as ipc } from 'electron';
-import Userdata from '../models/userdata';
+import Host from '../models/host';
 import Galleries from '../models/galleries';
 
-const hostname = 'Sully';
+const hostIndex = 1;
 const BASE_GALLERY_ID = 1;
 
 export default {
   set: (galleryId, cb) => {
     cb = cb || (() => true);
 
-    Userdata.get(hostname, (oldHostData) => {
-      let mTime = oldHostData.timer;
-
-      if (mTime <= 0 || isNaN(mTime)) {
-        mTime = 5;
+    Host.getIndex(hostIndex, (oldHostData) => {
+      if (isNaN(oldHostData.slideshowConfig.timer)) {
+        oldHostData.slideshowConfig.timer = 5;
       }
+      const timer = oldHostData.slideshowConfig.timer * 60000;
       if (galleryId === '' || typeof galleryId !== 'number') {
         console.error(`Invalid gallery ID ${galleryId}`);
         return cb();
       }
-
-      const msTime = mTime * 60000;
       const config = {
         slideshowConfig: {
           onstart: true,
           galleryName: galleryId,
-          timer: msTime
+          timer: oldHostData.slideshowConfig.timer
         }
       };
 
       // puts the config files into the host db
-      return Userdata.update(hostname, config, () => {
+      return Host.update({ $loki: oldHostData.$loki }, config, () => {
         // gets the named gallery from db
         Galleries.get(galleryId, gallery =>
           Galleries.expand(gallery, (subgalleries, images) => {
@@ -40,7 +37,7 @@ export default {
               console.error('The gallery has no images');
               return cb();
             }
-            ipc.send('set-slideshow', image_paths, msTime);
+            ipc.send('set-slideshow', image_paths, timer);
             return cb();
           })
         );
@@ -49,17 +46,14 @@ export default {
   },
 
   clear: (cb) => {
-    const config = {
-      slideshowConfig: {
-        onstart: false,
-        galleryName: BASE_GALLERY_ID,
-        timer: 0
-      }
-    };
-    // puts the config files into the host db
-    Userdata.update(hostname, config, () => {
-      ipc.send('clear-slideshow');
-      if (cb) cb();
+    Host.getIndex(hostIndex, (host) => {
+      host.slideshowConfig.onstart = false;
+      host.slideshowConfig.galleryName = BASE_GALLERY_ID;
+      // puts the config files into the host db
+      Host.update({ $loki: host.$loki }, host, () => {
+        ipc.send('clear-slideshow');
+        if (cb) cb();
+      });
     });
   }
 };
