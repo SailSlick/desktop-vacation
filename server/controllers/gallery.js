@@ -36,13 +36,13 @@ module.exports = {
 
   create: (req, res, next) => {
     const uid = req.session.uid;
-    const groupname = req.body.groupname;
+    const galleryname = req.body.galleryname;
 
-    if (!galleryModel.verGroupname(groupname)) {
+    if (!galleryModel.verGroupname(galleryname)) {
       return next({ status: 400, error: 'invalid groupname' });
     }
     return userModel.getBaseGallery(uid, (_, baseGalleryId) => {
-      galleryModel.create(groupname, baseGalleryId, uid, (ret) => {
+      galleryModel.create(galleryname, baseGalleryId, uid, (ret) => {
         if (ret === 'user already has db of that name') {
           return next({ status: 400, error: ret });
         } else if (ret === 'gallery could not be inserted') {

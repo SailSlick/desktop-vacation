@@ -13,7 +13,6 @@ module.exports = {
       next({ status: 400, error: 'invalid gallery id' });
       return;
     }
-
     async.map(req.files,
       (f, cb) => {
         images.add(req.session.uid, f.id, (err) => {
@@ -29,13 +28,12 @@ module.exports = {
         }
         user.getBaseGallery(req.session.uid, (baseGalleryErr, baseGalleryId) => {
           if (baseGalleryErr) {
-            console.error(baseGalleryErr);
             next({ error: baseGalleryErr, status: 500 });
             return;
           }
           galleries.addImages(
             req.body.gid,
-            baseGalleryId,
+            baseGalleryId.toString(),
             req.session.uid,
             imageIds,
             (add_error) => {

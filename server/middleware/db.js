@@ -21,6 +21,14 @@ class DbConn {
     });
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  id(stringId) {
+    if (typeof stringId === 'string') {
+      return new MongoClient.ObjectID(stringId);
+    }
+    return null;
+  }
+
   // insertOne: insert a single document into selected collection (e.g new user)
   // data in {x:y} format
   // returns the unique _id of the inserted document

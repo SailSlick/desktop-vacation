@@ -6,7 +6,7 @@
   "repository": "https://github.com/cpssd/vacation.git",
   "scripts": {
     "start": "node app.js",
-    "test": "JUNIT_REPORT_PATH=unit-tests.xml NODE_ENV=test mocha ./tests/**/*.test.js -R mocha-jenkins-reporter",
+    "test": "JUNIT_REPORT_PATH=unit-tests.xml NODE_ENV=test mocha ./tests/**/*.test.js --timeout 5000 -R mocha-jenkins-reporter",
     "coverage": "nyc --reporter=text-summary --reporter=json npm test",
     "lint": "eslint -f checkstyle -o checkstyle-result.xml src ; exit 0",
     "populate-db": "node ./tests/populate-db.js"

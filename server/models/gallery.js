@@ -1,4 +1,3 @@
-const async = require('async');
 const DBTools = require('../middleware/db');
 
 const db = new DBTools('galleries');
@@ -66,30 +65,25 @@ module.exports = {
   },
 
   addImages: (gid, baseGalleryId, uid, imageIds, next) => {
+    console.log(uid);
+    console.log(imageIds);
+    console.log(next);
     if (imageIds.length === 0) {
-       // Since duplicate images aren't passed to the base gallery call, dont
-       // error on empty imageIds
       next(null);
       return;
     }
-    db.findOne({ uid, _id: gid }, (galleryDoc) => {
-      if (!galleryDoc) {
-        next('Cannot find gallery, or incorrect permissions');
-      } else {
-        async.filter(imageIds,
-        (id, cb) => cb(null, !(id in imageIds)),
-        (_err, newIds) => {
-          galleryDoc.images.push(...newIds);
-          db.updateOne({ _id: gid }, { images: galleryDoc.images }, () => {
-            if (gid === baseGalleryId) {
-              next(null);
-            } else {
-              module.exports.addImages(baseGalleryId, baseGalleryId, uid, newIds, next);
-            }
-          });
-        });
+    db.col.updateOne(
+      { uid, _id: db.id(gid) },
+      { $addToSet: { images: { $each: imageIds } } }, (err, updated) => {
+        if (err || updated.matchedCount !== 1) {
+          next('invalid gallery, or invalid permissions');
+        } else if (gid === baseGalleryId) {
+          next(null);
+        } else {
+          module.exports.addImages(baseGalleryId, baseGalleryId, uid, imageIds, next);
+        }
       }
-    });
+    );
   },
 
   updateGid: (galleryname, id, data, cb) => {

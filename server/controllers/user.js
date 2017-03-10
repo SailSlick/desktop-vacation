@@ -79,7 +79,8 @@ module.exports = {
         req.session.uid = added.uid;
         return next({
           status: 200,
-          message: 'user created and logged in'
+          message: 'user created and logged in',
+          gallery: added.baseGalleryId
         });
       });
     });
