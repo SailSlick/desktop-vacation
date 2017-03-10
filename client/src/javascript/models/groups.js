@@ -233,6 +233,7 @@ const Groups = {
   //   - Subgalleries with thumbnail locations
   //   - Images with full details
   expand: (gallery, cb) => {
+    gallery.subgalleries = gallery.subgalleries.filter(x => x._id);
     cb(gallery.subgalleries, gallery.images);
   }
 };

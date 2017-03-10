@@ -102,7 +102,6 @@ module.exports = {
         if (doc.users.indexOf(toAddName) !== -1) {
           return next({ status: 400, error: 'user is already member of group' });
         }
-
         // add invite to user list
         result.invites.push({ groupname: doc.name, gid: doc._id.toHexString() });
         return userModel.update(toAddName, result, (check) => {

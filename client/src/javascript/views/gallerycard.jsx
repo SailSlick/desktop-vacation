@@ -7,15 +7,10 @@ const ActionMenu = ({ simple, group, setSlideshow, onRemove, switchGroup, groupM
   if (simple) {
     return <figcaption style={{ display: 'none' }} />;
   }
-  let gMenu = (<MenuItem divider />);
-  if (group) {
-    gMenu = (
-      <MenuItem onClick={groupMenu}>
-        <Glyphicon glyph="list" />Group Manager
-      </MenuItem>
-    );
-  }
-  return (
+  let index = 0;
+  if (group) index = 1;
+
+  return [(
     <figcaption className="figure-caption rounded-circle">
       ...
       <div className="dropdown-menu img-menu">
@@ -26,13 +21,25 @@ const ActionMenu = ({ simple, group, setSlideshow, onRemove, switchGroup, groupM
         <MenuItem onClick={onRemove}>
           <Glyphicon glyph="remove" />Remove
         </MenuItem>
-        {gMenu}
         <MenuItem onClick={switchGroup}>
           <Glyphicon glyph="transfer" />Switch to Group
         </MenuItem>
       </div>
     </figcaption>
-  );
+  ), (
+    <figcaption className="figure-caption rounded-circle">
+      ...
+      <div className="dropdown-menu img-menu">
+        <MenuItem onClick={setSlideshow}>
+          <Glyphicon glyph="film" />Slideshow
+        </MenuItem>
+        <MenuItem divider />
+        <MenuItem onClick={groupMenu}>
+          <Glyphicon glyph="list" />Group Manager
+        </MenuItem>
+      </div>
+    </figcaption>
+  )][index];
 };
 
 ActionMenu.propTypes = {
@@ -104,6 +111,7 @@ class GalleryCard extends React.Component {
               mongoId={this.props.mongoId}
               uid={this.props.uid}
               users={this.props.users}
+              onRemove={this.remove}
             />
           </Modal.Body>
         </Modal>

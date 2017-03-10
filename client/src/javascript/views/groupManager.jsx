@@ -24,7 +24,8 @@ class GroupManager extends React.Component {
   deleteGroup() {
     Groups.delete(this.props.mongoId, this.props.dbId, (err, msg) => {
       if (err) danger(msg);
-      else success(msg);
+      success(msg);
+      this.props.onRemove(1);
     });
   }
 
@@ -36,6 +37,7 @@ class GroupManager extends React.Component {
   }
 
   inviteUser(event) {
+    event.preventDefault();
     const username = event.target.username.value;
     return Groups.inviteUser(this.props.mongoId, username, (err, msg) => {
       if (err) return danger(msg);
@@ -101,7 +103,7 @@ class GroupManager extends React.Component {
           </FormGroup>
           <HelpBlock>No spaces allowed in username</HelpBlock>
         </Form>),
-        <Button onClick={this.deleteGroup} >Delete Group</Button>
+        <Button onClick={this.deleteGroup}>Delete Group</Button>
       ];
     }
 
@@ -129,7 +131,8 @@ GroupManager.propTypes = {
   dbId: React.PropTypes.number.isRequired,
   mongoId: React.PropTypes.string.isRequired,
   uid: React.PropTypes.string.isRequired,
-  users: React.PropTypes.arrayOf(React.PropTypes.string).isRequired
+  users: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
+  onRemove: React.PropTypes.func.isRequired
 };
 
 export default GroupManager;
