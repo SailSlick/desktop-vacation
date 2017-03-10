@@ -56,7 +56,6 @@ module.exports = {
     // check if gallery exists
     return galleryModel.getGid(gid, (err, doc) => {
       if (err) {
-        console.error(err);
         return next({ status: 404, error: 'group doesn\'t exist' });
       }
       if (doc.uid !== uid) {
@@ -242,7 +241,9 @@ module.exports = {
     const gid = req.params.gid;
 
     galleryModel.getGid(gid, (err, doc) => {
-      if (err) return next({ status: 404, error: 'group doesn\'t exist' });
+      if (err) {
+        return next({ status: 404, error: 'group doesn\'t exist' });
+      }
 
       if (doc.uid !== uid && doc.users.indexOf(username) === -1) {
         return next({ status: 400, error: 'user isn\'t member of group' });
@@ -268,7 +269,8 @@ module.exports = {
       }
       return async.map(data.groups, (gid, cb) => {
         galleryModel.getGid(gid, (map_err, gallery) => {
-          if (map_err) return cb(err, {});
+          if (map_err === 'gallery not found') return cb(null, {});
+          if (map_err) return cb(map_err, {});
           return cb(null, {
             _id: gallery._id,
             name: gallery.name,
@@ -278,7 +280,17 @@ module.exports = {
           });
         });
       }, (map_err, galleries) => {
-        if (map_err) {
+        if (map_err === 'gallery not found') {
+          galleries = galleries.filter(x => x !== {});
+          return next({
+            status: 200,
+            message: 'user groups found',
+            data: {
+              subgalleries: galleries,
+              images: []
+            }
+          });
+        } else if (map_err) {
           return next({
             status: 500,
             error: 'failed to get group list'

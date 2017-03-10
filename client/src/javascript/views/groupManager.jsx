@@ -25,7 +25,7 @@ class GroupManager extends React.Component {
     Groups.delete(this.props.mongoId, this.props.dbId, (err, msg) => {
       if (err) danger(msg);
       success(msg);
-      this.props.onRemove(1);
+      this.props.onRemove('1');
     });
   }
 

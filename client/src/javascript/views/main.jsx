@@ -45,7 +45,7 @@ const InvitesContent = (parent) => {
       invites = data.map(invite =>
         <ListGroupItem>
           <InputGroup>
-            <p>{invite.groupname}</p>
+            <p>huh {invite.groupname}</p>
             <InputGroup.Button
               onClick={_ => parent.joinGroup(invite.gid, invite.groupname)}
             >Join</InputGroup.Button>

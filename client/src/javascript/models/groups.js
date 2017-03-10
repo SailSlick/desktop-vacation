@@ -81,10 +81,10 @@ const Groups = {
         if (id !== -1) {
           return Galleries.remove(id, (err_msg) => {
             if (err_msg) return cb(500, err_msg);
-            return cb(error, msg);
+            return cb(error, 'Group deleted');
           });
         }
-        return (error, msg);
+        return cb(error, 'Group deleted');
       });
     });
   },
@@ -233,8 +233,12 @@ const Groups = {
   //   - Subgalleries with thumbnail locations
   //   - Images with full details
   expand: (gallery, cb) => {
-    gallery.subgalleries = gallery.subgalleries.filter(x => x._id);
-    cb(gallery.subgalleries, gallery.images);
+    if (!gallery) {
+      cb([], []);
+    } else {
+      gallery.subgalleries = gallery.subgalleries.filter(x => x._id);
+      cb(gallery.subgalleries, gallery.images);
+    }
   }
 };
 

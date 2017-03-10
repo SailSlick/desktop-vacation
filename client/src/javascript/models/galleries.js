@@ -60,7 +60,10 @@ const Galleries = {
     gallery_db.updateOne({ $loki: id }, {
       group: true,
       mongoId
-    }, cb);
+    }, (ret) => {
+      document.dispatchEvent(gallery_update_event);
+      cb(ret);
+    });
   },
 
   addSubGallery: (id, subgallery_id, cb) => {
@@ -117,7 +120,7 @@ const Galleries = {
     // Expand Subgalleries
     map(gallery.subgalleries, (id, next) =>
       Galleries.get(id, (subgallery) => {
-        // Get thumbnail
+        // get thumbnails
         if (subgallery.images.length !== 0) {
           Images.get(
             subgallery.images[0],
@@ -136,8 +139,10 @@ const Galleries = {
       // Expand Images
       map(gallery.images, (image_id, next) =>
           Images.get(image_id, image => next(null, image)),
-        (err_img, images) =>
-          cb(subgalleries, images)
+        (err_img, images) => {
+          subgalleries = subgalleries.filter(x => !x.group);
+          cb(subgalleries, images);
+        }
       )
     );
   },

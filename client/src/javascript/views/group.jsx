@@ -30,14 +30,12 @@ class Group extends React.Component {
   }
 
   refresh(dbId) {
-    dbId = (typeof dbId === 'number') ? dbId : this.props.dbId;
-
     // Null the group ID if we're looking at the base group
     if (dbId === '1') dbId = null;
     const ret = Host.isAuthed();
     if (ret) {
       Groups.get(dbId, (err, res, gallery) => {
-        if (err) return danger(`${err}: ${res}`);
+        if (err) danger(`${err}: ${res}`);
         return Groups.expand(gallery, (subgalleries, images) =>
           this.setState({
             subgalleries,
