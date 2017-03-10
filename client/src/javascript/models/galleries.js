@@ -1,7 +1,7 @@
 import { map, each } from 'async';
 import { ipcRenderer as ipc } from 'electron';
 import request from 'request';
-import { cookie_jar } from './host';
+import Host from './host';
 import DbConn from '../helpers/db';
 import Images from './images';
 
@@ -43,6 +43,7 @@ const Galleries = {
       }
       const doc = {
         name,
+        remote: null,
         tags: [],
         subgalleries: [],
         images: []
@@ -213,6 +214,58 @@ const Galleries = {
       document.dispatchEvent(gallery_update_event);
       cb();
     });
+  },
+
+  addSyncItem: (gid, imageId, cb) => {
+    Galleries.addItem(gid, imageId, (res, err) => {
+      if (err === 'Cannot find gallery') {
+        // This is the fatal condition in addItem
+        cb(err, null);
+      } else {
+        cb(null, res);
+      }
+    });
+  },
+
+  addRemote: (gid, remote, cb) => {
+    gallery_db.updateOne({ $loki: gid }, { remote }, cb);
+  },
+
+  syncRoot: () => {
+    Host.getIndex(Host.user, (userData) => {
+      if (!userData) {
+        console.error('User data doesn\'t exist.');
+        console.error('Kernel panic - not syncing. Attempted to kill init');
+      }
+      const options = {
+        uri: Host.server_uri.concat(`/gallery/${userData.remoteGallery}`),
+        jar: Host.cookie_jar,
+        method: 'GET',
+        json: true
+      };
+      return request(options, (err, response, body) => {
+        map(body.data.images, Images.download, (downloadErr, imageIds) => {
+          if (downloadErr) console.error(downloadErr);
+          each(imageIds,
+            (id, cb) => Galleries.addSyncItem(BASE_GALLERY_ID, id, cb),
+            (addErr) => {
+              console.log(imageIds);
+              if (addErr) {
+                console.error(addErr);
+              } else {
+                Galleries.addRemote(BASE_GALLERY_ID, userData.remoteGallery, (success) => {
+                  if (success) {
+                    console.log('Fully synced base gallery');
+                  } else {
+                    console.error('Could not add remote to base gallery');
+                  }
+                });
+              }
+            }
+          );
+        });
+      });
+    });
   }
 };
 
@@ -224,6 +277,8 @@ document.addEventListener('vacation_loaded', () => {
 document.addEventListener('gallery_updated', () =>
   Galleries.should_save && gallery_db.save(_ => console.log('Database saved')),
 false);
+
+document.addEventListener('host_logged_in', Galleries.syncRoot, false);
 
 // IPC Calls
 ipc.on('selected-directory', (event, files) =>

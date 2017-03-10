@@ -6,6 +6,7 @@ import Galleries from './galleries';
 let host_db;
 
 const host_update_event = new Event('host_updated');
+const host_logged_in_event = new Event('host_logged_in');
 
 let server_uri;
 if (process.env.SRVPORT) {
@@ -53,7 +54,11 @@ function deleteCookies(cookie_jar, errCode, msg, cb) {
 
 // Exported methods
 const Host = {
+  server_uri,
+
   cookie_jar: request.jar(),
+
+  user: 1,
 
   login: (username, password, cb) => {
     host_db.findOne({}, (host_doc) => {
@@ -79,9 +84,11 @@ const Host = {
         if (!host_doc) {
           console.log('Create client side account for prev account.');
           return createClientAccount(username, body, (msg_err, msg) => {
+            document.dispatchEvent(host_logged_in_event);
             cb(msg_err, msg);
           });
         }
+        document.dispatchEvent(host_logged_in_event);
         return cb(null, body.message);
       });
     });
@@ -131,9 +138,18 @@ const Host = {
           });
         }
         return createClientAccount(username, body, (msg_err, msg) => {
+          document.dispatchEvent(host_logged_in_event);
           cb(msg_err, msg);
         });
       });
+    });
+  },
+
+  getBaseRemote: (cb) => {
+    host_db.findOne({ $loki: Host.user }, (doc) => {
+      console.log('finding remote gallery');
+      if (!doc) return cb('');
+      return cb(doc.remoteGallery);
     });
   },
 

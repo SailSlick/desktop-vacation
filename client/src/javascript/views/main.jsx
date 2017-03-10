@@ -5,6 +5,7 @@ import { ipcRenderer as ipc } from 'electron';
 import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup } from 'react-bootstrap';
 import Gallery from './gallery.jsx';
 import Galleries from '../models/galleries';
+import Host from '../models/host';
 import Slideshow from '../helpers/slideshow-client';
 import Profile from './profile.jsx';
 import { success, danger } from '../helpers/notifier';
@@ -18,6 +19,7 @@ const PrimaryContent = ({ page, parent }) => {
   return [
     (<Gallery
       dbId={parent.state.galleryId}
+      remote={parent.state.remote}
       onChange={parent.changeGallery}
       multiSelect={parent.state.multiSelect}
     />),
@@ -33,6 +35,7 @@ class Main extends React.Component {
 
     this.state = {
       galleryId: BASE_GALLERY_ID,
+      remote: '',
       newGalleryModal: false,
       selectGalleryModal: false,
       page: 0,
@@ -51,10 +54,17 @@ class Main extends React.Component {
     this.showAlert = this.showAlert.bind(this);
     this.dismissAlert = this.dismissAlert.bind(this);
     this.toggleSelectMode = this.toggleSelectMode.bind(this);
+    this.updateRemote = this.updateRemote.bind(this);
 
     // Events
     document.addEventListener('append_gallery', this.showGallerySelector, false);
     document.addEventListener('notify', this.showAlert, false);
+  }
+
+  componentDidMount() {
+    Host.getBaseRemote((remote) => {
+      this.updateRemote(remote);
+    });
   }
 
   componentWillUnmount() {
@@ -86,6 +96,10 @@ class Main extends React.Component {
 
   getNewGalleryName() {
     this.setState({ newGalleryModal: true });
+  }
+
+  updateRemote(remote) {
+    this.setState({ remote });
   }
 
   showGallerySelector(evt) {
@@ -236,6 +250,7 @@ class Main extends React.Component {
               <Gallery
                 simple
                 dbId={BASE_GALLERY_ID}
+                remote={this.state.remote}
                 onChange={this.onSelectGallery}
               />
               <Profile

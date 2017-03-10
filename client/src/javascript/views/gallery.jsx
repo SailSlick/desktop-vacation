@@ -5,6 +5,7 @@ import Image from './image.jsx';
 import GalleryCard from './gallerycard.jsx';
 import Galleries from '../models/galleries';
 import { success, danger } from '../helpers/notifier';
+import sync from '../helpers/sync';
 
 const append_gallery_event_name = 'append_gallery';
 
@@ -60,6 +61,7 @@ class Gallery extends React.Component {
     this.removeSubgallery = this.removeSubgallery.bind(this);
     this.addAllToGallery = this.addAllToGallery.bind(this);
     this.removeItem = this.removeItem.bind(this);
+    this.uploadItem = this.uploadItem.bind(this);
     this.removeAll = this.removeAll.bind(this);
     this.selectItem = this.selectItem.bind(this);
     this.selectAll = this.selectAll.bind(this);
@@ -127,6 +129,15 @@ class Gallery extends React.Component {
     }
   }
 
+  uploadItem(ids) {
+    console.log(this.props);
+    if (this.props.remote.length > 0) {
+      sync.uploadImages(this.props.remote, ids);
+    } else {
+      danger('This is not a synced item, try signing in!');
+    }
+  }
+
   removeAll(cb) {
     Galleries.should_save = false;
     const num_items = this.state.selection.length;
@@ -166,6 +177,7 @@ class Gallery extends React.Component {
       <GalleryCard
         key={`g${subgallery.$loki}`}
         dbId={subgallery.$loki}
+        remote={subgallery.remote}
         name={subgallery.name}
         thumbnail={subgallery.thumbnail}
         onClick={_ => this.props.onChange(subgallery.$loki)}
@@ -179,7 +191,8 @@ class Gallery extends React.Component {
         <Image
           key={image.$loki}
           dbId={image.$loki}
-          src={image.location}
+          src={image.location || image.uri}
+          onUpload={this.uploadItem}
           onRemove={this.removeItem}
           onSelect={this.selectItem}
           multiSelect={this.props.multiSelect}
@@ -215,6 +228,7 @@ Gallery.propTypes = {
   dbId: React.PropTypes.number.isRequired,
   onChange: React.PropTypes.func.isRequired,
   onRefresh: React.PropTypes.func,
+  remote: React.PropTypes.string,
   simple: React.PropTypes.bool,
   multiSelect: React.PropTypes.bool
 };
@@ -222,6 +236,7 @@ Gallery.propTypes = {
 Gallery.defaultProps = {
   simple: false,
   multiSelect: false,
+  remote: -1,
   onRefresh: () => true
 };
 

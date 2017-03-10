@@ -28,7 +28,11 @@ routes.post('/user/update', user.update);
 routes.post('/user/delete', user.delete);
 
 // images
-routes.use('/images/*', user.requireAuth);
+
+// XXX TEMORARY FIX FOR PIECE OF SHIT REQUESTS MODULE ON THE CLIENT SIDE
+// which either can't, or doesn't document, being able to stream data
+// and send cookies at the same time .
+// routes.use('/images/*', user.requireAuth);
 routes.get('/image/:id/', sync.download);
 
 // gallery

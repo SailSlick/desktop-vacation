@@ -1,7 +1,16 @@
 import { ipcRenderer as ipc } from 'electron';
+import sync from './sync';
 
 export default {
-  set: path => ipc.send('set-wallpaper', path),
+  set: (filePath) => {
+    if (filePath[0] === '/') {
+      ipc.send('set-wallpaper', filePath);
+    } else if (filePath[0] === 'h') {
+      sync.urlToFile(filePath, (err, realPath) => {
+        ipc.send('set-wallpaper', realPath);
+      });
+    }
+  },
 
   get: () => 'not yet implemented'
 };

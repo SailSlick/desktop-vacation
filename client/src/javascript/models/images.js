@@ -1,4 +1,5 @@
 import fs from 'fs';
+import Host from './host';
 import DbConn from '../helpers/db';
 
 let image_db;
@@ -45,6 +46,19 @@ const Images = {
       image_db.save(_ => console.log('Database saved'));
       cb();
     });
+  },
+
+  download: (remoteId, cb) => {
+    const image = {
+      hash: '',
+      metadata: { rating: 0, tags: [] },
+      uri: Host.server_uri.concat(`/image/${remoteId}`)
+    };
+    image_db.findOne({ uri: image.uri }, (doc) => {
+      if (doc) return cb(null, doc.$loki);
+      return image_db.insert(image, inserted_doc => cb(null, inserted_doc.$loki));
+    });
+    cb;
   }
 };
 
