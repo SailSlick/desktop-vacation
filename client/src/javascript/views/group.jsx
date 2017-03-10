@@ -33,7 +33,7 @@ class Group extends React.Component {
     dbId = (typeof dbId === 'number') ? dbId : this.props.dbId;
 
     // Null the group ID if we're looking at the base group
-    if (dbId === 1) dbId = null;
+    if (dbId === '1') dbId = null;
     const ret = Host.isAuthed();
     if (ret) {
       Groups.get(dbId, (err, res, gallery) => {
@@ -109,12 +109,8 @@ class Group extends React.Component {
 }
 
 Group.propTypes = {
-  dbId: React.PropTypes.number,
+  dbId: React.PropTypes.string.isRequired,
   onChange: React.PropTypes.func.isRequired
-};
-
-Group.defaultProps = {
-  dbId: null
 };
 
 export default Group;

@@ -13,7 +13,7 @@ import Host from '../models/host';
 import { success, danger } from '../helpers/notifier';
 
 const BASE_GALLERY_ID = 1;
-const BASE_GROUP_ID = 1;
+const BASE_GROUP_ID = '1';
 
 const PrimaryContent = ({ page, parent }) => {
   Galleries.get({ $gt: 0 }, (gallery) => {
@@ -26,7 +26,7 @@ const PrimaryContent = ({ page, parent }) => {
       multiSelect={parent.state.multiSelect}
     />),
     (<Group
-      dbId={parent.state.galleryId}
+      dbId={parent.state.groupId}
       onChange={parent.changeGroup}
       multiSelect={parent.state.multiSelect}
     />),
@@ -320,7 +320,7 @@ class Main extends React.Component {
                 <MenuItem onClick={this.getNewGalleryName}>Add</MenuItem>
               </NavDropdown>
               <NavDropdown title="Groups" id="groups">
-                <MenuItem onClick={_ => this.changeGroup(BASE_GALLERY_ID)}>View</MenuItem>
+                <MenuItem onClick={_ => this.changeGroup(BASE_GROUP_ID)}>View</MenuItem>
                 <MenuItem onClick={this.getNewGroupName}>Add</MenuItem>
                 <MenuItem onClick={this.getInvitesModal}>Invites</MenuItem>
               </NavDropdown>
