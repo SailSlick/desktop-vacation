@@ -2,7 +2,7 @@ import React from 'react';
 import { each } from 'async';
 import { AlertList } from 'react-bs-notifier';
 import { ipcRenderer as ipc } from 'electron';
-import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup, FormControl, ControlLabel, ListGroup, ListGroupItem, InputGroup } from 'react-bootstrap';
+import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup, FormControl, ListGroup, ListGroupItem, InputGroup } from 'react-bootstrap';
 import Gallery from './gallery.jsx';
 import Galleries from '../models/galleries';
 import Slideshow from '../helpers/slideshow-client';
@@ -42,10 +42,11 @@ const InvitesContent = (parent) => {
   if (ret) {
     // gotta show all invites with accept or deny button
     Groups.getAllInvites((err, msg, data) => {
+      if (data.length === 0) return (<p>No invites</p>);
       invites = data.map(invite =>
         <ListGroupItem>
           <InputGroup>
-            <p>huh {invite.groupname}</p>
+            <p>{invite.groupname}</p>
             <InputGroup.Button
               onClick={_ => parent.joinGroup(invite.gid, invite.groupname)}
             >Join</InputGroup.Button>
@@ -55,12 +56,12 @@ const InvitesContent = (parent) => {
           </InputGroup>
         </ListGroupItem>
       );
+      return invites;
     });
   }
 
   return (
     <Grid fluid>
-      <h3><ControlLabel>Group Users</ControlLabel></h3>
       <ListGroup>
         {invites}
       </ListGroup>
