@@ -103,6 +103,9 @@ let i = 3;
 function connReady() {
   i--;
   if (i === 0) {
+    dbConnI.removeMany({}, () => true);
+    dbConnG.removeMany({}, () => true);
+    dbConnU.removeMany({}, () => true);
     return users();
   }
   return false;

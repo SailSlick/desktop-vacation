@@ -24,7 +24,7 @@ function requestHandler(body, cb) {
 
 const Groups = {
   create: (groupname, cb) => {
-    if (typeof groupname !== 'string' || groupname.trim() === '' || groupname.indexOf(' ') !== -1) {
+    if (typeof groupname !== 'string' || groupname.trim() === '') {
       return cb(400, `Invalid gallery name ${groupname}`);
     }
     const options = {
