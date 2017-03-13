@@ -6,7 +6,7 @@ All of the following requests require the user to be authenticated.
 
 ## Uploading
 
-`POST /gallery/sync`
+`POST /gallery/upload`
 
 Upon successful request, will upload the sent image(s) to the server.
 
@@ -25,7 +25,7 @@ in these types of image uploading scenarios.
 
 ### Response
 
-The `image-id` key refers to the reference the server has for the image. The
+The `image-ids` key refers to the reference the server has for the image. The
 response array imitates the original file order: the first image uploaded is
 the first image_id in the array and so on.
 
@@ -33,7 +33,7 @@ the first image_id in the array and so on.
 ```
 {
   "message": "images uploaded",
-  "image-id": [<image_id_0>, ..., <image_id_n>]
+  "image-ids": [<image_id_0>, ..., <image_id_n>]
 }
 ```
 
