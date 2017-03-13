@@ -1,15 +1,8 @@
-# API
+# Groups API.
 
-The API uses the MIME type `application/json` for both parameters and response
-unless otherwise noted, as in the case for images.
-- All of the following requests require the user to be authenticated.
+All of the following requests require the user to be authenticated.
 
-### [Status codes](./users.md#status-codes)
-
-### Errors
-
-If an error occurs, a string describing it will be in the error field in the
-json.
+### [General Information](./README.md)
 
 ## Create Group
 
