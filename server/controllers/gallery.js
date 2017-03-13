@@ -45,7 +45,7 @@ module.exports = {
     });
   },
 
-  delete: (req, res, next) => {
+  deleteGroup: (req, res, next) => {
     const uid = req.session.uid;
     const gid = req.body.gid;
 
@@ -63,7 +63,10 @@ module.exports = {
       }
       return galleryModel.remove(doc.name, uid, (ret) => {
         if (ret === 'gallery deleted') {
-          return next({ status: 200, message: ret });
+          // remove from all users.
+          return userModel.updateMany({ groups: gid }, { $pull: { groups: gid } }, () => {
+            next({ status: 200, message: ret });
+          });
         }
         return next({ status: 500, error: ret });
       });
@@ -208,7 +211,6 @@ module.exports = {
       let in_check = false;
       result.invites.forEach((invite, index) => {
         if (invite.groupname === groupname && invite.gid === gid) {
-          result.groups.push(gid);
           result.invites.splice(index, 1);
           in_check = true;
         }

@@ -81,7 +81,7 @@ const Groups = {
         if (id !== -1) {
           return Galleries.remove(id, (err_msg) => {
             if (err_msg) return cb(500, err_msg);
-            return cb(error, 'Group deleted');
+            return cb(error, 'Group deleted from client and server');
           });
         }
         return cb(error, 'Group deleted');

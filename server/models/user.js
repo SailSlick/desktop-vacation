@@ -48,6 +48,13 @@ module.exports = {
     });
   },
 
+  updateMany: (query, data, cb) => {
+    db.updateMany(query, data, (res) => {
+      if (!res) return cb('no data changed');
+      return cb(null);
+    });
+  },
+
   delete: (username, cb) => {
     db.findOne({ username }, (doc) => {
       db.removeOne({ username }, (res) => {

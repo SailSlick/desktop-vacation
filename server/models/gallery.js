@@ -17,7 +17,6 @@ module.exports = {
         users: [],
         tags: [],
         subgalleries: [],
-        invites: [],
         images: []
       };
       return db.insertOne(galleryData, (res) => {

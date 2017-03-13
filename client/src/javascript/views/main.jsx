@@ -36,34 +36,26 @@ const PrimaryContent = ({ page, parent }) => {
   ][page];
 };
 
-const InvitesContent = (parent) => {
-  let invites;
-  const ret = Host.isAuthed();
-  if (ret) {
-    // gotta show all invites with accept or deny button
-    Groups.getAllInvites((err, msg, data) => {
-      if (data.length === 0) return (<p>No invites</p>);
-      invites = data.map(invite =>
-        <ListGroupItem>
-          <InputGroup>
-            <p>{invite.groupname}</p>
-            <InputGroup.Button
-              onClick={_ => parent.joinGroup(invite.gid, invite.groupname)}
-            >Join</InputGroup.Button>
-            <InputGroup.Button
-              onClick={_ => parent.refuseInvite(invite.gid, invite.groupname)}
-            >Refuse</InputGroup.Button>
-          </InputGroup>
-        </ListGroupItem>
-      );
-      return invites;
-    });
-  }
-
+const InvitesContent = ({ parent }) => {
+  let invites_react = [];
+  invites_react = parent.state.invites.map(invite =>
+    <ListGroupItem>
+      <InputGroup>
+        <p>{invite.groupname}</p>
+        <Button
+          onClick={_ => parent.joinGroup(invite.gid, invite.groupname)}
+        >Join</Button>
+        <Button
+          onClick={_ => parent.refuseInvite(invite.gid, invite.groupname)}
+        >Refuse</Button>
+      </InputGroup>
+    </ListGroupItem>
+  );
   return (
     <Grid fluid>
+      <Button onClick={parent.inviteRefresh}>Refresh</Button>
       <ListGroup>
-        {invites}
+        {invites_react.map(invite => invite || null)}
       </ListGroup>
     </Grid>
   );
@@ -85,7 +77,8 @@ class Main extends React.Component {
       alerts: [],
       galleryname: '',
       groupUsersModal: false,
-      invitesModal: false
+      invitesModal: false,
+      invites: []
     };
 
     this.onSelectGallery = this.onSelectGallery.bind(this);
@@ -105,6 +98,7 @@ class Main extends React.Component {
     this.getInvitesModal = this.getInvitesModal.bind(this);
     this.joinGroup = this.joinGroup.bind(this);
     this.refuseInvite = this.refuseInvite.bind(this);
+    this.inviteRefresh = this.inviteRefresh.bind(this);
 
     // Events
     document.addEventListener('append_gallery', this.showGallerySelector, false);
@@ -262,6 +256,7 @@ class Main extends React.Component {
       } else {
         success(msg);
         this.setState({ invitesModal: true });
+        this.inviteRefresh();
       }
     });
   }
@@ -273,8 +268,21 @@ class Main extends React.Component {
       } else {
         success(msg);
         this.setState({ invitesModal: true });
+        this.inviteRefresh();
       }
     });
+  }
+
+  inviteRefresh() {
+    if (Host.isAuthed()) {
+      // gotta show all invites with accept or deny button
+      Groups.getAllInvites((err, msg, data) => {
+        success('Invites refreshed');
+        this.setState({ invites: data });
+      });
+    } else {
+      danger('Not logged in');
+    }
   }
 
   profileView() {

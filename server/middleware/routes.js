@@ -21,7 +21,7 @@ routes.get('gallery/data', gallery.get);
 routes.use('/group/*', user.requireAuth);
 routes.post('/group/create', gallery.create);
 routes.post('/group/switch', gallery.switch);
-routes.post('/group/delete', gallery.delete);
+routes.post('/group/delete', gallery.deleteGroup);
 routes.get('/group/', gallery.getGroupList);
 
 // group user functionality

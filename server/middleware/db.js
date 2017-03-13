@@ -99,7 +99,13 @@ class DbConn {
   // updateMany: add data to all docs that match the query (e.g. add tags to multiple images)
   // query in {x:y} format, data in {x:y} format
   updateMany(query, data, cb) {
-    return this.col.updateMany(query, { $set: data }, (err, result) => {
+    if (query.groups && typeof query.groups === 'string') {
+      query.groups = new MongoClient.ObjectID(query.groups);
+      data.$pull.groups = query.groups;
+    } else {
+      data = { $set: data };
+    }
+    return this.col.updateMany(query, data, (err, result) => {
       errCheck(err, () => {
         if (result.matchedCount >= 1 && result.modifiedCount >= 1) {
           debug('Updated all docs that match query');

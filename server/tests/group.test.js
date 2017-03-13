@@ -139,7 +139,7 @@ describe('Group API', () => {
         });
     });
 
-    it('should be able to delete with correct name', (done) => {
+    it('should be able to delete with gid', (done) => {
       galleryDB.findOne({ name: groupname }, (doc) => {
         agent
           .post('/group/delete')
@@ -182,7 +182,7 @@ describe('Group API', () => {
           res.body.message.should.equal('user groups found');
           res.body.should.have.property('data');
           res.body.data.should.have.property('subgalleries');
-          res.body.data.subgalleries.should.have.lengthOf(3);
+          res.body.data.subgalleries.should.have.lengthOf(2);
           done();
         });
     });
