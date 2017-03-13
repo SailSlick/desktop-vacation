@@ -51,7 +51,7 @@ the first image_id in the array and so on.
 Downloads an image given the image id.
 
 ### URL Parameters
-``
+
 | Name       | Type        | Description                                   |
 |------------|-------------|-----------------------------------------------|
 | image-id   | string      | a string referencing image's id on the server |
