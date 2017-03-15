@@ -20,7 +20,7 @@ routes.get('gallery/data', gallery.get);
 // group management functionality
 routes.use('/group/*', user.requireAuth);
 routes.post('/group/create', gallery.create);
-routes.post('/group/switch', gallery.switch);
+routes.post('/group/convert', gallery.convert);
 routes.post('/group/delete', gallery.deleteGroup);
 routes.get('/group/', gallery.getGroupList);
 

@@ -73,8 +73,8 @@ module.exports = {
 
     return bcrypt.hash(password, SALT_N, (err, hash) => {
       if (err) return next({ status: 500, error: err });
-      return userModel.add(username, hash, (ret) => {
-        if (ret === 'database communication error') return next({ status: 400, error: ret });
+      return userModel.add(username, hash, (errMsg, ret) => {
+        if (errMsg) return next({ status: 400, error: errMsg });
         req.session.username = username;
         req.session.uid = ret;
         return next({ status: 200, message: 'user created and logged in', uid: ret });

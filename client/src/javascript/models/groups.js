@@ -2,12 +2,7 @@ import request from 'request';
 import Host from './host';
 import Galleries from './galleries';
 
-let server_uri = 'http://127.0.0.1:';
-if (process.env.SRVPORT) {
-  server_uri = 'http://vaca.m1cr0man.com';
-} else {
-  server_uri = server_uri.concat('3000');
-}
+const server_uri = Host.server_uri;
 
 const cookie_jar = Host.cookie_jar;
 
@@ -47,14 +42,14 @@ const Groups = {
     });
   },
 
-  switch: (groupname, id, cb) => {
+  convert: (groupname, id, cb) => {
     const options = {
-      uri: server_uri.concat('/group/switch'),
+      uri: server_uri.concat('/group/convert'),
       method: 'POST',
       jar: cookie_jar,
       json: { groupname }
     };
-    Galleries.get(id, (doc) => {
+    Galleries.get({ $loki: id }, (doc) => {
       if (!doc) return cb(404, 'Gallery not found');
       return request(options, (err, res, body) => {
         requestHandler(body, (error, msg) => {
@@ -237,6 +232,11 @@ const Groups = {
       cb([], []);
     } else {
       gallery.subgalleries = gallery.subgalleries.filter(x => x._id);
+      gallery.subgalleries.map(x =>
+        Galleries.get({ mongoId: x._id }, (subgallery) => {
+          if (subgallery) x.$loki = subgallery.$loki;
+        })
+      );
       cb(gallery.subgalleries, gallery.images);
     }
   }

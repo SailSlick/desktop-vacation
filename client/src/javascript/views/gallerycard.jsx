@@ -2,8 +2,10 @@ import React from 'react';
 import { MenuItem, Glyphicon, Image as BsImage, Modal } from 'react-bootstrap';
 import Slideshow from '../helpers/slideshow-client';
 import GroupManager from './groupManager.jsx';
+import { success, danger } from '../helpers/notifier';
+import Groups from '../models/groups';
 
-const ActionMenu = ({ simple, group, setSlideshow, onRemove, switchGroup, groupMenu }) => {
+const ActionMenu = ({ simple, group, setSlideshow, onRemove, groupConvert, groupMenu }) => {
   if (simple) {
     return <figcaption style={{ display: 'none' }} />;
   }
@@ -21,7 +23,7 @@ const ActionMenu = ({ simple, group, setSlideshow, onRemove, switchGroup, groupM
         <MenuItem onClick={onRemove}>
           <Glyphicon glyph="remove" />Remove
         </MenuItem>
-        <MenuItem onClick={switchGroup}>
+        <MenuItem onClick={groupConvert}>
           <Glyphicon glyph="transfer" />Switch to Group
         </MenuItem>
       </div>
@@ -47,7 +49,7 @@ ActionMenu.propTypes = {
   group: React.PropTypes.bool.isRequired,
   setSlideshow: React.PropTypes.func.isRequired,
   onRemove: React.PropTypes.func.isRequired,
-  switchGroup: React.PropTypes.func.isRequired,
+  groupConvert: React.PropTypes.func.isRequired,
   groupMenu: React.PropTypes.func.isRequired
 };
 
@@ -62,7 +64,7 @@ class GalleryCard extends React.Component {
     // Bind onClick to this object
     this.remove = this.remove.bind(this);
     this.setSlideshow = this.setSlideshow.bind(this);
-    this.switchGroup = this.switchGroup.bind(this);
+    this.groupConvert = this.groupConvert.bind(this);
     this.groupMenu = this.groupMenu.bind(this);
     this.hideModals = this.hideModals.bind(this);
   }
@@ -71,12 +73,16 @@ class GalleryCard extends React.Component {
     Slideshow.set(this.props.dbId);
   }
 
-  remove() {
-    this.props.onRemove(this.props.dbId);
+  // eslint-disable-next-line class-methods-use-this
+  groupConvert() {
+    Groups.convert(this.props.name, this.props.dbId, (err, msg) => {
+      if (err) return danger(msg);
+      return success(msg);
+    });
   }
 
-  switchGroup() {
-    this.props.groupSwitch(this.props.name, this.props.dbId);
+  remove() {
+    this.props.onRemove(this.props.dbId);
   }
 
   groupMenu() {
@@ -97,7 +103,7 @@ class GalleryCard extends React.Component {
           group={this.props.group}
           setSlideshow={this.setSlideshow}
           onRemove={this.remove}
-          switchGroup={this.switchGroup}
+          groupConvert={this.groupConvert}
           groupMenu={this.groupMenu}
         />
 
@@ -126,7 +132,6 @@ GalleryCard.propTypes = {
   thumbnail: React.PropTypes.string,
   onClick: React.PropTypes.func.isRequired,
   onRemove: React.PropTypes.func.isRequired,
-  groupSwitch: React.PropTypes.func,
   group: React.PropTypes.bool,
   simple: React.PropTypes.bool,
   mongoId: React.PropTypes.string,
@@ -136,7 +141,6 @@ GalleryCard.propTypes = {
 
 GalleryCard.defaultProps = {
   thumbnail: '',
-  groupSwitch: () => true,
   simple: false,
   group: false,
   mongoId: '',

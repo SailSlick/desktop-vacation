@@ -70,7 +70,7 @@ class Group extends React.Component {
       <GalleryCard
         group
         key={`g${subgallery._id}`}
-        dbId={-1}
+        dbId={subgallery.$loki}
         mongoId={subgallery._id}
         name={subgallery.name}
         uid={subgallery.uid}

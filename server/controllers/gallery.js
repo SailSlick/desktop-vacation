@@ -9,14 +9,14 @@ module.exports = {
     const username = req.session.username;
     const groupname = req.body.groupname;
 
-    if (!galleryModel.verGroupname(groupname)) {
+    if (!galleryModel.verifyGroupname(groupname)) {
       return next({ status: 400, error: 'invalid groupname' });
     }
     return galleryModel.create(groupname, uid, (ret) => {
       if (typeof ret === 'string') return next({ status: 400, error: ret });
       return galleryModel.get(groupname, uid, (cb, doc) => {
         userModel.get(username, (err, data) => {
-          if (err) return next({ status: 500, error: 'creation failed' });
+          if (err) return next({ status: 500, error: 'Failed to add gallery to user' });
           data.groups.push(doc._id);
           return userModel.update(username, data, () => {
             next({ status: 200, message: 'group created', data: doc._id });
@@ -26,7 +26,7 @@ module.exports = {
     });
   },
 
-  switch: (req, res, next) => {
+  convert: (req, res, next) => {
     const uid = req.session.uid;
     const groupname = req.body.groupname;
 
@@ -35,11 +35,11 @@ module.exports = {
 
       // add gallery to groups in userdb
       return userModel.get(uid, (err, uData) => {
-        if (err) return next({ status: 500, error: 'switch failed' });
+        if (err) return next({ status: 500, error: 'convert failed' });
         uData.groups.push(doc._id);
         return userModel.update(uid, doc, (ret) => {
-          if (ret) return next({ status: 500, error: 'switch failed' });
-          return next({ status: 200, message: 'gallery switched' });
+          if (ret) return next({ status: 500, error: 'convert failed' });
+          return next({ status: 200, message: 'gallery converted' });
         });
       });
     });
@@ -49,7 +49,7 @@ module.exports = {
     const uid = req.session.uid;
     const gid = req.body.gid;
 
-    if (!galleryModel.verGid(gid)) {
+    if (!galleryModel.verifyGid(gid)) {
       return next({ status: 400, error: 'invalid gid' });
     }
 

@@ -3,10 +3,10 @@ const DBTools = require('../middleware/db');
 const db = new DBTools('galleries');
 
 module.exports = {
-  verGroupname: groupname =>
+  verifyGroupname: groupname =>
     typeof groupname === 'string' && groupname.length <= 20 && groupname.length >= 3,
 
-  verGid: gid => typeof gid === 'string' && gid.length === 24,
+  verifyGid: gid => typeof gid === 'string' && gid.length === 24,
 
   create: (galleryname, uid, cb) => {
     db.findOne({ name: galleryname, uid }, (doc) => {

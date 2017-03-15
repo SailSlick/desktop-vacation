@@ -12,7 +12,7 @@ module.exports = {
 
   add: (username, password, cb) => {
     db.findOne({ username }, (data) => {
-      if (data) return cb('username taken');
+      if (data) return cb('username taken', null);
       const userData = {
         username,
         password,
@@ -25,8 +25,8 @@ module.exports = {
           galleryModel.create(username.concat('_all'), added, (g_id) => {
             userData.gallery = g_id;
             return db.updateOne({ _id: added }, userData, (res) => {
-              if (res) return cb(added);
-              return cb('database communication error');
+              if (res) return cb(null, added);
+              return cb('database communication error', null);
             });
           });
         }

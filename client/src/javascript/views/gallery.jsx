@@ -5,7 +5,6 @@ import Image from './image.jsx';
 import GalleryCard from './gallerycard.jsx';
 import Galleries from '../models/galleries';
 import { success, danger } from '../helpers/notifier';
-import Groups from '../models/groups';
 
 const append_gallery_event_name = 'append_gallery';
 
@@ -64,7 +63,6 @@ class Gallery extends React.Component {
     this.removeAll = this.removeAll.bind(this);
     this.selectItem = this.selectItem.bind(this);
     this.selectAll = this.selectAll.bind(this);
-    this.groupSwitch = this.groupSwitch.bind(this);
 
     // Hook event to catch when an image is added
     document.addEventListener('gallery_updated', this.refresh, false);
@@ -86,7 +84,7 @@ class Gallery extends React.Component {
   refresh(dbId) {
     dbId = (typeof dbId === 'number') ? dbId : this.props.dbId;
 
-    Galleries.get(dbId, gallery =>
+    Galleries.get({ $loki: dbId }, gallery =>
       Galleries.expand(gallery, (subgalleries, images) =>
         this.setState({
           subgalleries,
@@ -157,14 +155,6 @@ class Gallery extends React.Component {
     });
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  groupSwitch(name, dbId) {
-    Groups.switch(name, dbId, (err, msg) => {
-      if (err) return danger(msg);
-      return success(msg);
-    });
-  }
-
   selectAll(should_select, cb) {
     this.setState({
       selection: (should_select) ? this.state.images.map(val => val.$loki) : []
@@ -180,7 +170,6 @@ class Gallery extends React.Component {
         thumbnail={subgallery.thumbnail}
         onClick={_ => this.props.onChange(subgallery.$loki)}
         onRemove={this.removeSubgallery}
-        groupSwitch={this.groupSwitch}
         simple={this.props.simple}
       />
     );

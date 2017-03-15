@@ -88,7 +88,7 @@ class GroupManager extends React.Component {
             <Col componentClass={ControlLabel} sm={3}>
               Username
             </Col>
-            <Col sm={7}>
+            <Col sm={6}>
               <FormControl
                 name="username"
                 type="text"
@@ -97,7 +97,7 @@ class GroupManager extends React.Component {
                 onChange={this.inputChange}
               />
             </Col>
-            <Col sm={1}>
+            <Col sm={2}>
               <Button type="submit">Invite</Button>
             </Col>
           </FormGroup>

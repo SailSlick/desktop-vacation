@@ -8,7 +8,7 @@ let host_db;
 const host_update_event = new Event('host_updated');
 
 let server_uri;
-if (process.env.SRVPORT) {
+if (process.env.NODE_ENV === 'production') {
   server_uri = 'http://vaca.m1cr0man.com';
 } else {
   server_uri = 'http://127.0.0.1:3000';
@@ -40,6 +40,8 @@ function createClientAccount(username, successMessage, cb) {
 
 // Exported methods
 const Host = {
+
+  server_uri,
 
   cookie_jar: request.jar(),
 
