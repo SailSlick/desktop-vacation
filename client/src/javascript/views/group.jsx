@@ -40,7 +40,7 @@ class Group extends React.Component {
             subgalleries,
             images
           }, () => {
-            console.log('Group refreshed');
+            console.log('Group refreshed', dbId);
           })
         );
       });

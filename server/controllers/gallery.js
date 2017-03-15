@@ -242,11 +242,10 @@ module.exports = {
     const uid = req.session.uid;
     const gid = req.params.gid;
 
-    galleryModel.getGid(gid, (err, doc) => {
+    return galleryModel.getGid(gid, (err, doc) => {
       if (err) {
         return next({ status: 404, error: 'group doesn\'t exist' });
       }
-
       if (doc.uid !== uid && doc.users.indexOf(username) === -1) {
         return next({ status: 400, error: 'user isn\'t member of group' });
       }
