@@ -12,9 +12,9 @@ Upon successful request, creates a new group gallery.
 
 ### Parameters
 
-| Name      | Type   | Description                                |
-|-----------|--------|--------------------------------------------|
-| groupname | string | The name of the gallery to make into group |
+| Name      | Type   | Description                   |
+|-----------|--------|-------------------------------|
+| groupname | string | The name of the group to make |
 
 ### Response
 
@@ -25,10 +25,37 @@ Upon successful request, creates a new group gallery.
 
 ### Expected Errors
 
+| Error Message                           | Status |
+|-----------------------------------------|--------|
+| `'creation failed'`                     |   500  |
+| `'invalid groupname'`                   |   400  |
+| `'user already has group of same name'` |   400  |
+| `'gallery doesn't exist'`               |   404  |
+
+## Switch Group
+
+`POST /group/switch`
+
+Upon successful request, turns a gallery into a group.
+
+### Parameters
+
+| Name      | Type   | Description                                |
+|-----------|--------|--------------------------------------------|
+| groupname | string | The name of the gallery to make into group |
+
+### Response
+
+` Status: 200 OK `
+```json
+{ "message": "gallery switched" }
+```
+
+### Expected Errors
+
 | Error Message             | Status |
 |---------------------------|--------|
-| `'creation failed'`       |   500  |
-| `'invalid name'`          |   400  |
+| `'switch failed'`         |   500  |
 | `'gallery doesn't exist'` |   404  |
 
 ## Delete Group
@@ -39,9 +66,9 @@ Upon successful request, deletes a group gallery.
 
 ### Parameters
 
-| Name      | Type   | Description                     |
-|-----------|--------|---------------------------------|
-| groupname | string | The name of the group to delete |
+| Name | Type   | Description                   |
+|------|--------|-------------------------------|
+| gid  | string | The id of the group to delete |
 
 ### Response
 
@@ -57,28 +84,7 @@ Upon successful request, deletes a group gallery.
 | `'deletion failed'`                 |   500  |
 | `'group doesn't exist'`             |   404  |
 | `'incorrect permissions for group'` |   401  |
-
-## Get all your Groups
-
-`GET /group/`
-
-Upon successful request, returns a list of the user's group galleries.
-
-### Response
-
-` Status: 200 OK `
-```json
-{
-  "message": "user groups found",
-  "data": [{
-    "_id": ObjectId("2g6c2b97bac0595474108b48"),
-    "name": "scenery",
-    "uid": ObjectId("542c2b97bac0595474108b48"),
-    "users": ["m1cr0man","Sully"],
-    "tags": ["blam"],
-  }]
-}
-```
+| `'invalid gid'`                     |   400  |
 
 ## Invite user to group
 
@@ -90,7 +96,7 @@ Upon successful request, invites a user to join the group.
 
 | Name      | Type   | Description                 |
 |-----------|--------|-----------------------------|
-| groupname | string | The group name to invite to |
+| gid       | string | The group id to invite to   |
 | username  | string | The name of the user to add |
 
 ### Response
@@ -105,7 +111,9 @@ Upon successful request, invites a user to join the group.
 | Error Message                       | Status |
 |-------------------------------------|--------|
 | `'group doesn't exist'`             |   404  |
+| `'user doesn't exist'`              |   404  |
 | `'incorrect permissions for group'` |   401  |
+| `'user is already member of group'` |   400  |
 
 ## Remove user from group
 
@@ -115,10 +123,10 @@ Upon successful request, removes a user from the group.
 
 ### Parameters
 
-| Name      | Type   | Description                    |
-|-----------|--------|--------------------------------|
-| groupname | string | The group name to remove from  |
-| username  | string | The name of the user to remove |
+| Name      | Type   | Description                        |
+|-----------|--------|------------------------------------|
+| gid       | string | The id of the group to remove from |
+| username  | string | The name of the user to remove     |
 
 ### Response
 
@@ -144,9 +152,10 @@ Upon successful request, join a group that you have been invited to.
 
 ### Parameters
 
-| Name      | Type   | Description            |
-|-----------|--------|------------------------|
-| groupname | string | The group name to join |
+| Name      | Type   | Description                 |
+|-----------|--------|-----------------------------|
+| groupname | string | The group name to join      |
+| gid       | string | The id of the group to join |
 
 ### Response
 
@@ -171,9 +180,10 @@ Upon successful request, refuse an invitation you have received to a group.
 
 ### Parameters
 
-| Name      | Type   | Description                  |
-|-----------|--------|------------------------------|
-| groupname | string | The group name of the invite |
+| Name      | Type   | Description                   |
+|-----------|--------|-------------------------------|
+| groupname | string | The group name of the invite  |
+| gid       | string | The id of the group to refuse |
 
 ### Response
 
@@ -184,25 +194,54 @@ Upon successful request, refuse an invitation you have received to a group.
 
 ### Expected Errors
 
-| Error Message                       | Status |
-|-------------------------------------|--------|
-| `'invitation doesn't exist'`        |   404  |
+| Error Message                | Status |
+|------------------------------|--------|
+| `'invitation doesn't exist'` |   404  |
 
-## Get Group data
+## Get all your Invites
 
-`GET /group/data`
+`GET /group/user`
 
-Upon successful request, returns all of the image/gallery data stored in the
-group.
-
-### Parameters
-
-| Name      | Type   | Description            |
-|-----------|--------|------------------------|
-| groupname | string | The group name to join |
+Upon successful request, returns a list of the user's invites to groups.
 
 ### Response
 
+` Status: 200 OK `
+```json
+{
+  "message": "user groups found",
+  "data": [{
+    "groupname": "funtimes",
+    "gid": ObjectId("2g6c2b97bac0595474108b48")
+  }]
+}
+```
+
+## Get all your Groups
+
+`GET /group/`
+
+Upon successful request, returns a list of the user's group galleries.
+
+### Response
+
+
+## Get Group data
+
+`GET /group/<gid>`
+
+Upon successful request, returns all of the image/gallery data stored in the
+group. if there is no gid it will return all the user's groups.
+
+### Parameters
+
+| Name | Type   | Description                   |
+|------|--------|-------------------------------|
+| gid  | string | The group id to get data from |
+
+### Response
+
+`/group/2g6c2b97bac0595474108b48`
 ` Status: 200 OK `
 ```json
 {
@@ -213,7 +252,7 @@ group.
     "uid": ObjectId("542c2b97bac0595474108b48"),
     "users": ["m1cr0man","Sully"],
     "tags": ["blam"],
-    "subgallaries": [
+    "subgalleries": [
       ObjectId("hk4c2b97bac0595474108b48"),
       ObjectId("2g6c2b97bac0595474108b48")
     ],
@@ -226,12 +265,30 @@ group.
 }
 ```
 
+`/group/`
+` Status: 200 OK `
+```json
+{
+  "message": "user groups found",
+  "data": {
+    "subgalleries": [{
+      "_id": ObjectId("2g6c2b97bac0595474108b48"),
+      "name": "scenery",
+      "uid": ObjectId("542c2b97bac0595474108b48"),
+      "users": ["m1cr0man","Sully"],
+      "images": []
+    }],
+    "images": []
+    }
+}
+```
+
 ### Expected Errors
 
-| Error Message                       | Status |
-|-------------------------------------|--------|
-| `'group doesn't exist'`             |   404  |
-| `'user isn't member of group'`      |   400  |
+| Error Message                  | Status |
+|--------------------------------|--------|
+| `'group doesn't exist'`        |   404  |
+| `'user isn't member of group'` |   400  |
 
 ## Add images/galleries to group
 
@@ -241,10 +298,10 @@ Upon successful request, adds images/galleries to a group.
 
 ### Parameters
 
-| Name      | Type   | Description                  |
-|-----------|--------|------------------------------|
-| groupname | string | The group name to add to     |
-| groupdata | object | The data to add to the group |
+| Name      | Type   | Description                   |
+|-----------|--------|-------------------------------|
+| gid       | string | The id of the group to update |
+| groupdata | object | The data to add to the group  |
 
 ### Response
 
@@ -270,10 +327,10 @@ Upon successful request, removes images/galleries from a group.
 
 ### Parameters
 
-| Name      | Type   | Description                       |
-|-----------|--------|-----------------------------------|
-| groupname | string | The group name to remove from     |
-| groupdata | object | The data to remove from the group |
+| Name      | Type   | Description                        |
+|-----------|--------|------------------------------------|
+| gid       | string | The id of the group to remove from |
+| groupdata | object | The data to remove from the group  |
 
 ### Response
 

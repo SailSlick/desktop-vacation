@@ -7,6 +7,7 @@ const expect = chai.expect;
 
 describe('Db tools', () => {
   dbConn.onLoad = () => {
+    console.log('mongo', dbConn.col.s.name);
     describe('db#insertOne()', () => {
       it('Can insert into Db', (done) => {
         const testData = { backgrounds: 'areLife' };
@@ -82,7 +83,7 @@ describe('Db tools', () => {
       it('Can update multiple items', (done) => {
         const testQuery = { screensavers: { $exists: true } };
         const testData = { screensavers: 'areWorthIt' };
-        dbConn.updateMany(testQuery, testData, (cb) => {
+        dbConn.updateMany(testQuery, { $set: testData }, (cb) => {
           assert.ok(cb);
           done();
         });

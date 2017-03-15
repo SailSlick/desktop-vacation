@@ -14,6 +14,7 @@
   "author": "Aaron Delaney, Lucas Savva, Ross O'Sullivan",
   "license": "UNLICENSED",
   "dependencies": {
+    "async": "^2.1.5",
     "bcrypt": "^1.0.2",
     "body-parser": "^1.16.0",
     "connect-mongo": "^1.3.2",

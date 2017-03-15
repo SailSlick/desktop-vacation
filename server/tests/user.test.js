@@ -4,6 +4,7 @@ const app = require('../app');
 const MongoTools = require('../middleware/db');
 
 const userDB = new MongoTools('users');
+const galleryDB = new MongoTools('galleries');
 chai.should();
 chai.use(chaiHttp);
 
@@ -73,7 +74,11 @@ describe('User API', () => {
     });
 
     after((done) => {
-      userDB.removeOne({ username }, () => { done(); });
+      userDB.findOne({ username }, (doc) => {
+        userDB.removeOne({ username }, () => {
+          galleryDB.removeOne({ name: username.concat('_all'), uid: doc._id }, () => { done(); });
+        });
+      });
     });
   });
 
@@ -138,7 +143,11 @@ describe('User API', () => {
     });
 
     after((done) => {
-      userDB.removeOne({ username }, () => { done(); });
+      userDB.findOne({ username }, (doc) => {
+        userDB.removeOne({ username }, () => {
+          galleryDB.removeOne({ name: username.concat('_all'), uid: doc._id }, () => { done(); });
+        });
+      });
     });
   });
 
@@ -182,7 +191,11 @@ describe('User API', () => {
       agent
         .post(('/user/logout'))
         .end((_err, _res) => {
-          userDB.removeOne({ username }, () => { done(); });
+          userDB.findOne({ username }, (doc) => {
+            userDB.removeOne({ username }, () => {
+              galleryDB.removeOne({ name: username.concat('_all'), uid: doc._id }, () => { done(); });
+            });
+          });
         });
     });
   });
@@ -241,7 +254,11 @@ describe('User API', () => {
       agent
         .post(('/user/logout'))
         .end((_err, _res) => {
-          userDB.removeOne({ username }, () => { done(); });
+          userDB.findOne({ username }, (doc) => {
+            userDB.removeOne({ username }, () => {
+              galleryDB.removeOne({ name: username.concat('_all'), uid: doc._id }, () => { done(); });
+            });
+          });
         });
     });
   });

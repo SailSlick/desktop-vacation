@@ -214,9 +214,9 @@ class Gallery extends React.Component {
 Gallery.propTypes = {
   dbId: React.PropTypes.number.isRequired,
   onChange: React.PropTypes.func.isRequired,
-  onRefresh: React.PropTypes.func,
   simple: React.PropTypes.bool,
-  multiSelect: React.PropTypes.bool
+  multiSelect: React.PropTypes.bool,
+  onRefresh: React.PropTypes.func
 };
 
 Gallery.defaultProps = {

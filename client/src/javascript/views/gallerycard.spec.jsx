@@ -68,7 +68,7 @@ describe('GalleryCard Component', () => {
 
   it('can fire onClick handler', (done) => {
     clickSpy.called.should.not.be.ok;
-    test_component.find('figure').first().simulate('click');
+    test_component.find('h2').first().simulate('click');
     clickSpy.called.should.be.ok;
     done();
   });

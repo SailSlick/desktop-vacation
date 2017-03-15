@@ -6,7 +6,7 @@ function errCheck(error, cb) {
   if (error) {
     console.error(error);
   }
-  return cb();
+  return cb(error);
 }
 
 class DbConn {
@@ -19,6 +19,14 @@ class DbConn {
         this.onLoad();
       });
     });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getId(id) {
+    if (typeof id === 'string') {
+      return new MongoClient.ObjectID(id);
+    }
+    return id;
   }
 
   // insertOne: insert a single document into selected collection (e.g new user)
@@ -96,7 +104,7 @@ class DbConn {
   // updateMany: add data to all docs that match the query (e.g. add tags to multiple images)
   // query in {x:y} format, data in {x:y} format
   updateMany(query, data, cb) {
-    return this.col.updateMany(query, { $set: data }, (err, result) => {
+    return this.col.updateMany(query, data, (err, result) => {
       errCheck(err, () => {
         if (result.matchedCount >= 1 && result.modifiedCount >= 1) {
           debug('Updated all docs that match query');

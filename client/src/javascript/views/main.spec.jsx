@@ -70,8 +70,15 @@ describe('Main Component', () => {
     test_component.should.have.state('newGalleryModal', true);
 
     // Attempt to add a duplicate, so nothing actually happens
-    test_component.instance().newGalleryInput.value = test_gallery_name;
-    test_component.instance().addNewGallery(() => {
+    const event = {
+      preventDefault: () => true,
+      target: {
+        galleryname: {
+          value: test_gallery_name
+        }
+      }
+    };
+    test_component.instance().addNewGallery(event, () => {
       test_component.should.have.state('newGalleryModal', false);
       setTimeout(() => {
         document.body.getElementsByClassName('modal').should.be.empty;
