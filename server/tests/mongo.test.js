@@ -83,7 +83,7 @@ describe('Db tools', () => {
       it('Can update multiple items', (done) => {
         const testQuery = { screensavers: { $exists: true } };
         const testData = { screensavers: 'areWorthIt' };
-        dbConn.updateMany(testQuery, testData, (cb) => {
+        dbConn.updateMany(testQuery, { $set: testData }, (cb) => {
           assert.ok(cb);
           done();
         });

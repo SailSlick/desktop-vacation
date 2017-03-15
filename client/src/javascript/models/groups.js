@@ -6,8 +6,8 @@ const server_uri = Host.server_uri;
 
 const cookie_jar = Host.cookie_jar;
 
-function requestHandler(body, cb) {
-  if (!body) return cb(500, 'server down');
+function requestHandler(err, body, cb) {
+  if (!body || err) return cb(500, 'server down');
   if (body.status === 401 && body.error === 'not logged in') {
     return Host.deleteCookies(() => {
       cb(body.status, body.error);
@@ -29,7 +29,7 @@ const Groups = {
       json: { groupname }
     };
     return request(options, (err, res, body) => {
-      requestHandler(body, (error, msg) => {
+      requestHandler(err, body, (error, msg) => {
         if (error) return cb(error, msg);
         return Galleries.add(groupname, (doc, err_msg) => {
           if (err_msg) return cb(500, err_msg);
@@ -49,10 +49,10 @@ const Groups = {
       jar: cookie_jar,
       json: { groupname }
     };
-    Galleries.get({ $loki: id }, (doc) => {
+    Galleries.get(id, (doc) => {
       if (!doc) return cb(404, 'Gallery not found');
       return request(options, (err, res, body) => {
-        requestHandler(body, (error, msg) => {
+        requestHandler(err, body, (error, msg) => {
           if (error) return cb(error, msg);
           return Galleries.convertToGroup(doc.$loki, body.data, (ret) => {
             if (ret) return cb(error, msg);
@@ -71,7 +71,7 @@ const Groups = {
       json: { gid: mongoId }
     };
     return request(options, (err, res, body) => {
-      requestHandler(body, (error, msg) => {
+      requestHandler(err, body, (error, msg) => {
         if (error) return cb(error, msg);
         if (id !== -1) {
           return Galleries.remove(id, (err_msg) => {
@@ -92,7 +92,7 @@ const Groups = {
       json: true
     };
     return request(options, (err, res, body) => {
-      requestHandler(body, (error, msg) => {
+      requestHandler(err, body, (error, msg) => {
         if (error) return cb(error, msg);
         return cb(error, msg, body.data);
       });
@@ -110,7 +110,7 @@ const Groups = {
       }
     };
     return request(options, (err, res, body) => {
-      requestHandler(body, (error, msg) => {
+      requestHandler(err, body, (error, msg) => {
         cb(error, msg);
       });
     });
@@ -127,7 +127,7 @@ const Groups = {
       }
     };
     return request(options, (err, res, body) => {
-      requestHandler(body, (error, msg) => {
+      requestHandler(err, body, (error, msg) => {
         cb(error, msg);
       });
     });
@@ -152,7 +152,7 @@ const Groups = {
       }
     };
     return request(options, (err, res, body) => {
-      requestHandler(body, (error, msg) => {
+      requestHandler(err, body, (error, msg) => {
         cb(error, msg);
       });
     });
@@ -169,7 +169,7 @@ const Groups = {
       }
     };
     return request(options, (err, res, body) => {
-      requestHandler(body, (error, msg) => {
+      requestHandler(err, body, (error, msg) => {
         cb(error, msg);
       });
     });
@@ -183,7 +183,7 @@ const Groups = {
       json: {}
     };
     return request(options, (err, res, body) => {
-      requestHandler(body, (error, msg) => {
+      requestHandler(err, body, (error, msg) => {
         if (error) return cb(error, msg);
         return cb(error, msg, body.data);
       });
@@ -201,7 +201,7 @@ const Groups = {
       }
     };
     return request(options, (err, res, body) => {
-      requestHandler(body, (error, msg) => {
+      requestHandler(err, body, (error, msg) => {
         cb(error, msg);
       });
     });
@@ -218,7 +218,7 @@ const Groups = {
       }
     };
     return request(options, (err, res, body) => {
-      requestHandler(body, (error, msg) => {
+      requestHandler(err, body, (error, msg) => {
         cb(error, msg);
       });
     });
@@ -233,7 +233,7 @@ const Groups = {
     } else {
       gallery.subgalleries = gallery.subgalleries.filter(x => x._id);
       gallery.subgalleries.map(x =>
-        Galleries.get({ mongoId: x._id }, (subgallery) => {
+        Galleries.getMongo(x._id, (subgallery) => {
           if (subgallery) x.$loki = subgallery.$loki;
         })
       );

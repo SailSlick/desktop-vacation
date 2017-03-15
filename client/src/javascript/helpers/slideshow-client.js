@@ -29,7 +29,7 @@ export default {
       // puts the config files into the host db
       return Host.update({ $loki: oldHostData.$loki }, config, () => {
         // gets the named gallery from db
-        Galleries.get({ $loki: galleryId }, gallery =>
+        Galleries.get(galleryId, gallery =>
           Galleries.expand(gallery, (subgalleries, images) => {
             const image_paths = images.map(image => image.location);
 

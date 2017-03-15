@@ -73,7 +73,7 @@ const Galleries = {
     if (subgallery_id === BASE_GALLERY_ID) {
       return cb(null, `Tried to add base gallery to ${id}`);
     }
-    return Galleries.get({ $loki: id }, (base_gallery) => {
+    return Galleries.get(id, (base_gallery) => {
       if (!base_gallery) {
         return cb(null, `No such gallery ${id}`);
       } else if (base_gallery.subgalleries.indexOf(subgallery_id) !== -1) {
@@ -93,7 +93,7 @@ const Galleries = {
 
   addItem: (id, image_id, cb) => {
     console.log(`Adding image_id ${image_id} to gallery ${id}`);
-    return Galleries.get({ $loki: id }, (gallery) => {
+    return Galleries.get(id, (gallery) => {
       if (gallery === null) {
         return cb(null, 'Cannot find gallery');
       } else if (gallery.images.indexOf(image_id) !== -1) {
@@ -110,7 +110,9 @@ const Galleries = {
     });
   },
 
-  get: (query, cb) => gallery_db.findOne(query, cb),
+  get: (id, cb) => gallery_db.findOne({ $loki: id }, cb),
+
+  getMongo: (id, cb) => gallery_db.findOne({ mongoId: id }, cb),
 
   // Returns:
   //   - Subgalleries with thumbnail locations
@@ -118,7 +120,7 @@ const Galleries = {
   expand: (gallery, cb) => {
     // Expand Subgalleries
     map(gallery.subgalleries, (id, next) =>
-      Galleries.get({ $loki: id }, (subgallery) => {
+      Galleries.get(id, (subgallery) => {
         // get thumbnail
         if (subgallery.images.length !== 0) {
           Images.get(
@@ -177,7 +179,7 @@ const Galleries = {
     if (id === BASE_GALLERY_ID) {
       return Galleries.removeItemGlobal(item_id, cb);
     }
-    return Galleries.get({ $loki: id }, (gallery) => {
+    return Galleries.get(id, (gallery) => {
       if (gallery === null) {
         return cb(null, `${id} not found`);
       }

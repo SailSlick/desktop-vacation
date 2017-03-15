@@ -21,6 +21,14 @@ class DbConn {
     });
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  getId(id) {
+    if (typeof id === 'string') {
+      return new MongoClient.ObjectID(id);
+    }
+    return id;
+  }
+
   // insertOne: insert a single document into selected collection (e.g new user)
   // data in {x:y} format
   // returns the unique _id of the inserted document
@@ -58,9 +66,6 @@ class DbConn {
   // findOne: find single item in collection that matches query (e.g. get user data)
   // query in {x:y} format
   findOne(query, cb) {
-    if (query._id && typeof query._id === 'string') {
-      query._id = new MongoClient.ObjectID(query._id);
-    }
     return this.col.find(query).limit(1).next((err, doc) => {
       errCheck(err, () => {
         debug('Found one doc');
@@ -99,12 +104,6 @@ class DbConn {
   // updateMany: add data to all docs that match the query (e.g. add tags to multiple images)
   // query in {x:y} format, data in {x:y} format
   updateMany(query, data, cb) {
-    if (query.groups && typeof query.groups === 'string') {
-      query.groups = new MongoClient.ObjectID(query.groups);
-      data.$pull.groups = query.groups;
-    } else {
-      data = { $set: data };
-    }
     return this.col.updateMany(query, data, (err, result) => {
       errCheck(err, () => {
         if (result.matchedCount >= 1 && result.modifiedCount >= 1) {

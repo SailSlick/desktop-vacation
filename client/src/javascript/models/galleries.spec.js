@@ -60,14 +60,14 @@ describe('Galleries model', () => {
   );
 
   it('can query gallery', done =>
-    Galleries.get({ $loki: test_gallery.$loki }, (queried_gallery) => {
+    Galleries.get(test_gallery.$loki, (queried_gallery) => {
       queried_gallery.should.be.equal(test_gallery);
       done();
     })
   );
 
   it('adds new gallery to base gallery', done =>
-    Galleries.get({ $loki: base_gallery_id }, (queried_gallery) => {
+    Galleries.get(base_gallery_id, (queried_gallery) => {
       queried_gallery.subgalleries.should.include.something.that.equals(test_gallery.$loki);
       done();
     })
@@ -97,7 +97,7 @@ describe('Galleries model', () => {
   );
 
   it('can expand gallery and pick thumbnails', done =>
-    Galleries.get({ $loki: base_gallery_id }, base_gallery =>
+    Galleries.get(base_gallery_id, base_gallery =>
       Galleries.expand(base_gallery, (subgalleries) => {
         subgalleries.should.include.something.with.property('thumbnail');
         done();
@@ -196,7 +196,7 @@ describe('Galleries model', () => {
   it('can remove a subgallery from a gallery', (done) => {
     Galleries.remove(test_subgallery.$loki, () => {
       test_gallery.subgalleries.should.not.include(test_subgallery.$loki);
-      Galleries.get({ $loki: test_subgallery.$loki }, (removed_gallery) => {
+      Galleries.get(test_subgallery.$loki, (removed_gallery) => {
         should.not.exist(removed_gallery);
         done();
       });
@@ -206,7 +206,7 @@ describe('Galleries model', () => {
   it('can remove an item from the db and fs', (done) => {
     jetpack.copy(test_image_path, `${test_image_path}_orig`, { overwrite: true });
     Galleries.deleteItem(test_image.$loki, () =>
-      Galleries.get({ $loki: test_gallery.$loki }, (updated_gallery) => {
+      Galleries.get(test_gallery.$loki, (updated_gallery) => {
         updated_gallery.images.should.not.contain(test_image.$loki);
         jetpack.exists(test_image_path).should.not.be.ok;
         jetpack.move(`${test_image_path}_orig`, test_image_path);
@@ -226,7 +226,7 @@ describe('Galleries model', () => {
   it('can remove gallery', (done) => {
     const id = test_gallery.$loki;
     Galleries.remove(id, () =>
-      Galleries.get({ $loki: id }, (removed_gallery) => {
+      Galleries.get(id, (removed_gallery) => {
         should.not.exist(removed_gallery);
         done();
       })
@@ -235,7 +235,7 @@ describe('Galleries model', () => {
 
   it('can\'t remove the base gallery', (done) => {
     Galleries.remove(base_gallery_id, () =>
-      Galleries.get({ $loki: base_gallery_id }, (removed_gallery) => {
+      Galleries.get(base_gallery_id, (removed_gallery) => {
         should.exist(removed_gallery);
         done();
       })

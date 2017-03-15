@@ -84,7 +84,7 @@ class Gallery extends React.Component {
   refresh(dbId) {
     dbId = (typeof dbId === 'number') ? dbId : this.props.dbId;
 
-    Galleries.get({ $loki: dbId }, gallery =>
+    Galleries.get(dbId, gallery =>
       Galleries.expand(gallery, (subgalleries, images) =>
         this.setState({
           subgalleries,

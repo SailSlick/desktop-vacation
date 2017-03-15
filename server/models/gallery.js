@@ -34,6 +34,7 @@ module.exports = {
   },
 
   getGid: (gid, cb) => {
+    gid = db.getId(gid);
     db.findOne({ _id: gid }, (doc) => {
       if (doc) return cb(null, doc);
       return cb('gallery not found', null);

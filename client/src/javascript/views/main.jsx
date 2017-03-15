@@ -16,7 +16,7 @@ const BASE_GALLERY_ID = 1;
 const BASE_GROUP_ID = '1';
 
 const PrimaryContent = ({ page, parent }) => {
-  Galleries.get({ $loki: BASE_GALLERY_ID }, (gallery) => {
+  Galleries.get(BASE_GALLERY_ID, (gallery) => {
     if (!gallery) page = 2;
   });
   return [

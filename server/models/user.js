@@ -49,6 +49,10 @@ module.exports = {
   },
 
   updateMany: (query, data, cb) => {
+    if (query.groups) {
+      query.groups = db.getId(query.groups);
+      data.$pull.groups = query.groups;
+    }
     db.updateMany(query, data, (res) => {
       if (!res) return cb('no data changed');
       return cb(null);
