@@ -16,7 +16,12 @@ let mainWindow;
 // Thanks to this you can use production and development versions of the app
 // on same machine like those are two separate apps.
 if (argv.env !== 'production') {
-  reloader(__dirname, { electron: path.join(__dirname, '..', 'node_modules', '.bin', 'electron') });
+  reloader(
+    [path.join(__dirname, '*.js'), path.join(__dirname, 'stylesheets', '*.css')],
+    {
+      electron: path.join(__dirname, '..', 'node_modules', '.bin', 'electron')
+    }
+  );
   const userDataPath = app.getPath('userData');
   app.setPath('userData', `${userDataPath} (${argv.env})`);
 }
