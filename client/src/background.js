@@ -1,6 +1,7 @@
 import path from 'path';
 import url from 'url';
 import minimist from 'minimist';
+import reloader from 'electron-reload';
 import { app, Menu, ipcMain, dialog } from 'electron';
 import devMenuTemplate from './javascript/helpers/dev_menu_template';
 import createWindow from './javascript/helpers/window';
@@ -15,6 +16,7 @@ let mainWindow;
 // Thanks to this you can use production and development versions of the app
 // on same machine like those are two separate apps.
 if (argv.env !== 'production') {
+  reloader(__dirname, { electron: path.join(__dirname, '..', 'node_modules', '.bin', 'electron') });
   const userDataPath = app.getPath('userData');
   app.setPath('userData', `${userDataPath} (${argv.env})`);
 }
@@ -34,10 +36,6 @@ app.on('ready', () => {
     protocol: 'file:',
     slashes: true
   }));
-
-  if (argv.env === 'development') {
-    mainWindow.openDevTools();
-  }
 });
 
 app.on('window-all-closed', app.quit);
