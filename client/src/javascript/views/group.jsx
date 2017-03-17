@@ -77,7 +77,7 @@ class Group extends React.Component {
         users={subgallery.users}
         thumbnail={subgallery.thumbnail}
         onClick={_ => this.props.onChange(subgallery._id)}
-        onRemove={this.refresh}
+        onRemove={_ => true}
       />
     ).concat(this.state.images.map(image =>
       <Image

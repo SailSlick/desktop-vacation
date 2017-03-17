@@ -29,7 +29,8 @@ describe('Gallery Component', () => {
       test_image = inserted_image;
 
       // Create test gallery
-      Galleries.add(test_gallery_name, inserted_gallery =>
+      Galleries.add(test_gallery_name, (inserted_gallery) => {
+        test_gallery = inserted_gallery;
         // Add test image to test gallery
         Galleries.addItem(inserted_gallery.$loki, test_image.$loki, (updated_gallery) => {
           test_gallery = updated_gallery;
@@ -39,8 +40,8 @@ describe('Gallery Component', () => {
             onClick={changeSpy}
             onRefresh={done}
           />);
-        })
-      );
+        });
+      });
     })
   );
 

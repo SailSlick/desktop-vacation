@@ -40,9 +40,9 @@
     "fs-jetpack": "^0.10.2",
     "lokijs": "^1.4.2",
     "react-bootstrap": "^0.30.7",
+    "react-bs-notifier": "^4.3.0",
     "react-dom": "^15.4.2",
-    "request": "^2.80.0",
-    "react-bs-notifier": "^4.3.0"
+    "request": "^2.80.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
@@ -73,6 +73,7 @@
     "rollup-plugin-node-resolve": "^2.0.0",
     "sinon": "^1.17.7",
     "source-map-support": "^0.4.11",
+    "nock": "^9.0.9",
     "xvfb-maybe": "^0.1.3"
   }
 }

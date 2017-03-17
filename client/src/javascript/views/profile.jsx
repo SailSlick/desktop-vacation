@@ -126,8 +126,8 @@ class Profile extends React.Component {
     return false;
   }
 
-  deleteAccount(password) {
-    Host.deleteAccount(password, (err, ret) => {
+  deleteAccount() {
+    Host.deleteAccount((err, ret) => {
       if (err) danger(ret);
       else {
         success(ret);
