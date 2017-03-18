@@ -23,7 +23,7 @@ module.exports = {
         if (correct) {
           req.session.username = username;
           req.session.uid = data._id;
-          return next({ status: 200, message: 'user logged in', gallery: data.gallery });
+          return next({ status: 200, message: 'user logged in', gallery: data.gallery, uid: data._id });
         }
         return next({ status: 401, error: 'incorrect credentials' });
       });
@@ -80,7 +80,8 @@ module.exports = {
         return next({
           status: 200,
           message: 'user created and logged in',
-          gallery: added.baseGalleryId
+          gallery: added.baseGalleryId,
+          uid: added.uid
         });
       });
     });

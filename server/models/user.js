@@ -12,7 +12,7 @@ module.exports = {
 
   add: (username, password, cb) => {
     db.findOne({ username }, (data) => {
-      if (data) return cb('username taken');
+      if (data) return cb('username taken', null);
       const userData = {
         username,
         password,
@@ -43,6 +43,17 @@ module.exports = {
 
   update: (username, data, cb) => {
     db.updateOne({ username }, data, (res) => {
+      if (!res) return cb('no data changed');
+      return cb(null);
+    });
+  },
+
+  updateMany: (query, data, cb) => {
+    if (query.groups) {
+      query.groups = db.getId(query.groups);
+      data.$pull.groups = query.groups;
+    }
+    db.updateMany(query, data, (res) => {
       if (!res) return cb('no data changed');
       return cb(null);
     });

@@ -1,15 +1,8 @@
-# API
+# Groups API.
 
-The API uses the MIME type `application/json` for both parameters and response
-unless otherwise noted, as in the case for images.
-- All of the following requests require the user to be authenticated.
+All of the following requests require the user to be authenticated.
 
-### [Status codes](./users.md#status-codes)
-
-### Errors
-
-If an error occurs, a string describing it will be in the error field in the
-json.
+### [General Information](./README.md)
 
 ## Create Group
 
@@ -19,7 +12,7 @@ Upon successful request, creates a new group gallery.
 
 ### Parameters
 
-| Name      | Type   | Description                   s|
+| Name      | Type   | Description                   |
 |-----------|--------|-------------------------------|
 | groupname | string | The name of the group to make |
 
@@ -92,28 +85,6 @@ Upon successful request, deletes a group gallery.
 | `'group doesn't exist'`             |   404  |
 | `'incorrect permissions for group'` |   401  |
 | `'invalid gid'`                     |   400  |
-
-## Get all your Groups
-
-`GET /group/`
-
-Upon successful request, returns a list of the user's group galleries.
-
-### Response
-
-` Status: 200 OK `
-```json
-{
-  "message": "user groups found",
-  "data": [{
-    "_id": ObjectId("2g6c2b97bac0595474108b48"),
-    "name": "scenery",
-    "uid": ObjectId("542c2b97bac0595474108b48"),
-    "users": ["m1cr0man","Sully"],
-    "tags": ["blam"],
-  }]
-}
-```
 
 ## Invite user to group
 
@@ -239,16 +210,28 @@ Upon successful request, returns a list of the user's invites to groups.
 ```json
 {
   "message": "user groups found",
-  "data": [ObjectId("2g6c2b97bac0595474108b48")]
+  "data": [{
+    "groupname": "funtimes",
+    "gid": ObjectId("2g6c2b97bac0595474108b48")
+  }]
 }
 ```
 
+## Get all your Groups
+
+`GET /group/`
+
+Upon successful request, returns a list of the user's group galleries.
+
+### Response
+
+
 ## Get Group data
 
-`GET /group/data`
+`GET /group/<gid>`
 
 Upon successful request, returns all of the image/gallery data stored in the
-group.
+group. if there is no gid it will return all the user's groups.
 
 ### Parameters
 
@@ -258,6 +241,7 @@ group.
 
 ### Response
 
+`/group/2g6c2b97bac0595474108b48`
 ` Status: 200 OK `
 ```json
 {
@@ -268,7 +252,7 @@ group.
     "uid": ObjectId("542c2b97bac0595474108b48"),
     "users": ["m1cr0man","Sully"],
     "tags": ["blam"],
-    "subgallaries": [
+    "subgalleries": [
       ObjectId("hk4c2b97bac0595474108b48"),
       ObjectId("2g6c2b97bac0595474108b48")
     ],
@@ -278,6 +262,24 @@ group.
       ObjectId("fg6c2jghbac0595474108b48")
     ]
   }
+}
+```
+
+`/group/`
+` Status: 200 OK `
+```json
+{
+  "message": "user groups found",
+  "data": {
+    "subgalleries": [{
+      "_id": ObjectId("2g6c2b97bac0595474108b48"),
+      "name": "scenery",
+      "uid": ObjectId("542c2b97bac0595474108b48"),
+      "users": ["m1cr0man","Sully"],
+      "images": []
+    }],
+    "images": []
+    }
 }
 ```
 

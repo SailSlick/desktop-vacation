@@ -6,10 +6,10 @@ module.exports = {
   verifyGalleryName: galleryName =>
     typeof galleryName === 'string' && galleryName.length > 0,
 
-  verGroupname: groupname =>
+  verifyGroupname: groupname =>
     typeof groupname === 'string' && groupname.length <= 20 && groupname.length >= 3,
 
-  verGid: gid => typeof gid === 'string' && gid.length === 24,
+  verifyGid: gid => typeof gid === 'string' && gid.length === 24,
 
   create: (galleryname, baseGalleryId, uid, cb) => {
     db.findOne({ name: galleryname, uid }, (doc) => {
@@ -19,7 +19,7 @@ module.exports = {
         uid,
         users: [],
         tags: [],
-        subgallaries: [],
+        subgalleries: [],
         images: []
       };
       return db.insertOne(galleryData, (res) => {
@@ -44,6 +44,7 @@ module.exports = {
   },
 
   getGid: (gid, cb) => {
+    gid = db.getId(gid);
     db.findOne({ _id: gid }, (doc) => {
       if (doc) return cb(null, doc);
       return cb('gallery not found', null);
@@ -65,9 +66,6 @@ module.exports = {
   },
 
   addImages: (gid, baseGalleryId, uid, imageIds, next) => {
-    console.log(uid);
-    console.log(imageIds);
-    console.log(next);
     if (imageIds.length === 0) {
       next(null);
       return;

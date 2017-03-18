@@ -115,16 +115,15 @@ class Profile extends React.Component {
   }
 
   isAuthed(page) {
-    return Host.isAuthed((ret) => {
-      if (ret) {
-        if (page <= 1) this.state.page = 1;
-        this.state.loggedIn = true;
-        return true;
-      }
-      if (page < 2 || page === 4) this.state.page = 0;
-      this.state.loggedIn = false;
-      return false;
-    });
+    const ret = Host.isAuthed();
+    if (ret) {
+      if (page <= 1) this.state.page = 1;
+      this.state.loggedIn = true;
+      return true;
+    }
+    if (page < 2 || page === 4) this.state.page = 0;
+    this.state.loggedIn = false;
+    return false;
   }
 
   deleteAccount(password) {

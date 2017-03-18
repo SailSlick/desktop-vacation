@@ -139,7 +139,7 @@ describe('Group API', () => {
         });
     });
 
-    it('should be able to delete with correct name', (done) => {
+    it('should be able to delete with gid', (done) => {
       galleryDB.findOne({ name: groupname }, (doc) => {
         agent
           .post('/group/delete')
@@ -181,7 +181,8 @@ describe('Group API', () => {
           res.body.should.have.property('message');
           res.body.message.should.equal('user groups found');
           res.body.should.have.property('data');
-          res.body.data.should.have.lengthOf(3);
+          res.body.data.should.have.property('subgalleries');
+          res.body.data.subgalleries.should.have.lengthOf(2);
           done();
         });
     });
@@ -222,8 +223,8 @@ describe('Group API', () => {
           .end((err, res) => {
             res.should.have.status(404);
             res.body.should.be.a('object');
-            res.body.should.have.property('message');
-            res.body.message.should.equal('user doesn\'t exist');
+            res.body.should.have.property('error');
+            res.body.error.should.equal('user doesn\'t exist');
             done();
           });
       });

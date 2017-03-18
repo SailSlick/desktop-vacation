@@ -1,6 +1,6 @@
 const galleryModel = require('../models/gallery');
 const userModel = require('../models/user');
-
+const async = require('async');
 
 module.exports = {
 
@@ -9,7 +9,7 @@ module.exports = {
     const username = req.session.username;
     const groupname = req.body.groupname;
 
-    if (!galleryModel.verGroupname(groupname)) {
+    if (!galleryModel.verifyGroupname(groupname)) {
       return next({ status: 400, error: 'invalid groupname' });
     }
     return userModel.getBaseGallery(uid, (_, baseGalleryId) =>
@@ -55,7 +55,7 @@ module.exports = {
     });
   },
 
-  switch: (req, res, next) => {
+  convert: (req, res, next) => {
     const uid = req.session.uid;
     const groupname = req.body.groupname;
 
@@ -64,28 +64,27 @@ module.exports = {
 
       // add gallery to groups in userdb
       return userModel.get(uid, (err, uData) => {
-        if (err) return next({ status: 500, error: 'switch failed' });
+        if (err) return next({ status: 500, error: 'convert failed' });
         uData.groups.push(doc._id);
         return userModel.update(uid, doc, (ret) => {
-          if (ret) return next({ status: 500, error: 'switch failed' });
-          return next({ status: 200, message: 'gallery switched' });
+          if (ret) return next({ status: 500, error: 'convert failed' });
+          return next({ status: 200, message: 'gallery converted' });
         });
       });
     });
   },
 
-  delete: (req, res, next) => {
+  deleteGroup: (req, res, next) => {
     const uid = req.session.uid;
     const gid = req.body.gid;
 
-    if (!galleryModel.verGid(gid)) {
+    if (!galleryModel.verifyGid(gid)) {
       return next({ status: 400, error: 'invalid gid' });
     }
 
     // check if gallery exists
     return galleryModel.getGid(gid, (err, doc) => {
       if (err) {
-        console.error(err);
         return next({ status: 404, error: 'group doesn\'t exist' });
       }
       if (doc.uid !== uid) {
@@ -93,22 +92,12 @@ module.exports = {
       }
       return galleryModel.remove(doc.name, uid, (ret) => {
         if (ret === 'gallery deleted') {
-          return next({ status: 200, message: ret });
+          // remove from all users.
+          return userModel.updateMany({ groups: gid }, { $pull: { groups: gid } }, () => {
+            next({ status: 200, message: ret });
+          });
         }
         return next({ status: 500, error: ret });
-      });
-    });
-  },
-
-  getGroupList: (req, res, next) => {
-    const username = req.session.username;
-
-    // get list from userDB
-    return userModel.get(username, (err, data) => {
-      next({
-        status: 200,
-        message: 'user groups found',
-        data: data.groups
       });
     });
   },
@@ -133,7 +122,7 @@ module.exports = {
 
     // check to see if user exists
     return userModel.get(toAddName, (err, result) => {
-      if (err) return next({ status: 404, message: 'user doesn\'t exist' });
+      if (err) return next({ status: 404, error: 'user doesn\'t exist' });
       // check if gallery exists
       return galleryModel.getGid(gid, (error, doc) => {
         if (error) return next({ status: 404, error: 'group doesn\'t exist' });
@@ -144,11 +133,10 @@ module.exports = {
         if (doc.users.indexOf(toAddName) !== -1) {
           return next({ status: 400, error: 'user is already member of group' });
         }
-
         // add invite to user list
         result.invites.push({ groupname: doc.name, gid: doc._id.toHexString() });
         return userModel.update(toAddName, result, (check) => {
-          if (check) return next({ status: 500, message: 'invite failed' });
+          if (check) return next({ status: 500, error: 'invite failed' });
           return next({ status: 200, message: 'user invited to group' });
         });
       });
@@ -252,7 +240,6 @@ module.exports = {
       let in_check = false;
       result.invites.forEach((invite, index) => {
         if (invite.groupname === groupname && invite.gid === gid) {
-          result.groups.push(gid);
           result.invites.splice(index, 1);
           in_check = true;
         }
@@ -291,12 +278,13 @@ module.exports = {
   getGroup: (req, res, next) => {
     const username = req.session.username;
     const uid = req.session.uid;
-    const gid = req.body.gid;
+    const gid = req.params.gid;
 
-    galleryModel.getGid(gid, (err, doc) => {
-      if (err) return next({ status: 404, error: 'group doesn\'t exist' });
-
-      if (doc.users.indexOf(username) === -1 || doc.uid !== uid) {
+    return galleryModel.getGid(gid, (err, doc) => {
+      if (err) {
+        return next({ status: 404, error: 'group doesn\'t exist' });
+      }
+      if (doc.uid !== uid && doc.users.indexOf(username) === -1) {
         return next({ status: 400, error: 'user isn\'t member of group' });
       }
       return next({
@@ -307,10 +295,62 @@ module.exports = {
     });
   },
 
+  getGroupList: (req, res, next) => {
+    const username = req.session.username;
+
+    // get list from userDB
+    return userModel.get(username, (err, data) => {
+      if (err) {
+        return next({
+          status: 500,
+          error: 'failed to get user'
+        });
+      }
+      return async.map(data.groups, (gid, cb) => {
+        galleryModel.getGid(gid, (map_err, gallery) => {
+          if (map_err === 'gallery not found') return cb(null, {});
+          if (map_err) return cb(map_err, {});
+          return cb(null, {
+            _id: gallery._id,
+            name: gallery.name,
+            uid: gallery.uid,
+            users: gallery.users,
+            images: []
+          });
+        });
+      }, (map_err, galleries) => {
+        if (map_err === 'gallery not found') {
+          galleries = galleries.filter(x => x !== {});
+          return next({
+            status: 200,
+            message: 'user groups found',
+            data: {
+              subgalleries: galleries,
+              images: []
+            }
+          });
+        } else if (map_err) {
+          return next({
+            status: 500,
+            error: 'failed to get group list'
+          });
+        }
+        return next({
+          status: 200,
+          message: 'user groups found',
+          data: {
+            subgalleries: galleries,
+            images: []
+          }
+        });
+      });
+    });
+  },
+
   addGroupItem: (req, res, next) => {
     const username = req.session.username;
     const uid = req.session.uid;
-    const gid = req.body.gid;
+    const gid = req.params.gid;
     // const updateData = req.body.updateData;
 
     galleryModel.getGid(gid, (err, doc) => {
@@ -330,7 +370,7 @@ module.exports = {
   removeGroupItem: (req, res, next) => {
     const username = req.session.username;
     const uid = req.session.uid;
-    const gid = req.body.gid;
+    const gid = req.params.gid;
     // const updateData = req.body.updateData;
 
     galleryModel.getGid(gid, (err, doc) => {

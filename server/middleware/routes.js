@@ -41,11 +41,12 @@ routes.post('/gallery/create', gallery.create);
 routes.use('/gallery/upload', upload.array('images'), sync.upload);
 routes.get('/gallery/:gid', gallery.get);
 
+
 // group management functionality
 routes.use('/group/*', user.requireAuth);
 routes.post('/group/create', gallery.createGroup);
-routes.post('/group/switch', gallery.switch);
-routes.post('/group/delete', gallery.delete);
+routes.post('/group/convert', gallery.convert);
+routes.post('/group/delete', gallery.deleteGroup);
 routes.get('/group/', gallery.getGroupList);
 
 // group user functionality
@@ -56,8 +57,8 @@ routes.post('/group/user/join', gallery.join);
 routes.post('/group/user/refuse', gallery.refuse);
 
 // group data functionality
-routes.get('/group/data', gallery.getGroup);
-routes.post('/group/data/add', gallery.addGroupItem);
-routes.post('/group/data/remove', gallery.removeGroupItem);
+routes.get('/group/:gid', gallery.getGroup);
+routes.post('/group/:gid/add', gallery.addGroupItem);
+routes.post('/group/:gid/remove', gallery.removeGroupItem);
 
 module.exports = routes;

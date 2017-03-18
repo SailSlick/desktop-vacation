@@ -62,4 +62,3 @@ describe('Slideshow Helper (Client)', () => {
     });
   });
 });
-

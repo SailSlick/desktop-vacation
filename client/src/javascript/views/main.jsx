@@ -2,19 +2,23 @@ import React from 'react';
 import { each } from 'async';
 import { AlertList } from 'react-bs-notifier';
 import { ipcRenderer as ipc } from 'electron';
-import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup } from 'react-bootstrap';
+import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup, FormControl, ListGroup, ListGroupItem, InputGroup } from 'react-bootstrap';
 import Gallery from './gallery.jsx';
 import Galleries from '../models/galleries';
 import Host from '../models/host';
 import Slideshow from '../helpers/slideshow-client';
 import Profile from './profile.jsx';
+import Group from './group.jsx';
+import Groups from '../models/groups';
+import Host from '../models/host';
 import { success, danger } from '../helpers/notifier';
 
 const BASE_GALLERY_ID = 1;
+const BASE_GROUP_ID = '1';
 
 const PrimaryContent = ({ page, parent }) => {
-  Galleries.get({ $gt: 0 }, (cb) => {
-    if (!cb) page = 1;
+  Galleries.get(BASE_GALLERY_ID, (gallery) => {
+    if (!gallery) page = 2;
   });
   return [
     (<Gallery
@@ -23,10 +27,40 @@ const PrimaryContent = ({ page, parent }) => {
       onChange={parent.changeGallery}
       multiSelect={parent.state.multiSelect}
     />),
+    (<Group
+      dbId={parent.state.groupId}
+      onChange={parent.changeGroup}
+      multiSelect={parent.state.multiSelect}
+    />),
     (<Profile
       onChange={parent.profileView}
     />)
   ][page];
+};
+
+const InvitesContent = ({ parent }) => {
+  let invites_react = [];
+  invites_react = parent.state.invites.map(invite =>
+    <ListGroupItem>
+      <InputGroup>
+        <p>{invite.groupname}</p>
+        <Button
+          onClick={_ => parent.joinGroup(invite.gid, invite.groupname)}
+        >Join</Button>
+        <Button
+          onClick={_ => parent.refuseInvite(invite.gid, invite.groupname)}
+        >Refuse</Button>
+      </InputGroup>
+    </ListGroupItem>
+  );
+  return (
+    <Grid fluid>
+      <Button onClick={parent.inviteRefresh}>Refresh</Button>
+      <ListGroup>
+        {invites_react.map(invite => invite || null)}
+      </ListGroup>
+    </Grid>
+  );
 };
 
 class Main extends React.Component {
@@ -36,12 +70,18 @@ class Main extends React.Component {
     this.state = {
       galleryId: BASE_GALLERY_ID,
       remote: '',
+      groupId: BASE_GROUP_ID,
       newGalleryModal: false,
       selectGalleryModal: false,
+      newGroupModal: false,
       page: 0,
       imageSelection: null,
       multiSelect: false,
-      alerts: []
+      alerts: [],
+      galleryname: '',
+      groupUsersModal: false,
+      invitesModal: false,
+      invites: []
     };
 
     this.onSelectGallery = this.onSelectGallery.bind(this);
@@ -55,6 +95,14 @@ class Main extends React.Component {
     this.dismissAlert = this.dismissAlert.bind(this);
     this.toggleSelectMode = this.toggleSelectMode.bind(this);
     this.updateRemote = this.updateRemote.bind(this);
+    this.getNewGroupName = this.getNewGroupName.bind(this);
+    this.addNewGroup = this.addNewGroup.bind(this);
+    this.changeGroup = this.changeGroup.bind(this);
+    this.inputChange = this.inputChange.bind(this);
+    this.getInvitesModal = this.getInvitesModal.bind(this);
+    this.joinGroup = this.joinGroup.bind(this);
+    this.refuseInvite = this.refuseInvite.bind(this);
+    this.inviteRefresh = this.inviteRefresh.bind(this);
 
     // Events
     document.addEventListener('append_gallery', this.showGallerySelector, false);
@@ -95,7 +143,15 @@ class Main extends React.Component {
   }
 
   getNewGalleryName() {
-    this.setState({ newGalleryModal: true });
+    this.setState({ galleryname: '', newGalleryModal: true });
+  }
+
+  getNewGroupName() {
+    this.setState({ galleryname: '', newGroupModal: true });
+  }
+
+  getInvitesModal() {
+    this.setState({ invitesModal: true });
   }
 
   updateRemote(remote) {
@@ -109,24 +165,29 @@ class Main extends React.Component {
     });
   }
 
-  addNewGallery(cb) {
-    Galleries.add(this.newGalleryInput.value, (new_gallery, err_msg) => {
+  addNewGallery(event, cb) {
+    event.preventDefault();
+    const galleryname = event.target.galleryname.value;
+    return Galleries.add(galleryname, (new_gallery, err_msg) => {
       this.setState({ newGalleryModal: false, page: 0 });
       if (err_msg) {
         danger(err_msg);
         return cb(err_msg);
       }
       if (this.state.galleryId === BASE_GALLERY_ID) {
-        success(`Gallery ${this.newGalleryInput.value} added`);
+        success(`Gallery ${galleryname} added`);
+        this.state.galleryname = '';
         if (typeof cb === 'function') return cb();
         return null;
       }
       return Galleries.addSubGallery(
         this.state.galleryId, new_gallery.$loki,
         (updated_gallery, sub_err_msg) => {
-          if (sub_err_msg) danger(sub_err_msg);
-          else success(`Gallery ${this.newGalleryInput.value} added`);
-          if (typeof cb === 'function') cb();
+          if (sub_err_msg) return danger(sub_err_msg);
+          this.state.galleryname = '';
+          success(`Gallery ${galleryname} added`);
+          if (typeof cb === 'function') return cb();
+          return null;
         }
       );
     });
@@ -148,9 +209,11 @@ class Main extends React.Component {
   hideModals() {
     this.setState({
       newGalleryModal: false,
+      newGroupModal: false,
       selectGalleryModal: false,
       imageSelection: null,
-      multiSelect: false
+      multiSelect: false,
+      invitesModal: false
     });
   }
 
@@ -160,9 +223,85 @@ class Main extends React.Component {
     });
   }
 
+  gallerynameValidationState() {
+    const galname = this.state.galleryname;
+    if (galname.trim() === '') return 'error';
+    else if (galname.length < 3) return 'warning';
+    return 'success';
+  }
+
+  addNewGroup(event) {
+    event.preventDefault();
+    const galleryname = event.target.galleryname.value;
+
+    Groups.create(galleryname, (err, msg) => {
+      if (err) {
+        danger(msg);
+      } else {
+        success(msg);
+        this.setState({ newGroupModal: false });
+      }
+    });
+  }
+
+  changeGroup(groupId) {
+    // This if prevents deleted galleries/non-existent Ids
+    // causing big issues
+    if (groupId) {
+      this.setState({
+        groupId,
+        imageSelection: null,
+        multiSelect: false,
+        page: 1
+      });
+    }
+  }
+
+  inputChange(event) {
+    this.setState({
+      [event.target.name]: event.target.value
+    });
+  }
+
+  joinGroup(gid, groupname) {
+    Groups.join(gid, groupname, (err, msg) => {
+      if (err) {
+        danger(msg);
+      } else {
+        success(msg);
+        this.setState({ invitesModal: true });
+        this.inviteRefresh();
+      }
+    });
+  }
+
+  refuseInvite(gid, groupname) {
+    Groups.refuse(gid, groupname, (err, msg) => {
+      if (err) {
+        danger(msg);
+      } else {
+        success(msg);
+        this.setState({ invitesModal: true });
+        this.inviteRefresh();
+      }
+    });
+  }
+
+  inviteRefresh() {
+    if (Host.isAuthed()) {
+      // gotta show all invites with accept or deny button
+      Groups.getAllInvites((err, msg, data) => {
+        success('Invites refreshed');
+        this.setState({ invites: data });
+      });
+    } else {
+      danger('Not logged in');
+    }
+  }
+
   profileView() {
     // This is to show the profile details
-    this.setState({ page: 1 });
+    this.setState({ page: 2 });
   }
 
   showAlert(event) {
@@ -203,6 +342,11 @@ class Main extends React.Component {
                 <MenuItem onClick={_ => this.changeGallery(BASE_GALLERY_ID)}>View</MenuItem>
                 <MenuItem onClick={this.getNewGalleryName}>Add</MenuItem>
               </NavDropdown>
+              <NavDropdown title="Groups" id="groups">
+                <MenuItem onClick={_ => this.changeGroup(BASE_GROUP_ID)}>View</MenuItem>
+                <MenuItem onClick={this.getNewGroupName}>Add</MenuItem>
+                <MenuItem onClick={this.getInvitesModal}>Invites</MenuItem>
+              </NavDropdown>
               <NavDropdown title="Slideshow" id="slideshow">
                 <MenuItem onClick={_ => Slideshow.set(this.state.galleryId)}>
                   Use Current Gallery
@@ -225,19 +369,58 @@ class Main extends React.Component {
           </Modal.Header>
 
           <Modal.Body>
-            <form onSubmit={e => e.preventDefault() || this.addNewGallery()}>
-              <FormGroup>
-                <input
+            <form onSubmit={this.addNewGallery}>
+              <FormGroup
+                validationState={this.gallerynameValidationState()}
+              >
+                <FormControl
                   id="galleryName"
+                  name="galleryname"
                   type="text"
                   placeholder="Gallery Name"
-                  ref={(input) => { this.newGalleryInput = input; }}
+                  value={this.state.galleryname}
+                  onChange={this.inputChange}
                 />
               </FormGroup>
               <Button type="submit">
                 Add
               </Button>
             </form>
+          </Modal.Body>
+        </Modal>
+
+        <Modal show={this.state.newGroupModal} onHide={this.hideModals}>
+          <Modal.Header closeButton>
+            <Modal.Title>Adding New Group</Modal.Title>
+          </Modal.Header>
+
+          <Modal.Body>
+            <form onSubmit={this.addNewGroup}>
+              <FormGroup
+                validationState={this.gallerynameValidationState()}
+              >
+                <FormControl
+                  id="galleryName"
+                  name="galleryname"
+                  type="text"
+                  placeholder="Group Name"
+                  value={this.state.galleryname}
+                  onChange={this.inputChange}
+                />
+              </FormGroup>
+              <Button type="submit">
+                Add
+              </Button>
+            </form>
+          </Modal.Body>
+        </Modal>
+
+        <Modal show={this.state.invitesModal} onHide={this.hideModals}>
+          <Modal.Header closeButton>
+            <Modal.Title>Invites</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <InvitesContent parent={this} />
           </Modal.Body>
         </Modal>
 
@@ -252,9 +435,6 @@ class Main extends React.Component {
                 dbId={BASE_GALLERY_ID}
                 remote={this.state.remote}
                 onChange={this.onSelectGallery}
-              />
-              <Profile
-                onChange={this.profileView}
               />
             </Grid>
           </Modal.Body>
@@ -272,6 +452,10 @@ class Main extends React.Component {
 
 PrimaryContent.PropTypes = {
   page: React.PropTypes.number.isRequired,
+  parent: React.PropTypes.instanceOf(Main).isRequired
+};
+
+InvitesContent.PropTypes = {
   parent: React.PropTypes.instanceOf(Main).isRequired
 };
 

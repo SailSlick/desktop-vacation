@@ -9,7 +9,7 @@ const host_update_event = new Event('host_updated');
 const host_logged_in_event = new Event('host_logged_in');
 
 let server_uri;
-if (process.env.SRVPORT) {
+if (process.env.NODE_ENV === 'production') {
   server_uri = 'http://vaca.m1cr0man.com';
 } else {
   server_uri = 'http://127.0.0.1:3000';
@@ -39,19 +39,6 @@ function createClientAccount(username, res, cb) {
   });
 }
 
-function deleteCookies(cookie_jar, errCode, msg, cb) {
-  const cookies = cookie_jar.getCookies(server_uri);
-  if (cookies.length === 0) return cb(errCode, msg);
-  // remove cookie from jar
-  // eslint-disable-next-line dot-notation
-  return cookie_jar['_jar'].store.removeCookie(cookies[0].domain,
-    cookies[0].path,
-    cookies[0].key, () => {
-      console.log('cookie deleted');
-      return cb(errCode, msg);
-    });
-}
-
 // Exported methods
 const Host = {
   server_uri,
@@ -59,6 +46,21 @@ const Host = {
   cookie_jar: request.jar(),
 
   user: 1,
+
+  uid: '',
+
+  deleteCookies: (cb) => {
+    const cookies = Host.cookie_jar.getCookies(server_uri);
+    if (cookies.length === 0) return cb();
+    // remove cookie from jar
+    // eslint-disable-next-line dot-notation
+    return Host.cookie_jar['_jar'].store.removeCookie(cookies[0].domain,
+      cookies[0].path,
+      cookies[0].key, () => {
+        console.log('cookie deleted');
+        return cb();
+      });
+  },
 
   login: (username, password, cb) => {
     host_db.findOne({}, (host_doc) => {
@@ -77,8 +79,8 @@ const Host = {
       return request(options, (err, response, body) => {
         body = body || { status: 500, error: 'server down' };
         if (body.status !== 200) {
-          return deleteCookies(Host.cookie_jar, body.status, body.error, (cookieErr, cookieMsg) => {
-            cb(cookieErr, cookieMsg);
+          return Host.deleteCookies(() => {
+            cb(body.status, body.error);
           });
         }
         if (!host_doc) {
@@ -89,6 +91,7 @@ const Host = {
           });
         }
         document.dispatchEvent(host_logged_in_event);
+        Host.uid = body.uid;
         return cb(null, body.message);
       });
     });
@@ -105,17 +108,17 @@ const Host = {
     request(options, (err, response, body) => {
       if (!body) return cb(500, 'server down');
       if (body.status !== 200) return cb(body.status, body.error);
-      return deleteCookies(Host.cookie_jar, null, body.message, (cookieErr, cookieMsg) => {
-        cb(cookieErr, cookieMsg);
+      return Host.deleteCookies(() => {
+        cb(null, body.message);
       });
     });
   },
 
-  isAuthed: (cb) => {
+  isAuthed: () => {
     // checks if user is logged in || session has expired
     const cookies = Host.cookie_jar.getCookies(server_uri);
-    if (cookies.length === 0) return cb(false);
-    return cb(true);
+    if (cookies.length === 0) return false;
+    return true;
   },
 
   createAccount: (username, password, cb) => {
@@ -133,12 +136,13 @@ const Host = {
       return request(options, (err, response, body) => {
         body = body || { status: 500, error: 'server down' };
         if (body.status !== 200) {
-          return deleteCookies(Host.cookie_jar, body.status, body.error, (cookieErr, cookieMsg) => {
-            cb(cookieErr, cookieMsg);
+          return Host.deleteCookies(() => {
+            cb(body.status, body.error);
           });
         }
-        return createClientAccount(username, body, (msg_err, msg) => {
+        return createClientAccount(username, body.message, (msg_err, msg) => {
           document.dispatchEvent(host_logged_in_event);
+          Host.uid = body.uid;
           cb(msg_err, msg);
         });
       });
@@ -167,13 +171,13 @@ const Host = {
       if (!body) return cb(500, 'server down');
       if (body.status !== 200) return cb(body.status, body.error);
       // remove cookie from jar
-      return deleteCookies(Host.cookie_jar, null, body.message, (cookieErr, cookieMsg) => {
+      return Host.deleteCookies(() => {
         // remove presence from client, keep images
         host_db.emptyCol(() => {
           document.dispatchEvent(host_update_event);
           return Galleries.clear(() => {
             Images.clear(() => {
-              cb(cookieErr, cookieMsg);
+              cb(null, body.message);
             });
           });
         });
