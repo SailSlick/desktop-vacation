@@ -38,6 +38,7 @@
     "bootstrap": "^3.3.7",
     "electron": "^1.6.0",
     "fs-jetpack": "^0.10.2",
+    "gulp": "^3.9.1",
     "lokijs": "^1.4.2",
     "mime-types": "^2.1.14",
     "react-bootstrap": "^0.30.7",
