@@ -22,23 +22,15 @@ const externalAll = Object.keys(pkg.dependencies).concat(builtins);
 const externalDev = externalAll.concat(Object.keys(pkg.devDependencies));
 
 const pluginsAll = [
-  buble({ target: { chrome: 50 } }),
+  cjs(),
+  buble({
+    exclude,
+    target: { chrome: 50 }
+  }),
   resolve({
     main: true,
     jsnext: true,
     browser: true
-  }),
-  cjs({
-    exclude: 'node_modules/process-es6/**',
-    include: [
-    // If a plugin reports "default is not exported"
-    // Add it here
-      'node_modules/fbjs/**',
-      'node_modules/lokijs/**',
-      'node_modules/minimist/**',
-      'node_modules/object-assign/**',
-      'node_modules/react/**'
-    ]
   }),
 ];
 
