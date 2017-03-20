@@ -82,7 +82,7 @@ class GalleryCard extends React.Component {
   }
 
   remove() {
-    this.props.onRemove();
+    this.props.onRemove(this.props.dbId);
   }
 
   groupMenu() {
