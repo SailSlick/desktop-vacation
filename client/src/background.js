@@ -1,6 +1,6 @@
 import path from 'path';
 import url from 'url';
-import minimist from 'minimist';
+import fs from 'fs';
 import reloader from 'electron-reload';
 import { app, Menu, ipcMain, dialog } from 'electron';
 import devMenuTemplate from './javascript/helpers/dev_menu_template';
@@ -8,26 +8,26 @@ import createWindow from './javascript/helpers/window';
 import './javascript/helpers/wallpaper-server';
 import './javascript/helpers/slideshow-server';
 
-const argv = minimist(process.argv);
-
 let mainWindow;
 
-// Save userData in separate folders for each environment.
-// Thanks to this you can use production and development versions of the app
-// on same machine like those are two separate apps.
-if (argv.env !== 'production') {
+if (process.env.NODE_ENV === 'dev') {
+  // Put dev userData folder in the app folder
+  app.setPath('userData', path.join(__dirname, 'userData'));
   reloader(
     [path.join(__dirname, '*.js'), path.join(__dirname, 'stylesheets', '*.css')],
     {
       electron: path.join(__dirname, '..', 'node_modules', '.bin', 'electron')
     }
   );
-  const userDataPath = app.getPath('userData');
-  app.setPath('userData', `${userDataPath} (${argv.env})`);
 }
 
+// Create userdata folder
+const dataPath = app.getPath('userData');
+console.log('Userdata saved to ', dataPath);
+if (!fs.existsSync(dataPath)) fs.mkdirSync(dataPath);
+
 app.on('ready', () => {
-  if (argv.env !== 'production') {
+  if (process.env.NODE_ENV === 'dev') {
     Menu.setApplicationMenu(Menu.buildFromTemplate([devMenuTemplate]));
   }
 
@@ -53,3 +53,7 @@ ipcMain.on('open-file-dialog', (event) => {
     if (files) event.sender.send('selected-directory', files);
   });
 });
+
+ipcMain.on('get-userData-path', event =>
+  event.sender.send('userData-path', app.getPath('userData'))
+);

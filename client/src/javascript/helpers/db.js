@@ -1,14 +1,26 @@
-import path from 'path';
+import { join } from 'path';
+import jetpack from 'fs-jetpack';
 import Loki from 'lokijs';
+import { ipcRenderer as ipc } from 'electron';
 
-const db = new Loki(path.join(__dirname, '/userData/vacation.json'));
+let db;
 const ready_event = new Event('database_loaded');
 
-// Load the database now
-db.loadDatabase({}, () => {
-  console.log('Database loaded');
-  document.dispatchEvent(ready_event);
+ipc.send('get-userData-path');
+ipc.on('userData-path', (event, userDataPath) => {
+  const dbPath = join(userDataPath, 'vacation.json');
+
+  // Copy empty db to the folder if it doesn't exist
+  if (!jetpack.exists(dbPath)) jetpack.copy(join(__dirname, 'userData', 'vacation.json'), dbPath);
+
+  // Load the database now
+  db = new Loki(dbPath);
+  db.loadDatabase({}, () => {
+    console.log('Database loaded from', dbPath);
+    document.dispatchEvent(ready_event);
+  });
 });
+
 
 class DbConn {
   constructor(colName) {

@@ -28,7 +28,6 @@ All the following commands should be run from the `client` folder
 | eslint                  | dev         | Code style checker               |
 | gulp                    | dev         | Programmatic task automation     |
 | istanbul                | dev         | Code coverage reporter           |
-| minimist                | dev         | Arguments parser                 |
 | mocha                   | dev         | Unit testing suite               |
 | mocha-jenkins-reporter  | dev         | Compiles Jenkins-friendly report |
 | react                   | dev         | Component based dom manipulation |
