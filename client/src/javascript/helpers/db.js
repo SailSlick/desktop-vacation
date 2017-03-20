@@ -114,7 +114,7 @@ class DbConn {
 
 // Events
 // Manually set the userData folder for testing purposes
-if (process.env.NODE_ENV === 'test') {
+if (process.env.NODE_ENV === 'dev') {
   createConnection(join(__dirname, 'userData'));
 } else {
   ipc.send('get-userData-path');

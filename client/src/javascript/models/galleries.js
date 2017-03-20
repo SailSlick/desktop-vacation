@@ -10,7 +10,7 @@ let BASE_GALLERY_ID = 1;
 const gallery_update_event = new Event('gallery_updated');
 
 const Galleries = {
-  should_save: process.env.NODE_ENV !== 'test',
+  should_save: true,
 
   addBase: (name, cb) => {
     gallery_db.findOne({ name }, (found_gallery) => {

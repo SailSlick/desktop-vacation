@@ -29,7 +29,6 @@ describe('Slideshow Helper (Client)', () => {
       Galleries.add(test_gallery_name, inserted_gallery =>
         // Add test image to test gallery
         Galleries.addItem(inserted_gallery.$loki, test_image.$loki, (updated_gallery) => {
-          console.log(test_image, updated_gallery);
           test_gallery = updated_gallery;
           ipcSpy = spy(ipc, 'send');
           done();
