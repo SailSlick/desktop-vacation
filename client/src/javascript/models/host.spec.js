@@ -8,7 +8,7 @@ const should = chaiShould();
 use(chaiThings);
 
 describe('Host model', () => {
-  const username = 'Sully';
+  let username;
   const username2 = 'Rully';
   const password = 'password';
   const password2 = 'wrongpw';
@@ -28,15 +28,16 @@ describe('Host model', () => {
     Host.createAccount(username, password, () => done());
   });
 
-  it('can get Host by username', (done) => {
-    Host.get(username, (doc) => {
+  it('can get Host by index', (done) => {
+    Host.getIndex(1, (doc) => {
       should.exist(doc);
+      username = doc.username;
       done();
     });
   });
 
-  it('can get Host by index', (done) => {
-    Host.getIndex(1, (doc) => {
+  it('can get Host by username', (done) => {
+    Host.get(username, (doc) => {
       should.exist(doc);
       done();
     });

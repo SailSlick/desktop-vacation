@@ -27,13 +27,11 @@ describe('LoginForm Component', () => {
   });
 
   it('can get username input', (done) => {
-    const usernameInput = test_component.find('[name="username"]');
-    usernameInput.value = 'greatusername';
-    usernameInput.simulate('change',
+    test_component.find('[name="username"]').simulate('change',
       {
         target: {
           name: 'username',
-          value: usernameInput.value
+          value: 'greatusername'
         }
       });
     test_component.should.have.state('username', 'greatusername');
@@ -41,13 +39,11 @@ describe('LoginForm Component', () => {
   });
 
   it('can get password input', (done) => {
-    const passwordInput = test_component.find('[name="password"]');
-    passwordInput.value = 'greatpassword';
-    passwordInput.simulate('change',
+    test_component.find('[name="password"]').simulate('change',
       {
         target: {
           name: 'password',
-          value: passwordInput.value
+          value: 'greatpassword'
         }
       });
     test_component.should.have.state('password', 'greatpassword');
@@ -55,13 +51,11 @@ describe('LoginForm Component', () => {
   });
 
   it('can check username input for spaces', (done) => {
-    const usernameInput = test_component.find('[name="username"]');
-    usernameInput.value = 'bad username';
-    usernameInput.simulate('change',
+    test_component.find('[name="username"]').simulate('change',
       {
         target: {
           name: 'username',
-          value: usernameInput.value
+          value: 'bad username'
         }
       });
     test_component.find('.form-group.has-error').should.have.length(1);
@@ -69,13 +63,11 @@ describe('LoginForm Component', () => {
   });
 
   it('can check password input for length', (done) => {
-    const passwordInput = test_component.find('[name="password"]');
-    passwordInput.value = 'bpw';
-    passwordInput.simulate('change',
+    test_component.find('[name="password"]').simulate('change',
       {
         target: {
           name: 'password',
-          value: passwordInput.value
+          value: 'bpw'
         }
       });
     test_component.find('.form-group.has-warning').should.have.length(1);

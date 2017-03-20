@@ -7,15 +7,8 @@ import SettingsForm from './settingsForm.jsx';
 import { success, danger } from '../helpers/notifier';
 
 
-const ProfileContent = ({ page, parent }) => {
-  Host.get({ $gt: 0 }, (cb) => {
-    if (cb) parent.state.username = cb.username;
-  });
-  if (parent.isAuthed(page) && page === 0) {
-    parent.state.page = 1;
-    page = 1;
-  }
-  return [
+const ProfileContent = ({ page, parent }) =>
+  [
     (<Grid>
       <h1>Hi {parent.state.username}</h1>
       <h1>Profile</h1>
@@ -61,16 +54,16 @@ const ProfileContent = ({ page, parent }) => {
       parentPage={parent.backToPage}
     />)
   ][page];
-};
 
 
 class Profile extends React.Component {
   constructor(props) {
     super(props);
+    const isAuthed = Host.isAuthed();
 
     this.state = {
       username: 'please make an account',
-      page: 0,
+      page: isAuthed ? 1 : 0,
       loggedIn: false
     };
 
@@ -79,8 +72,13 @@ class Profile extends React.Component {
     this.backToPage = this.backToPage.bind(this);
     this.changePage = this.changePage.bind(this);
     this.logout = this.logout.bind(this);
-    this.isAuthed = this.isAuthed.bind(this);
     this.deleteAccount = this.deleteAccount.bind(this);
+  }
+
+  componentDidMount() {
+    Host.get({ $gt: 0 }, (doc) => {
+      if (doc) this.setState({ username: doc.username });
+    });
   }
 
   profilePage() {
@@ -101,7 +99,14 @@ class Profile extends React.Component {
 
   changePage(page) {
     console.log('changing to page:', page);
-    this.setState({ page });
+    // Return to login page if..
+    // - You're not logged in
+    // - You're not trying to log in
+    if (!Host.isAuthed() && page !== 2 && page !== 3) {
+      this.setState({ page: 0 });
+    } else {
+      this.setState({ page });
+    }
   }
 
   logout() {
@@ -109,21 +114,9 @@ class Profile extends React.Component {
       if (err) danger(ret);
       else {
         success(ret);
-        this.setState({ username: '', loggedIn: false, page: 0 });
+        this.setState({ username: 'please make an account', loggedIn: false, page: 0 });
       }
     });
-  }
-
-  isAuthed(page) {
-    const ret = Host.isAuthed();
-    if (ret) {
-      if (page <= 1) this.state.page = 1;
-      this.state.loggedIn = true;
-      return true;
-    }
-    if (page < 2 || page === 4) this.state.page = 0;
-    this.state.loggedIn = false;
-    return false;
   }
 
   deleteAccount() {

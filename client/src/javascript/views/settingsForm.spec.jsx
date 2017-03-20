@@ -3,18 +3,18 @@ import { stub } from 'sinon';
 import { mount } from 'enzyme';
 import { use, should as chaiShould } from 'chai';
 import chaiEnzyme from 'chai-enzyme';
-import CreateForm from './createForm.jsx';
+import SettingsForm from './settingsForm.jsx';
 
 use(chaiEnzyme());
 chaiShould();
 
-describe('CreateForm Component', () => {
-  const submitStub = stub(CreateForm.prototype, 'createAccount');
-  const backStub = stub(CreateForm.prototype, 'back');
+describe('SettingsForm Component', () => {
+  const submitStub = stub(SettingsForm.prototype, 'changeSettings');
+  const backStub = stub(SettingsForm.prototype, 'back');
   let test_component;
 
   before((done) => {
-    test_component = mount(<CreateForm />);
+    test_component = mount(<SettingsForm />);
     done();
   });
 
@@ -26,15 +26,15 @@ describe('CreateForm Component', () => {
     done();
   });
 
-  it('can get username input', (done) => {
-    test_component.find('[name="username"]').simulate('change',
+  it('can get timer input', (done) => {
+    test_component.find('[name="timer"]').simulate('change',
       {
         target: {
-          name: 'username',
-          value: 'greatusername'
+          name: 'timer',
+          value: 50
         }
       });
-    test_component.should.have.state('username', 'greatusername');
+    test_component.should.have.state('timer', 50);
     done();
   });
 
@@ -62,12 +62,12 @@ describe('CreateForm Component', () => {
     done();
   });
 
-  it('can check username input for spaces', (done) => {
-    test_component.find('[name="username"]').simulate('change',
+  it('can check timer input for non numeric', (done) => {
+    test_component.find('[name="timer"]').simulate('change',
       {
         target: {
-          name: 'username',
-          value: 'bad username'
+          name: 'timer',
+          value: 'bad timer'
         }
       });
     test_component.find('.form-group.has-error').first().should.have.length(1);
