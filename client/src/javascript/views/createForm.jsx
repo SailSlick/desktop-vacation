@@ -29,6 +29,7 @@ class CreateForm extends React.Component {
 
   pw2ValidationState() {
     const length = this.state.password2.length;
+    if (this.state.password2 !== this.state.password) return 'error';
     if (length < 6) return 'warning';
     return 'success';
   }
