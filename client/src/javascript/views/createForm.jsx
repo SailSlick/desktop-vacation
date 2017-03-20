@@ -51,6 +51,7 @@ class CreateForm extends React.Component {
   }
 
   createAccount(event) {
+    console.log("here boys")
     event.preventDefault();
     const username = event.target.username.value;
     const password = event.target.password.value;

@@ -4,17 +4,23 @@ import { mount } from 'enzyme';
 import { use, should as chaiShould } from 'chai';
 import chaiEnzyme from 'chai-enzyme';
 import SettingsForm from './settingsForm.jsx';
+import Host from '../models/host.js';
 
 use(chaiEnzyme());
 chaiShould();
 
 describe('SettingsForm Component', () => {
-  const submitStub = stub(SettingsForm.prototype, 'changeSettings');
-  const backStub = stub(SettingsForm.prototype, 'back');
+  let submitStub;
+  let backStub;
+  let hostGetIndexStub;
+  let hostUpdateStub;
   let test_component;
 
   before((done) => {
-    test_component = mount(<SettingsForm />);
+    submitStub = stub(SettingsForm.prototype, 'changeSettings');
+    backStub = stub(SettingsForm.prototype, 'back');
+    hostGetIndexStub = stub(Host, 'getIndex');
+    hostUpdateStub = stub(Host, 'updateAccount');
     done();
   });
 
@@ -23,6 +29,13 @@ describe('SettingsForm Component', () => {
     test_component.unmount();
     submitStub.restore();
     backStub.restore();
+    hostGetIndexStub.restore();
+    hostUpdateStub.restore();
+    done();
+  });
+
+  it('can mount', (done) => {
+    test_component = mount(<SettingsForm />);
     done();
   });
 
@@ -94,6 +107,25 @@ describe('SettingsForm Component', () => {
   it('can submit form', (done) => {
     test_component.find('Form').first().simulate('submit');
     submitStub.called.should.be.ok;
+    done();
+  });
+
+  it('can call Host model correctly for change settings', (done) => {
+    submitStub.restore();
+    // remount so form can be submitted again
+    test_component.unmount();
+    test_component = mount(<SettingsForm />);
+    test_component.find('Form').first().simulate('submit',
+      {
+        preventDefault: () => true,
+        target: {
+          timer: { value: 30 },
+          password: { value: 'greatpw' },
+          password2: { value: 'greatpw' }
+        }
+      });
+    hostGetIndexStub.called.should.be.ok;
+    hostUpdateStub.called.should.be.ok;
     done();
   });
 

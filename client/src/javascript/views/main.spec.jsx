@@ -1,6 +1,6 @@
 import path from 'path';
 import React from 'react';
-import { spy } from 'sinon';
+import { spy, stub } from 'sinon';
 import { mount } from 'enzyme';
 import { use, should as chaiShould } from 'chai';
 import { Simulate } from 'react-addons-test-utils';
@@ -19,12 +19,13 @@ describe('Main Component', () => {
   let test_gallery;
   let test_image;
   let test_component;
+  let accountCreatedStub;
 
   beforeEach(() => {
     Galleries.should_save = false;
   });
 
-  before(done =>
+  before((done) => {
     // Create test image
     Images.add(test_image_path, (inserted_image) => {
       test_image = inserted_image;
@@ -43,17 +44,23 @@ describe('Main Component', () => {
           done();
         });
       });
-    })
-  );
+    });
+  });
 
   // Remove test image and gallery
   after((done) => {
+    test_component.unmount();
+    accountCreatedStub.restore();
     Images.remove(test_image.$loki, () => true);
     Galleries.remove(test_gallery.$loki, _ => done());
   });
 
-  it('can render images and galleries', (done) => {
+  it('can mount', (done) => {
     test_component = mount(<Main />);
+    done();
+  });
+
+  it('can render images and galleries', (done) => {
     test_component.find('figure h2').someWhere(n => n.text() === test_gallery.name).should.be.ok;
     test_component.find('img').someWhere(n => n.prop('src') === test_image_path).should.be.ok;
     done();
@@ -159,6 +166,13 @@ describe('Main Component', () => {
 
   it('can unmount safely', (done) => {
     test_component.unmount();
+    done();
+  });
+
+  it('will change to profile if there is no account', (done) => {
+    accountCreatedStub = stub(Main.prototype, 'accountCreated');
+    test_component = mount(<Main />);
+    accountCreatedStub.called.should.be.ok;
     done();
   });
 });

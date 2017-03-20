@@ -68,7 +68,6 @@ class Profile extends React.Component {
     };
 
     // Bind functions
-    this.profilePage = this.profilePage.bind(this);
     this.backToPage = this.backToPage.bind(this);
     this.changePage = this.changePage.bind(this);
     this.logout = this.logout.bind(this);
@@ -81,20 +80,16 @@ class Profile extends React.Component {
     });
   }
 
-  profilePage() {
-    // This is to show the profile details
-    console.log('changing to Profile home');
-    let pageNumber = 0;
-    if (this.state.loggedIn) pageNumber = 1;
-    this.setState({ page: pageNumber });
-  }
-
   backToPage(loggedIn) {
     // This is to show the profile details
     console.log('back to Profile home', loggedIn);
-    let pageNumber = 0;
-    if (loggedIn) pageNumber = 1;
-    this.setState({ page: pageNumber, loggedIn });
+    if (loggedIn) {
+      Host.get({ $gt: 0 }, (doc) => {
+        if (doc) this.setState({ page: 1, username: doc.username });
+      });
+      return;
+    }
+    this.setState({ page: 0, loggedIn });
   }
 
   changePage(page) {

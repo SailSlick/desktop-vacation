@@ -4,17 +4,21 @@ import { mount } from 'enzyme';
 import { use, should as chaiShould } from 'chai';
 import chaiEnzyme from 'chai-enzyme';
 import CreateForm from './createForm.jsx';
+import Host from '../models/host.js';
 
 use(chaiEnzyme());
 chaiShould();
 
 describe('CreateForm Component', () => {
-  const submitStub = stub(CreateForm.prototype, 'createAccount');
-  const backStub = stub(CreateForm.prototype, 'back');
+  let submitStub;
+  let backStub;
+  let hostCreateStub;
   let test_component;
 
   before((done) => {
-    test_component = mount(<CreateForm />);
+    submitStub = stub(CreateForm.prototype, 'createAccount');
+    backStub = stub(CreateForm.prototype, 'back');
+    hostCreateStub = stub(Host, 'createAccount');
     done();
   });
 
@@ -23,6 +27,12 @@ describe('CreateForm Component', () => {
     test_component.unmount();
     submitStub.restore();
     backStub.restore();
+    hostCreateStub.restore();
+    done();
+  });
+
+  it('can mount', (done) => {
+    test_component = mount(<CreateForm />);
     done();
   });
 
@@ -94,6 +104,24 @@ describe('CreateForm Component', () => {
   it('can submit form', (done) => {
     test_component.find('Form').first().simulate('submit');
     submitStub.called.should.be.ok;
+    done();
+  });
+
+  it('can call Host model correctly for create account', (done) => {
+    submitStub.restore();
+    // remount so form can be submitted again
+    test_component.unmount();
+    test_component = mount(<CreateForm />);
+    test_component.find('Form').first().simulate('submit',
+      {
+        preventDefault: () => true,
+        target: {
+          username: { value: 'sully' },
+          password: { value: 'greatpw' },
+          password2: { value: 'greatpw' }
+        }
+      });
+    hostCreateStub.called.should.be.ok;
     done();
   });
 

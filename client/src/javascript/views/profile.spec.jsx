@@ -13,7 +13,6 @@ describe('Profile Component', () => {
   let deleteStub;
   let logoutStub;
   let changePageStub;
-  let profilePageStub;
   let hostGetStub;
   let hostAuthStub;
   let test_component;
@@ -22,12 +21,10 @@ describe('Profile Component', () => {
     deleteStub = stub(Profile.prototype, 'deleteAccount');
     logoutStub = stub(Profile.prototype, 'logout');
     changePageStub = stub(Profile.prototype, 'changePage');
-    profilePageStub = stub(Profile.prototype, 'profilePage');
     hostGetStub = stub(Host, 'get');
     hostAuthStub = stub(Host, 'isAuthed');
     hostGetStub.returns(null);
     hostAuthStub.returns(false);
-    test_component = mount(<Profile />);
     done();
   });
 
@@ -37,8 +34,12 @@ describe('Profile Component', () => {
     deleteStub.restore();
     logoutStub.restore();
     changePageStub.restore();
-    profilePageStub.restore();
     hostGetStub.restore();
+    done();
+  });
+
+  it('can mount', (done) => {
+    test_component = mount(<Profile />);
     done();
   });
 
@@ -92,6 +93,16 @@ describe('Profile Component', () => {
   it('can click settings button', (done) => {
     test_component.find('Button').at(2).simulate('click');
     changePageStub.called.should.be.ok;
+    done();
+  });
+
+  it('can change page', (done) => {
+    hostAuthStub = stub(Host, 'isAuthed');
+    changePageStub.restore();
+    test_component.unmount();
+    test_component = mount(<Profile />);
+    test_component.find('Button').at(1).simulate('click');
+    hostAuthStub.called.should.be.ok;
     done();
   });
 });
