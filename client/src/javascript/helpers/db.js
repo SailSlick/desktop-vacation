@@ -6,9 +6,8 @@ import { ipcRenderer as ipc } from 'electron';
 let db;
 const ready_event = new Event('database_loaded');
 
-ipc.send('get-userData-path');
-ipc.on('userData-path', (event, userDataPath) => {
-  const dbPath = join(userDataPath, 'vacation.json');
+function createConnection(storagePath) {
+  const dbPath = join(storagePath, 'vacation.json');
 
   // Copy empty db to the folder if it doesn't exist
   if (!jetpack.exists(dbPath)) jetpack.copy(join(__dirname, 'userData', 'vacation.json'), dbPath);
@@ -19,8 +18,7 @@ ipc.on('userData-path', (event, userDataPath) => {
     console.log('Database loaded from', dbPath);
     document.dispatchEvent(ready_event);
   });
-});
-
+}
 
 class DbConn {
   constructor(colName) {
@@ -112,6 +110,15 @@ class DbConn {
     this.col.clear();
     cb();
   }
+}
+
+// Events
+// Manually set the userData folder for testing purposes
+if (process.env.NODE_ENV === 'test') {
+  createConnection(join(__dirname, 'userData'));
+} else {
+  ipc.send('get-userData-path');
+  ipc.on('userData-path', (event, userDataPath) => createConnection(userDataPath));
 }
 
 export default DbConn;
