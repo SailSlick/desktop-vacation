@@ -1,5 +1,5 @@
 import React from 'react';
-import { each } from 'async';
+import { eachOf } from 'async';
 import { AlertList } from 'react-bs-notifier';
 import { ipcRenderer as ipc } from 'electron';
 import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup, FormControl, ListGroup, ListGroupItem, InputGroup } from 'react-bootstrap';
@@ -115,10 +115,11 @@ class Main extends React.Component {
     // Add pending items to gallery
     Galleries.should_save = false;
     const num_items = this.state.imageSelection.length;
-    each(this.state.imageSelection, (imageId, next) =>
-      Galleries.addItem(galleryId, imageId, (new_gal, err_msg) => next(err_msg)),
+    eachOf(this.state.imageSelection, (imageId, index, next) => {
+      if (index === num_items - 1) Galleries.should_save = true;
+      Galleries.addItem(galleryId, imageId, (new_gal, err_msg) => next(err_msg));
+    },
     (err_msg) => {
-      Galleries.should_save = true;
       if (err_msg) danger(err_msg);
       else if (num_items === 1) success('Image added');
       else success(`${num_items} images added`);
