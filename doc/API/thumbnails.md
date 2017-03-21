@@ -2,20 +2,6 @@
 
 ### [General Information](./README.md)
 
-## Usage
-
-### Query
-
-`GET /images/<image_id>/thumb[/<size>/<cropping>]`
-
-Defaults for `size` and `cropping` are `md` and `growy` respectively.
-
-Note that if size is specified, cropping must also be specified.
-
-### Returns
-
-An image of MIME type `image/png`. This can be fed directly into img elements.
-
 ## Sizes
 
 Names are based on Bootstrap column size conventions.
@@ -23,13 +9,13 @@ Names are based on Bootstrap column size conventions.
 Dimensions are given in pixels.
 
 | Name | Width | Height |
-|------|----------------|
+|------|-------|--------|
 | sm   | 150   | 150    |
 | md   | 350   | 350    |
 | lg   | 500   | 500    |
 | xl   | 1200  | 1200   |
 
-These sizes are based off popular social mediai sites' recommendations
+These sizes are based off popular social media sites' recommendations
 and the Open Graph API, as well as our own needs.
 
 - Twitter:
@@ -51,3 +37,29 @@ and the Open Graph API, as well as our own needs.
 | fill  | Fill container by overflowing x/y axis | Square       |
 | growx | Fix height, scale width                | Dynamic      |
 | growy | Fix width, scale height                | Dynamic      |
+
+## Usage
+
+### Query
+
+`GET /images/<image_id>/thumb[/<size>/<cropping>]`
+
+Defaults for `size` and `cropping` are `md` and `growy` respectively.
+
+Note that if size is specified, cropping must also be specified.
+
+### Response
+
+`Status: 200 OK`
+
+An image of MIME type `image/png`. This can be fed directly into img elements.
+
+### Expected Errors
+
+Error messages are `text/json`
+
+| Error Message          | Status |
+|------------------------|--------|
+| `'invalid parameters'` |   400  |
+| `'image not found'`    |   404  |
+| `'scaling failed'`     |   500  |
