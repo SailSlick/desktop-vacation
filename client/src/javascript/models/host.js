@@ -8,7 +8,7 @@ let host_db;
 const host_update_event = new Event('host_updated');
 
 let server_uri;
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV !== 'dev') {
   server_uri = 'http://vaca.m1cr0man.com';
 } else {
   server_uri = 'http://127.0.0.1:3000';
