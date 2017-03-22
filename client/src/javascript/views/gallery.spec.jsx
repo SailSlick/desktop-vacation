@@ -19,10 +19,6 @@ describe('Gallery Component', () => {
   let test_image;
   let test_component;
 
-  beforeEach(() => {
-    Galleries.should_save = false;
-  });
-
   before(done =>
     // Create test image
     Images.add(test_image_path, (inserted_image) => {
@@ -60,26 +56,17 @@ describe('Gallery Component', () => {
 
   it('can render simplified version', (done) => {
     test_component.find('Image').should.not.have.length(0);
-    test_component.setProps({
-      simple: true,
-      onRefresh: () => {
-        test_component.find('Image').should.be.empty;
-        done();
-      }
-    });
+    test_component.setProps({ simple: true });
+    test_component.find('Image').should.have.length(0);
+    done();
   });
 
   // Really, this test is just to fix the next one
   it('can render normal version again', (done) => {
-    test_component.find('Image').should.be.empty;
-    test_component.setProps({
-      simple: false,
-      onRefresh: () => {
-        test_component.find('Image').should.not.have.length(0);
-        test_component.setProps({ onRefresh: () => true });
-        done();
-      }
-    });
+    test_component.find('Image').should.have.length(0);
+    test_component.setProps({ simple: false });
+    test_component.find('Image').should.not.have.length(0);
+    done();
   });
 
   it('can select and deselect images in select mode', (done) => {

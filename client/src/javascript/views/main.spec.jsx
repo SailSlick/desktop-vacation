@@ -51,6 +51,7 @@ describe('Main Component', () => {
   after((done) => {
     test_component.unmount();
     accountCreatedStub.restore();
+    Galleries.should_save = true;
     Images.remove(test_image.$loki, () => true);
     Galleries.remove(test_gallery.$loki, _ => done());
   });

@@ -26,7 +26,7 @@ class Group extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    this.refresh(nextProps.dbId);
+    if (nextProps.dbId !== this.props.dbId) this.refresh(nextProps.dbId);
   }
 
   refresh(dbId) {
