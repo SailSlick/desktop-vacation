@@ -73,7 +73,7 @@ class Gallery extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    this.refresh(nextProps.dbId);
+    if (nextProps.dbId !== this.props.dbId) this.refresh(nextProps.dbId);
   }
 
   componentWillUnmount() {

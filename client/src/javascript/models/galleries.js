@@ -1,4 +1,4 @@
-import { map, each } from 'async';
+import { map, each, eachOf } from 'async';
 import { ipcRenderer as ipc } from 'electron';
 import DbConn from '../helpers/db';
 import Images from './images';
@@ -238,17 +238,20 @@ document.addEventListener('gallery_updated', () =>
 false);
 
 // IPC Calls
-ipc.on('selected-directory', (event, files) =>
-  each(files, (file, next) =>
+ipc.on('selected-directory', (event, files) => {
+  Galleries.should_save = false;
+  eachOf(files, (file, index, next) => {
+    if (index === files.length - 1) Galleries.should_save = true;
     Images.add(file, image =>
       Galleries.addItem(BASE_GALLERY_ID, image.$loki, () => {
         console.log(`Opened image ${file}`);
         next();
       })
-    ),
+    );
+  },
   () =>
     console.log('Finished opening images')
-  )
-);
+  );
+});
 
 export default Galleries;
