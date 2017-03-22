@@ -45,6 +45,7 @@ and the Open Graph API, as well as our own needs.
 `GET /images/<image_id>/thumb[/<size>/<cropping>]`
 
 **Example**
+
 `GET /images/6160f58eacb/thumb/sm/fit`
 
 Defaults for `size` and `cropping` are `md` and `growy` respectively.
@@ -55,7 +56,7 @@ Note that if size is specified, cropping must also be specified.
 
 `Status: 200 OK`
 
-An image of MIME type `image/png`. This can be fed directly into img elements.
+An image of MIME type `image/jpeg`. This can be fed directly into img elements.
 
 ### Expected Errors
 
@@ -65,4 +66,4 @@ Error messages are `text/json`
 |------------------------|--------|
 | `'invalid parameters'` |   400  |
 | `'image not found'`    |   404  |
-| `'scaling failed'`     |   500  |
+| `'generation failed'`  |   500  |
