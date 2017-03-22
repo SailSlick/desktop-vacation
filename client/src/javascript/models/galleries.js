@@ -234,7 +234,8 @@ document.addEventListener('vacation_loaded', () => {
 }, false);
 
 document.addEventListener('gallery_updated', () =>
-  Galleries.should_save && gallery_db.save(_ => console.log('Database saved')), false);
+  Galleries.should_save && gallery_db.save(_ => console.log('Database saved')),
+false);
 
 // IPC Calls
 ipc.on('selected-directory', (event, files) =>

@@ -39,7 +39,6 @@ describe('Slideshow Helper (Client)', () => {
 
   // Remove test image and gallery
   after((done) => {
-    Galleries.should_save = true;
     ipc.send.restore();
     Images.remove(test_image.$loki, () => true);
     Galleries.remove(test_gallery.$loki, () => done());

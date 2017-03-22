@@ -1,5 +1,5 @@
 import React from 'react';
-import { each } from 'async';
+import { eachOf } from 'async';
 import { Col, Row, Nav, Navbar, NavItem, Glyphicon } from 'react-bootstrap';
 import Image from './image.jsx';
 import GalleryCard from './gallerycard.jsx';
@@ -130,8 +130,10 @@ class Gallery extends React.Component {
   removeAll(cb) {
     Galleries.should_save = false;
     const num_items = this.state.selection.length;
-    each(this.state.selection, (id, next) =>
-      Galleries.removeItem(this.props.dbId, id, (update, err_msg) => next(err_msg)),
+    eachOf(this.state.selection, (id, index, next) => {
+      if (index === num_items - 1) Galleries.should_save = true;
+      Galleries.removeItem(this.props.dbId, id, (update, err_msg) => next(err_msg));
+    },
     (err_msg) => {
       Galleries.should_save = true;
       if (err_msg) danger(err_msg);

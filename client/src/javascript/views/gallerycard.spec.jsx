@@ -56,7 +56,6 @@ describe('GalleryCard Component', () => {
 
   // Remove test image and gallery
   after((done) => {
-    Galleries.should_save = true;
     Images.remove(test_image.$loki, () => true);
     Galleries.remove(test_gallery.$loki, _ => done());
   });

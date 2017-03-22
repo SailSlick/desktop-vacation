@@ -46,7 +46,6 @@ describe('Gallery Component', () => {
 
   // Remove test image and gallery
   after((done) => {
-    Galleries.should_save = true;
     test_component.unmount();
     Images.remove(test_image.$loki, () => true);
     Galleries.remove(test_gallery.$loki, () => done());
