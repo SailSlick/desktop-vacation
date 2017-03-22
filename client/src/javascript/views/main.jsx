@@ -22,7 +22,6 @@ const PrimaryContent = ({ page, parent }) => {
   return [
     (<Gallery
       dbId={parent.state.galleryId}
-      remote={parent.state.remote}
       onChange={parent.changeGallery}
       multiSelect={parent.state.multiSelect}
     />),
@@ -68,7 +67,6 @@ class Main extends React.Component {
 
     this.state = {
       galleryId: BASE_GALLERY_ID,
-      remote: '',
       groupId: BASE_GROUP_ID,
       newGalleryModal: false,
       selectGalleryModal: false,
@@ -93,7 +91,6 @@ class Main extends React.Component {
     this.showAlert = this.showAlert.bind(this);
     this.dismissAlert = this.dismissAlert.bind(this);
     this.toggleSelectMode = this.toggleSelectMode.bind(this);
-    this.updateRemote = this.updateRemote.bind(this);
     this.getNewGroupName = this.getNewGroupName.bind(this);
     this.addNewGroup = this.addNewGroup.bind(this);
     this.changeGroup = this.changeGroup.bind(this);
@@ -106,12 +103,6 @@ class Main extends React.Component {
     // Events
     document.addEventListener('append_gallery', this.showGallerySelector, false);
     document.addEventListener('notify', this.showAlert, false);
-  }
-
-  componentDidMount() {
-    Host.getBaseRemote((remote) => {
-      this.updateRemote(remote);
-    });
   }
 
   componentWillUnmount() {
@@ -151,10 +142,6 @@ class Main extends React.Component {
 
   getInvitesModal() {
     this.setState({ invitesModal: true });
-  }
-
-  updateRemote(remote) {
-    this.setState({ remote });
   }
 
   showGallerySelector(evt) {
@@ -432,7 +419,6 @@ class Main extends React.Component {
               <Gallery
                 simple
                 dbId={BASE_GALLERY_ID}
-                remote={this.state.remote}
                 onChange={this.onSelectGallery}
               />
             </Grid>

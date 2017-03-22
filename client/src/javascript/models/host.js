@@ -90,9 +90,10 @@ const Host = {
             cb(msg_err, msg);
           });
         }
-        document.dispatchEvent(host_logged_in_event);
+
         Host.uid = body.uid;
-        return cb(null, body.message);
+        document.dispatchEvent(host_logged_in_event);
+        return Host.setBaseRemote(body.gallery, () => cb(null, body.message));
       });
     });
   },
@@ -151,10 +152,14 @@ const Host = {
 
   getBaseRemote: (cb) => {
     host_db.findOne({ $loki: Host.user }, (doc) => {
-      console.log('finding remote gallery');
+      console.log(`finding remote gallery: ${doc.remoteGallery}`);
       if (!doc) return cb('');
       return cb(doc.remoteGallery);
     });
+  },
+
+  setBaseRemote: (remote, cb) => {
+    host_db.updateOne({ $loki: Host.user }, { remoteGallery: remote }, _ => cb());
   },
 
   deleteAccount: (password, cb) => {
@@ -212,7 +217,7 @@ const Host = {
     host_db.findOne({ username }, cb);
   },
 
-  getIndex: (index, cb) => {
+  getByIndex: (index, cb) => {
     host_db.findIndex(index, cb);
   },
 

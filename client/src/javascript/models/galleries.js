@@ -43,7 +43,7 @@ const Galleries = {
       }
       const doc = {
         name,
-        remote: null,
+        remote: '',
         group: false,
         tags: [],
         subgalleries: [],
@@ -233,7 +233,7 @@ const Galleries = {
   addSyncItem: (gid, imageId, cb) => {
     Galleries.addItem(gid, imageId, (res, err) => {
       if (err === 'Cannot find gallery') {
-        // This is the fatal condition in addItem
+        // This is the only fatal condition in addItem
         cb(err, null);
       } else {
         cb(null, res);
@@ -241,42 +241,54 @@ const Galleries = {
     });
   },
 
-  addRemote: (gid, remote, cb) => {
+  addRemoteId: (gid, remote, cb) => {
+    console.log(`adding remote: ${remote}`);
     gallery_db.updateOne({ $loki: gid }, { remote }, cb);
   },
 
+  getRemoteId: (gid, cb) => {
+    gallery_db.findOne({ $loki: gid }, (gallery) => {
+      if (!gallery) {
+        console.error(`Couldn't find gallery: ${gid}`);
+        cb(null);
+      } else if (!gallery.remote) {
+        console.log(gallery);
+        console.error(`Couldn't find remote in gallery: ${gid}`);
+        cb(null);
+      } else {
+        cb(gallery.remote);
+      }
+    });
+  },
+
   syncRoot: () => {
-    Host.getIndex(Host.user, (userData) => {
+    Host.getByIndex(Host.user, (userData) => {
       if (!userData) {
         console.error('User data doesn\'t exist.');
         console.error('Kernel panic - not syncing. Attempted to kill init');
       }
-      const options = {
-        uri: Host.server_uri.concat(`/gallery/${userData.remoteGallery}`),
-        jar: Host.cookie_jar,
-        method: 'GET',
-        json: true
-      };
-      return request(options, (err, response, body) => {
-        map(body.data.images, Images.download, (downloadErr, imageIds) => {
-          if (downloadErr) console.error(downloadErr);
-          each(imageIds,
-            (id, cb) => Galleries.addSyncItem(BASE_GALLERY_ID, id, cb),
-            (addErr) => {
-              console.log(imageIds);
-              if (addErr) {
-                console.error(addErr);
-              } else {
-                Galleries.addRemote(BASE_GALLERY_ID, userData.remoteGallery, (success) => {
-                  if (success) {
-                    console.log('Fully synced base gallery');
-                  } else {
-                    console.error('Could not add remote to base gallery');
-                  }
-                });
+      Galleries.addRemoteId(BASE_GALLERY_ID, userData.remoteGallery, () => {
+        const options = {
+          uri: Host.server_uri.concat(`/gallery/${userData.remoteGallery}`),
+          jar: Host.cookie_jar,
+          method: 'GET',
+          json: true
+        };
+        return request(options, (err, response, body) => {
+          if (response.statusCode !== 200 || !body.data.images || body.data.images.length === 0) {
+            console.error('Could not add remote to base gallery');
+            return;
+          }
+          map(body.data.images, Images.download, (downloadErr, imageIds) => {
+            if (downloadErr) console.error(downloadErr);
+            each(imageIds,
+              (id, cb) => Galleries.addSyncItem(BASE_GALLERY_ID, id, cb),
+              (addErr) => {
+                console.log(imageIds);
+                if (addErr) console.error(addErr);
               }
-            }
-          );
+            );
+          });
         });
       });
     });

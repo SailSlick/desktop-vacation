@@ -130,12 +130,14 @@ class Gallery extends React.Component {
   }
 
   uploadItem(ids) {
-    console.log(this.props);
-    if (this.props.remote.length > 0) {
-      sync.uploadImages(this.props.remote, ids);
-    } else {
-      danger('This is not a synced item, try signing in!');
-    }
+    Galleries.getRemoteId(this.props.dbId, (remote) => {
+      console.log(`syncing, gallery: ${remote}`);
+      if (!remote || remote.length <= 0) {
+        danger('Can\'t sync, try signing in!');
+      } else {
+        sync.uploadImages(remote, ids);
+      }
+    });
   }
 
   removeAll(cb) {
@@ -227,7 +229,6 @@ class Gallery extends React.Component {
 Gallery.propTypes = {
   dbId: React.PropTypes.number.isRequired,
   onChange: React.PropTypes.func.isRequired,
-  remote: React.PropTypes.string,
   simple: React.PropTypes.bool,
   multiSelect: React.PropTypes.bool,
   onRefresh: React.PropTypes.func
@@ -236,7 +237,6 @@ Gallery.propTypes = {
 Gallery.defaultProps = {
   simple: false,
   multiSelect: false,
-  remote: -1,
   onRefresh: () => true
 };
 
