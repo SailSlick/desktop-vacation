@@ -31,5 +31,6 @@
   "util",
   "v8",
   "vm",
-  "zlib"
+  "zlib",
+  "electron"
 ]
