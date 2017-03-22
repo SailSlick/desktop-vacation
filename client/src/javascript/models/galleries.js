@@ -61,7 +61,7 @@ const Galleries = {
       group: true,
       mongoId
     }, (ret) => {
-      document.dispatchEvent(gallery_update_event);
+      if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
       cb(ret);
     });
   },
@@ -84,7 +84,7 @@ const Galleries = {
         { $loki: id },
         { subgalleries: base_gallery.subgalleries },
         (updated_gallery) => {
-          document.dispatchEvent(gallery_update_event);
+          if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
           return cb(updated_gallery);
         }
       );
@@ -104,7 +104,7 @@ const Galleries = {
         // This may be changed later, because for every
         // image in a multi-add it will be fired... not
         // great for performance
-        document.dispatchEvent(gallery_update_event);
+        if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
         return cb(new_gallery);
       });
     });
@@ -167,7 +167,7 @@ const Galleries = {
         );
       }, () =>
         gallery_db.removeOne({ $loki: id }, () => {
-          document.dispatchEvent(gallery_update_event);
+          if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
           cb();
         })
       )
@@ -186,7 +186,7 @@ const Galleries = {
       gallery.images = gallery.images.filter(i => i !== item_id);
       return gallery_db.updateOne({ $loki: id }, gallery, (new_gallery) => {
         console.log('Item removed');
-        document.dispatchEvent(gallery_update_event);
+        if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
         return cb(new_gallery);
       });
     });
@@ -213,7 +213,7 @@ const Galleries = {
           });
         }, () => {
           console.log('Item removed globally');
-          document.dispatchEvent(gallery_update_event);
+          if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
           cb();
         })
       )
@@ -222,7 +222,7 @@ const Galleries = {
 
   clear: (cb) => {
     gallery_db.emptyCol(() => {
-      document.dispatchEvent(gallery_update_event);
+      if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
       cb();
     });
   }
@@ -234,7 +234,7 @@ document.addEventListener('vacation_loaded', () => {
 }, false);
 
 document.addEventListener('gallery_updated', () =>
-  Galleries.should_save && gallery_db.save(_ => console.log('Database saved')),
+  gallery_db.save(_ => console.log('Database saved')),
 false);
 
 // IPC Calls
