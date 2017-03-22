@@ -10,7 +10,6 @@ import Slideshow from '../helpers/slideshow-client';
 import Profile from './profile.jsx';
 import Group from './group.jsx';
 import Groups from '../models/groups';
-import Host from '../models/host';
 import { success, danger } from '../helpers/notifier';
 
 const BASE_GALLERY_ID = 1;
