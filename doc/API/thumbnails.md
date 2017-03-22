@@ -44,6 +44,9 @@ and the Open Graph API, as well as our own needs.
 
 `GET /images/<image_id>/thumb[/<size>/<cropping>]`
 
+**Example**
+`GET /images/6160f58eacb/thumb/sm/fit`
+
 Defaults for `size` and `cropping` are `md` and `growy` respectively.
 
 Note that if size is specified, cropping must also be specified.
