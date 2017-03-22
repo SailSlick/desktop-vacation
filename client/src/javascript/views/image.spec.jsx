@@ -15,6 +15,7 @@ chaiShould();
 describe('Image Component', () => {
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
   const removeSpy = spy();
+  const uploadSpy = spy();
   let test_image;
   let test_component;
 
@@ -26,6 +27,7 @@ describe('Image Component', () => {
         dbId={test_image.$loki}
         src={test_image_path}
         onRemove={removeSpy}
+        onUpload={uploadSpy}
       />);
       done();
     })
@@ -61,7 +63,7 @@ describe('Image Component', () => {
 
   it('can open delete confirmation modal', (done) => {
     test_component.should.have.state('deleteConfirmation', false);
-    test_component.find('.img-menu a').at(3).simulate('click');
+    test_component.find('.img-menu a').at(4).simulate('click');
     test_component.should.have.state('deleteConfirmation', true);
     done();
   });
@@ -95,7 +97,7 @@ describe('Image Component', () => {
   it('can request remove of element', (done) => {
     removeSpy.reset();
     removeSpy.called.should.not.be.ok;
-    test_component.find('.img-menu a').at(2).simulate('click');
+    test_component.find('.img-menu a').at(3).simulate('click');
     removeSpy.called.should.be.ok;
     done();
   });
