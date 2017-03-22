@@ -10,7 +10,7 @@ All the following commands should be run from the `client` folder
 |-------------------------|-------------|----------------------------------|
 | async                   | production  | Better handling of async tasks   |
 | bootstrap               | production  | CSS styling                      |
-| electron                | production  | API for building desktop webapps |
+| electron-reload         | production  | Auto recompile                   |
 | fs-jetpack              | production  | Ease of use FS API               |
 | lokijs                  | production  | In-memory database               |
 | react-dom               | production  | Apply components to the DOM      |
@@ -20,13 +20,14 @@ All the following commands should be run from the `client` folder
 | chai-as-promised        | dev         | Promise support for chai         |
 | chai-enzyme             | dev         | Test React VDOM inside chai      |
 | chai-things             | dev         | Assertions for iterables         |
-| electron-builder        | dev         | Compile electron app for distro. |
+| electron                | dev         | API for building desktop webapps |
+| electron-builder        | dev         | Compile electron app for distro  |
 | electron-mocha          | dev         | Test electron without a human    |
 | electron-react-devtools | dev         | Inspect element for VDOM         |
 | enzyme                  | dev         | Assertions for React Components  |
 | eslint                  | dev         | Code style checker               |
+| gulp                    | dev         | Programmatic task automation     |
 | istanbul                | dev         | Code coverage reporter           |
-| minimist                | dev         | Arguments parser                 |
 | mocha                   | dev         | Unit testing suite               |
 | mocha-jenkins-reporter  | dev         | Compiles Jenkins-friendly report |
 | react                   | dev         | Component based dom manipulation |
