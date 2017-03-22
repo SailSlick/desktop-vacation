@@ -135,7 +135,6 @@ class Gallery extends React.Component {
       Galleries.removeItem(this.props.dbId, id, (update, err_msg) => next(err_msg));
     },
     (err_msg) => {
-      Galleries.should_save = true;
       if (err_msg) danger(err_msg);
       else if (num_items === 1) success('Image removed');
       else success(`${num_items} images removed`);
