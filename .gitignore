@@ -31,8 +31,8 @@ client/app/env.json
 client/app/**/*.map
 client/app/javascript
 client/app/thirdparty
-client/app/userData/!README.md
-client/app/userData/*
+client/app/userData
+!client/app/userData/README.md
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

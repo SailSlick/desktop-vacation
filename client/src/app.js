@@ -2,7 +2,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Main from './javascript/views/main.jsx';
-import './stylesheets/main.less';
 
 // Store number of pending events for application loading
 let waiting_events = 1;
