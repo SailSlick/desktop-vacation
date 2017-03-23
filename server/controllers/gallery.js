@@ -38,7 +38,7 @@ module.exports = {
     const uid = req.session.uid;
     const galleryname = req.body.galleryname;
 
-    if (!galleryModel.verGroupname(galleryname)) {
+    if (!galleryModel.verifyGroupname(galleryname)) {
       return next({ status: 400, error: 'invalid groupname' });
     }
     return userModel.getBaseGallery(uid, (_, baseGalleryId) => {
@@ -256,10 +256,9 @@ module.exports = {
     const uid = req.session.uid;
     const gid = req.params.gid;
 
-    if (!galleryModel.verGid(gid)) {
+    if (!galleryModel.verifyGid(gid)) {
       return next({ status: 400, error: 'invalid gid' });
     }
-
     return galleryModel.getGid(gid, (err, doc) => {
       if (err) return next({ status: 404, error: 'gallery doesn\'t exist' });
 

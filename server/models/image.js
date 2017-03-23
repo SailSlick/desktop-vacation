@@ -14,7 +14,7 @@ module.exports = {
   },
 
   get(uid, id, next) {
-    db.findOne({ _id: id }, (doc) => {
+    db.findOne({ _id: db.getId(id) }, (doc) => {
       if (!doc) {
         next('cannot find image, or invalid permissions', null);
       } else {

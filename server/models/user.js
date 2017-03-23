@@ -72,7 +72,7 @@ module.exports = {
   },
 
   getBaseGallery: (uid, cb) => {
-    db.findOne({ _id: uid }, (doc) => {
+    db.findOne({ _id: db.getId(uid) }, (doc) => {
       if (!doc) {
         cb('invalid user', null);
       } else {

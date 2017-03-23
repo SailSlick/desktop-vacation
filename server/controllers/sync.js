@@ -1,15 +1,18 @@
 const async = require('async');
+const util = require('util');
 const images = require('../models/image');
 const galleries = require('../models/gallery');
 const user = require('../models/user');
 
 module.exports = {
   upload: (req, res, next) => {
+    console.log(util.inspect(req.body, false, null));
+    console.log(req.headers['content-type']);
     if (!req.files) {
       next({ status: 400, error: 'no files sent' });
       return;
     }
-    if (!galleries.verGid(req.body.gid)) {
+    if (!galleries.verifyGid(req.body.gid)) {
       next({ status: 400, error: 'invalid gallery id' });
       return;
     }

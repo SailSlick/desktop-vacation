@@ -71,7 +71,7 @@ module.exports = {
       return;
     }
     db.col.updateOne(
-      { uid, _id: db.id(gid) },
+      { uid, _id: db.getId(gid) },
       { $addToSet: { images: { $each: imageIds } } }, (err, updated) => {
         if (err || updated.matchedCount !== 1) {
           next('invalid gallery, or invalid permissions');
