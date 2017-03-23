@@ -19,6 +19,9 @@ class Group extends React.Component {
     // Bind functions
     this.refresh = this.refresh.bind(this);
     this.deleteGroup = this.deleteGroup.bind(this);
+
+    // Hook event to catch when an image is added
+    document.addEventListener('gallery_updated', this.refresh, false);
   }
 
   componentDidMount() {
@@ -30,6 +33,8 @@ class Group extends React.Component {
   }
 
   refresh(dbId) {
+    dbId = (typeof dbId === 'number') ? dbId : this.props.dbId;
+
     // Null the group ID if we're looking at the base group
     if (dbId === '1') dbId = null;
     if (Host.isAuthed()) {
@@ -70,7 +75,7 @@ class Group extends React.Component {
       <GalleryCard
         group
         key={`g${subgallery._id}`}
-        dbId={subgallery.$loki}
+        dbId={subgallery.$loki || 0}
         mongoId={subgallery._id}
         name={subgallery.name}
         uid={subgallery.uid}
