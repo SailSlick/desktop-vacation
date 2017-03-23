@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, MenuItem, Button, Glyphicon, Image as BsImage, Grid, Col, Row } from 'react-bootstrap';
+import { Modal, MenuItem, Button, Glyphicon, Image as BsImage, Grid, Col, Row, ListGroup, ListGroupItem, Form, FormControl } from 'react-bootstrap';
 import Wallpaper from '../helpers/wallpaper-client';
 import Images from '../models/images';
 import { success, danger } from '../helpers/notifier';
@@ -12,7 +12,8 @@ class Image extends React.Component {
 
     this.state = {
       expanded: false,
-      deleteConfirmation: false
+      deleteConfirmation: false,
+      newTag: ''
     };
 
     this.onClick = this.onClick.bind(this);
@@ -24,6 +25,7 @@ class Image extends React.Component {
     this.deleteConfirmation = this.deleteConfirmation.bind(this);
     this.confirmDelete = this.confirmDelete.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
+    this.handleChange = this.handleChange.bind(this);
   }
 
   onClick() {
@@ -69,32 +71,86 @@ class Image extends React.Component {
     this.setState({ deleteConfirmation: false });
   }
 
-  updateMetadata(field) {
+  updateMetadata(field, toRemove) {
     let rating = this.props.rating;
     let tags = this.props.tags;
+
     if (typeof field === 'number') rating = field;
     if (typeof field === 'object') tags = field;
-    const metadata = { rating, tags };
-    console.log("updating meta", metadata)
+    if (typeof field === 'string') {
+      if (toRemove) tags = tags.filter(val => val !== field);
+      else tags.push(field);
+    }
+
+    const metadata = { metadata: { rating, tags } };
     Images.updateMetadata(this.props.dbId, metadata, (doc) => {
       if (!doc) return danger('Updating metadata failed');
+      if (typeof field === 'string') this.setState({ newTag: '' });
       return success('Metadata updated');
     });
+  }
+
+  handleChange(event) {
+    this.setState({ newTag: event.target.value });
   }
 
   render() {
     let classes = 'figure img-card rounded';
     if (this.props.selected) classes += ' selected';
-    console.log(this.props.rating)
     const starRating = (
       <Col>
         <h4>Rating:</h4>
         {[1, 2, 3, 4, 5].map(val => (
-          <a onClick={_ => this.updateMetadata(val)} >
+          // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+          <a key={val} onClick={_ => this.updateMetadata(val, false)} >
             <Glyphicon glyph={this.props.rating >= val ? 'star' : 'star-empty'} />
           </a>
         ))
         }
+      </Col>
+    );
+    const tags = (
+      <Col>
+        <h4>Tags</h4>
+        <ListGroup>
+          {this.props.tags.map(tag => (
+            // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+            <ListGroupItem key={tag}>
+              <Row>
+                <Col xs={9} md={10}>
+                  <p>{tag}</p>
+                </Col>
+                <Col xs={3} md={2}>
+                  <Button bsStyle="link" onClick={_ => this.updateMetadata(tag, true)}>
+                    <Glyphicon glyph={'trash'} />
+                  </Button>
+                </Col>
+              </Row>
+            </ListGroupItem>
+          ))
+          }
+          <Form
+            horizontal
+            onSubmit={e => e.preventDefault() || this.updateMetadata(this.state.newTag, false)}
+          >
+            <Row>
+              <Col xs={9} md={10}>
+                <FormControl
+                  name="newTag"
+                  type="text"
+                  placeholder="new tag"
+                  value={this.state.newTag}
+                  onChange={this.handleChange}
+                />
+              </Col>
+              <Col xs={3} md={2}>
+                <Button bsStyle="link" type="submit">
+                  <Glyphicon glyph={'plus'} />
+                </Button>
+              </Col>
+            </Row>
+          </Form>
+        </ListGroup>
       </Col>
     );
 
@@ -102,7 +158,7 @@ class Image extends React.Component {
       <row>
         <Col><h2>Metdata</h2></Col>
         {starRating}
-        <p>Tags:{this.props.tags}</p>
+        {tags}
       </row>
     );
 

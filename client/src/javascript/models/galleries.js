@@ -20,7 +20,6 @@ const Galleries = {
       }
       const doc = {
         name,
-        tags: [],
         subgalleries: [],
         images: []
       };
@@ -42,7 +41,6 @@ const Galleries = {
       const doc = {
         name,
         group: false,
-        tags: [],
         subgalleries: [],
         images: [],
         metadata: {
@@ -178,13 +176,12 @@ const Galleries = {
     );
   },
 
-  updateMeta: (id, metadata, cb) => {
+  updateMetadata: (id, metadata, cb) => {
     gallery_db.updateOne({ $loki: id }, metadata, (doc) => {
       if (doc && Galleries.should_save) {
         document.dispatchEvent(gallery_update_event);
-        return cb();
       }
-      return cb('Gallery Metadata Updated');
+      return cb(doc);
     });
   },
 

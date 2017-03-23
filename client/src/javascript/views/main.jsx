@@ -22,11 +22,13 @@ const PrimaryContent = ({ page, parent }) => {
   return [
     (<Gallery
       dbId={parent.state.galleryId}
+      filter={parent.state.filter}
       onChange={parent.changeGallery}
       multiSelect={parent.state.multiSelect}
     />),
     (<Group
       dbId={parent.state.groupId}
+      filter={parent.state.filter}
       onChange={parent.changeGroup}
       multiSelect={parent.state.multiSelect}
     />),
@@ -82,7 +84,8 @@ class Main extends React.Component {
       galleryname: '',
       groupUsersModal: false,
       invitesModal: false,
-      invites: []
+      invites: [],
+      filter: {}
     };
 
     this.onSelectGallery = this.onSelectGallery.bind(this);
@@ -192,7 +195,8 @@ class Main extends React.Component {
         galleryId,
         imageSelection: null,
         multiSelect: false,
-        page: 0
+        page: 0,
+        filter: {}
       });
     }
   }
@@ -243,7 +247,8 @@ class Main extends React.Component {
         groupId,
         imageSelection: null,
         multiSelect: false,
-        page: 1
+        page: 1,
+        filter: {}
       });
     }
   }

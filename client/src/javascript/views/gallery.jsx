@@ -56,7 +56,9 @@ class Gallery extends React.Component {
     this.state = {
       subgalleries: [],
       images: [],
-      selection: []
+      selection: [],
+      rating: 0,
+      tags: []
     };
 
     // Bind functions
@@ -77,7 +79,8 @@ class Gallery extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.dbId !== this.props.dbId) this.refresh(nextProps.dbId);
+    if (nextProps.dbId !== this.props.dbId ||
+      nextProps.filter !== null) this.refresh(nextProps.dbId);
   }
 
   componentWillUnmount() {
@@ -93,7 +96,10 @@ class Gallery extends React.Component {
         this.setState({
           subgalleries,
           images,
-          selection: []
+          selection: [],
+          rating: gallery.metadata.rating,
+          tags: gallery.metadata.tags,
+          newTag: ''
         }, () => {
           console.log('Gallery refreshed');
           this.props.onRefresh();
@@ -166,6 +172,25 @@ class Gallery extends React.Component {
     }, cb);
   }
 
+  updateMetadata(field, toRemove) {
+    let rating = this.state.rating;
+    let tags = this.state.tags;
+
+    if (typeof field === 'number') rating = field;
+    if (typeof field === 'object') tags = field;
+    if (typeof field === 'string') {
+      if (toRemove) tags = tags.filter(val => val !== field);
+      else tags.push(field);
+    }
+
+    const metadata = { metadata: { rating, tags } };
+    Galleries.updateMetadata(this.props.dbId, metadata, (doc) => {
+      if (!doc) return danger('Updating metadata failed');
+      if (typeof field === 'string') this.setState({ newTag: '' });
+      return success('Metadata updated');
+    });
+  }
+
   render() {
     let items = this.state.subgalleries.map(subgallery =>
       <GalleryCard
@@ -222,6 +247,11 @@ class Gallery extends React.Component {
 
 Gallery.propTypes = {
   dbId: React.PropTypes.number.isRequired,
+  filter: React.PropTypes.shape({
+    name: React.PropTypes.string,
+    tags: React.PropTypes.arrayOf(React.PropTypes.string),
+    rating: React.PropTypes.number
+  }),
   onChange: React.PropTypes.func.isRequired,
   simple: React.PropTypes.bool,
   multiSelect: React.PropTypes.bool,
@@ -231,7 +261,8 @@ Gallery.propTypes = {
 Gallery.defaultProps = {
   simple: false,
   multiSelect: false,
-  onRefresh: () => true
+  onRefresh: () => true,
+  filter: {}
 };
 
 export default Gallery;
