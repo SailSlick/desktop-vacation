@@ -77,14 +77,14 @@ describe('Profile Component', () => {
   });
 
   it('can click logout button', (done) => {
-    logoutStub.restore();
+    logoutStub.reset();
     test_component.find('Button').first().simulate('click');
     logoutStub.called.should.be.ok;
     done();
   });
 
   it('can click delete account button', (done) => {
-    deleteStub.restore();
+    deleteStub.reset();
     test_component.find('Button').at(1).simulate('click');
     deleteStub.called.should.be.ok;
     done();
