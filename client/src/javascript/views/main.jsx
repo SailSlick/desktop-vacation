@@ -44,10 +44,14 @@ const InvitesContent = ({ parent }) => {
         <p>{invite.groupname}</p>
         <Button
           onClick={_ => parent.joinGroup(invite.gid, invite.groupname)}
-        >Join</Button>
+        >
+          Join
+        </Button>
         <Button
           onClick={_ => parent.refuseInvite(invite.gid, invite.groupname)}
-        >Refuse</Button>
+        >
+          Refuse
+        </Button>
       </InputGroup>
     </ListGroupItem>
   );

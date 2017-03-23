@@ -19,6 +19,9 @@ class Group extends React.Component {
     // Bind functions
     this.refresh = this.refresh.bind(this);
     this.deleteGroup = this.deleteGroup.bind(this);
+
+    // Hook event to catch when a gallery is added
+    document.addEventListener('gallery_updated', this.refresh, false);
   }
 
   componentDidMount() {
@@ -29,7 +32,13 @@ class Group extends React.Component {
     if (nextProps.dbId !== this.props.dbId) this.refresh(nextProps.dbId);
   }
 
+  componentWillUnmount() {
+    // Unhook all events
+    document.removeEventListener('gallery_updated', this.refresh, false);
+  }
+
   refresh(dbId) {
+    dbId = (typeof dbId === 'number') ? dbId : this.props.dbId;
     // Null the group ID if we're looking at the base group
     if (dbId === '1') dbId = null;
     if (Host.isAuthed()) {

@@ -44,7 +44,11 @@ const Galleries = {
         group: false,
         tags: [],
         subgalleries: [],
-        images: []
+        images: [],
+        metadata: {
+          rating: 0,
+          tags: []
+        }
       };
       return gallery_db.insert(doc, (inserted_gallery) => {
         const id = inserted_gallery.$loki;
@@ -172,6 +176,16 @@ const Galleries = {
         })
       )
     );
+  },
+
+  updateMeta: (id, metadata, cb) => {
+    gallery_db.updateOne({ $loki: id }, metadata, (doc) => {
+      if (doc && Galleries.should_save) {
+        document.dispatchEvent(gallery_update_event);
+        return cb();
+      }
+      return cb('Gallery Metadata Updated');
+    });
   },
 
   removeItem: (id, item_id, cb) => {

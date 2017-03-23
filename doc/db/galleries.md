@@ -51,7 +51,8 @@ Example Document
   "images": [
     ObjectId("276c2jghbac0595474108b48"),
     ObjectId("fg6c2jghbac0595474108b48")
-  ]
+  ],
+  "metadata" : {"rating": 2, "tags": []}
 },
 {
   "_id": ObjectId("2g6c2b97bac0595474108b48"),
@@ -64,6 +65,7 @@ Example Document
     ObjectId("800c2b97bac0595474108b48"),
     ObjectId("a42c2b97bac0595474138b48"),
     ObjectId("876c2b97bac0595474108b48")
-  ]
+  ],
+  "metadata" : {"rating": 3, "tags": ["winter", "chill"]}
 }
 ```

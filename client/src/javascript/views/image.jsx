@@ -1,6 +1,8 @@
 import React from 'react';
-import { Modal, MenuItem, Button, Glyphicon, Image as BsImage } from 'react-bootstrap';
+import { Modal, MenuItem, Button, Glyphicon, Image as BsImage, Grid, Col, Row } from 'react-bootstrap';
 import Wallpaper from '../helpers/wallpaper-client';
+import Images from '../models/images';
+import { success, danger } from '../helpers/notifier';
 
 const append_gallery_event_name = 'append_gallery';
 
@@ -21,6 +23,7 @@ class Image extends React.Component {
     this.remove = this.remove.bind(this);
     this.deleteConfirmation = this.deleteConfirmation.bind(this);
     this.confirmDelete = this.confirmDelete.bind(this);
+    this.updateMetadata = this.updateMetadata.bind(this);
   }
 
   onClick() {
@@ -66,9 +69,43 @@ class Image extends React.Component {
     this.setState({ deleteConfirmation: false });
   }
 
+  updateMetadata(field) {
+    let rating = this.props.rating;
+    let tags = this.props.tags;
+    if (typeof field === 'number') rating = field;
+    if (typeof field === 'object') tags = field;
+    const metadata = { rating, tags };
+    console.log("updating meta", metadata)
+    Images.updateMetadata(this.props.dbId, metadata, (doc) => {
+      if (!doc) return danger('Updating metadata failed');
+      return success('Metadata updated');
+    });
+  }
+
   render() {
     let classes = 'figure img-card rounded';
     if (this.props.selected) classes += ' selected';
+    console.log(this.props.rating)
+    const starRating = (
+      <Col>
+        <h4>Rating:</h4>
+        {[1, 2, 3, 4, 5].map(val => (
+          <a onClick={_ => this.updateMetadata(val)} >
+            <Glyphicon glyph={this.props.rating >= val ? 'star' : 'star-empty'} />
+          </a>
+        ))
+        }
+      </Col>
+    );
+
+    const metadataRow = (
+      <row>
+        <Col><h2>Metdata</h2></Col>
+        {starRating}
+        <p>Tags:{this.props.tags}</p>
+      </row>
+    );
+
     return (
       <figure className={classes}>
         <BsImage responsive src={this.props.src} alt="MISSING" onClick={this.onClick} />
@@ -76,17 +113,21 @@ class Image extends React.Component {
           ...
           <div className="dropdown-menu img-menu">
             <MenuItem onClick={this.setAsWallpaper}>
-              <Glyphicon glyph="picture" />Set as Wallpaper
+              <Glyphicon glyph="picture" />
+              Set as Wallpaper
             </MenuItem>
             <MenuItem onClick={this.addToGallery}>
-              <Glyphicon glyph="th" />Add to gallery
+              <Glyphicon glyph="th" />
+              Add to gallery
             </MenuItem>
             <MenuItem divider />
             <MenuItem onClick={this.remove}>
-              <Glyphicon glyph="remove" />Remove
+              <Glyphicon glyph="remove" />
+              Remove
             </MenuItem>
             <MenuItem onClick={this.deleteConfirmation}>
-              <Glyphicon glyph="trash" />Remove &amp; Delete
+              <Glyphicon glyph="trash" />
+              Remove &amp; Delete
             </MenuItem>
           </div>
         </figcaption>
@@ -96,7 +137,16 @@ class Image extends React.Component {
             <Modal.Title>{this.props.src}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <BsImage responsive src={this.props.src} alt="MISSING" />
+            <Grid fluid>
+              <Row>
+                <Col xs={9} md={10}>
+                  <BsImage responsive src={this.props.src} alt="MISSING" />
+                </Col>
+                <Col xs={3} md={2}>
+                  {metadataRow}
+                </Col>
+              </Row>
+            </Grid>
           </Modal.Body>
         </Modal>
 
@@ -122,6 +172,8 @@ class Image extends React.Component {
 Image.propTypes = {
   dbId: React.PropTypes.number.isRequired,
   src: React.PropTypes.string.isRequired,
+  rating: React.PropTypes.number.isRequired,
+  tags: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
   onRemove: React.PropTypes.func.isRequired,
   onSelect: React.PropTypes.func,
   multiSelect: React.PropTypes.bool,

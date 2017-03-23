@@ -31,7 +31,9 @@ const Groups = {
     return request(options, (err, res, body) => {
       requestHandler(err, body, (error, msg) => {
         if (error) return cb(error, msg);
+        Galleries.should_save = false;
         return Galleries.add(groupname, (doc, err_msg) => {
+          Galleries.should_save = true;
           if (err_msg) return cb(500, err_msg);
           return Galleries.convertToGroup(doc.$loki, body.data, (ret) => {
             if (ret) return cb(error, msg);
@@ -97,6 +99,11 @@ const Groups = {
         return cb(error, msg, body.data);
       });
     });
+  },
+
+  // TODO Waiting on server syncing to complete server update.
+  updateMeta: (gid, id, metadata, cb) => {
+    Galleries.updateMeta(id, metadata, cb);
   },
 
   inviteUser: (gid, username, cb) => {
