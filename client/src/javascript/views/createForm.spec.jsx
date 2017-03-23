@@ -22,7 +22,6 @@ describe('CreateForm Component', () => {
     done();
   });
 
-  // Remove test image and gallery
   after((done) => {
     test_component.unmount();
     submitStub.restore();
@@ -80,7 +79,7 @@ describe('CreateForm Component', () => {
           value: 'bad username'
         }
       });
-    test_component.find('.form-group.has-error').first().should.have.length(1);
+    test_component.find('.form-group.has-error').should.have.length(1);
     done();
   });
 
@@ -97,7 +96,7 @@ describe('CreateForm Component', () => {
   });
 
   it('can check password2 input for diff to password1', (done) => {
-    test_component.find('.form-group.has-error').at(1).should.have.length(1);
+    test_component.find('.form-group.has-error').should.exist;
     done();
   });
 

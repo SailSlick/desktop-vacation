@@ -71,7 +71,9 @@ class GroupManager extends React.Component {
           <p>{user}</p>
           <InputGroup.Button
             onClick={_ => this.removeUser({ user })}
-          >Remove User</InputGroup.Button>
+          >
+            Remove User
+          </InputGroup.Button>
         </InputGroup>
       </ListGroupItem>
     );

@@ -13,35 +13,25 @@ const ProfileContent = ({ page, parent }) =>
       <h1>Hi {parent.state.username}</h1>
       <h1>Profile</h1>
       <Row>
-        <Button
-          onClick={_ => parent.changePage(3)}
-        >Login</Button>
+        <Button onClick={_ => parent.changePage(3)}>Login</Button>
       </Row>
       <br />
       <Row>
-        <Button
-          onClick={_ => parent.changePage(2)}
-        >Create Account</Button>
+        <Button onClick={_ => parent.changePage(2)}>Create Account</Button>
       </Row>
     </Grid>),
     (<Grid>
       <h1>Hi, {parent.state.username}</h1>
       <Row>
-        <Button
-          onClick={parent.logout}
-        >Logout</Button>
+        <Button onClick={parent.logout}>Logout</Button>
       </Row>
       <br />
       <Row>
-        <Button
-          onClick={parent.deleteAccount}
-        >Delete Account</Button>
+        <Button onClick={parent.deleteAccount}>Delete Account</Button>
       </Row>
       <br />
       <Row>
-        <Button
-          onClick={_ => parent.changePage(4)}
-        >Change Settings</Button>
+        <Button onClick={_ => parent.changePage(4)}>Change Settings</Button>
       </Row>
     </Grid>),
     (<CreateForm
@@ -84,6 +74,7 @@ class Profile extends React.Component {
     // This is to show the profile details
     console.log('back to Profile home', loggedIn);
     if (loggedIn) {
+      this.props.accountCreated();
       Host.get({ $gt: 0 }, (doc) => {
         if (doc) this.setState({ page: 1, username: doc.username });
       });
@@ -130,5 +121,9 @@ class Profile extends React.Component {
     );
   }
 }
+
+Profile.propTypes = {
+  accountCreated: React.PropTypes.func.isRequired
+};
 
 export default Profile;

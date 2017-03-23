@@ -24,7 +24,6 @@ describe('SettingsForm Component', () => {
     done();
   });
 
-  // Remove test image and gallery
   after((done) => {
     test_component.unmount();
     submitStub.restore();

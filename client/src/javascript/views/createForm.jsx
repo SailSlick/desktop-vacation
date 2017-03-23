@@ -51,7 +51,6 @@ class CreateForm extends React.Component {
   }
 
   createAccount(event) {
-    console.log("here boys")
     event.preventDefault();
     const username = event.target.username.value;
     const password = event.target.password.value;
@@ -72,9 +71,7 @@ class CreateForm extends React.Component {
     return (
       <Grid>
         <br />
-        <Button
-          onClick={this.back}
-        >Back</Button>
+        <Button onClick={this.back}>Back</Button>
         <Form horizontal onSubmit={this.createAccount}>
           <h1><ControlLabel>Create Account</ControlLabel></h1>
           <FormGroup

@@ -25,7 +25,7 @@ describe('Main Component', () => {
     Galleries.should_save = false;
   });
 
-  before((done) => {
+  before(done =>
     // Create test image
     Images.add(test_image_path, (inserted_image) => {
       test_image = inserted_image;
@@ -44,8 +44,8 @@ describe('Main Component', () => {
           done();
         });
       });
-    });
-  });
+    })
+  );
 
   // Remove test image and gallery
   after((done) => {
@@ -170,7 +170,7 @@ describe('Main Component', () => {
     done();
   });
 
-  it('will change to profile if there is no account', (done) => {
+  it('will check if an account has been created', (done) => {
     accountCreatedStub = stub(Main.prototype, 'accountCreated');
     test_component = mount(<Main />);
     accountCreatedStub.called.should.be.ok;

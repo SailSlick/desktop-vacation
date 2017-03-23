@@ -28,7 +28,6 @@ describe('Profile Component', () => {
     done();
   });
 
-  // Remove test image and gallery
   after((done) => {
     test_component.unmount();
     deleteStub.restore();
@@ -55,14 +54,13 @@ describe('Profile Component', () => {
   it('can click login button', (done) => {
     test_component.find('Button').first().simulate('click');
     changePageStub.called.should.be.ok;
-    changePageStub.reset();
     done();
   });
 
   it('can click create account button', (done) => {
+    changePageStub.reset();
     test_component.find('Button').at(1).simulate('click');
     changePageStub.called.should.be.ok;
-    changePageStub.reset();
     done();
   });
 
@@ -79,18 +77,21 @@ describe('Profile Component', () => {
   });
 
   it('can click logout button', (done) => {
+    logoutStub.restore();
     test_component.find('Button').first().simulate('click');
     logoutStub.called.should.be.ok;
     done();
   });
 
   it('can click delete account button', (done) => {
+    deleteStub.restore();
     test_component.find('Button').at(1).simulate('click');
     deleteStub.called.should.be.ok;
     done();
   });
 
   it('can click settings button', (done) => {
+    changePageStub.reset();
     test_component.find('Button').at(2).simulate('click');
     changePageStub.called.should.be.ok;
     done();

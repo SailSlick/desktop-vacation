@@ -154,7 +154,10 @@ describe('Host model', () => {
       status.should.be.a('number');
       status.should.equal(401);
       msg.should.be.a('string');
-      done();
+      Host.get(username, (doc) => {
+        should.exist(doc);
+        done();
+      });
     });
   });
 
@@ -219,7 +222,10 @@ describe('Host model', () => {
     Host.deleteAccount((status, msg) => {
       should.not.exist(status);
       msg.should.be.a('string');
-      done();
+      Host.get(username, (doc) => {
+        should.not.exist(doc);
+        done();
+      });
     });
   });
 

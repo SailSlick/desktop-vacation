@@ -186,11 +186,12 @@ const Host = {
     };
     request(options, (err, response, body) => {
       if (!body) return cb(500, 'server down');
-      if (body.status !== 200) {
+      if (body.status === 401) {
         return Host.deleteCookies(() => {
           cb(body.status, body.error);
         });
       }
+      if (body.status !== 200) return cb(body.status, body.error);
       document.dispatchEvent(host_update_event);
       return cb(null, body.message);
     });

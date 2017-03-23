@@ -28,7 +28,7 @@ const PrimaryContent = ({ page, parent }) =>
       multiSelect={parent.state.multiSelect}
     />),
     (<Profile
-      onChange={parent.profileView}
+      accountCreated={parent.accountCreated}
     />)
   ][page];
 
@@ -40,10 +40,14 @@ const InvitesContent = ({ parent }) => {
         <p>{invite.groupname}</p>
         <Button
           onClick={_ => parent.joinGroup(invite.gid, invite.groupname)}
-        >Join</Button>
+        >
+          Join
+        </Button>
         <Button
           onClick={_ => parent.refuseInvite(invite.gid, invite.groupname)}
-        >Refuse</Button>
+        >
+          Refuse
+        </Button>
       </InputGroup>
     </ListGroupItem>
   );
@@ -166,7 +170,6 @@ class Main extends React.Component {
 
   addNewGallery(event, cb) {
     event.preventDefault();
-    this.accountCreated();
     if (!this.state.account) {
       danger('Account not created');
       return;
@@ -198,7 +201,6 @@ class Main extends React.Component {
   }
 
   changeGallery(galleryId) {
-    this.accountCreated();
     if (!this.state.account) {
       danger('Account not created');
       return;
@@ -241,7 +243,6 @@ class Main extends React.Component {
   }
 
   addNewGroup(event) {
-    this.accountCreated();
     if (!this.state.account) {
       danger('Account not created');
       return;
@@ -260,7 +261,6 @@ class Main extends React.Component {
   }
 
   changeGroup(groupId) {
-    this.accountCreated();
     if (!this.state.account) {
       danger('Account not created');
       return;
@@ -320,7 +320,6 @@ class Main extends React.Component {
   }
 
   profileView() {
-    console.log("profile view clicked")
     // This is to show the profile details
     this.setState({ page: 2 });
   }
