@@ -78,35 +78,43 @@ class GroupManager extends React.Component {
       </ListGroupItem>
     );
 
-    let management_buttons = [<Button onClick={this.leaveGroup} >Leave Group</Button>];
+    let management_buttons = (
+      <Col sm={7} xs={12}>
+        <h3><ControlLabel>Group Management</ControlLabel></h3>
+        <Button onClick={this.leaveGroup} >Leave Group</Button>
+      </Col>
+    );
 
     if (this.props.uid === Host.uid) {
-      management_buttons = [
-        (<Form horizontal onSubmit={this.inviteUser}>
-          <FormGroup
-            controlId="formUsername"
-            validationState={this.usernameValidationState()}
-          >
-            <Col componentClass={ControlLabel} sm={3}>
-              Username
-            </Col>
-            <Col sm={6}>
-              <FormControl
-                name="username"
-                type="text"
-                placeholder="User to invite"
-                value={this.state.username}
-                onChange={this.inputChange}
-              />
-            </Col>
-            <Col sm={2}>
-              <Button type="submit">Invite</Button>
-            </Col>
-          </FormGroup>
-          <HelpBlock>No spaces allowed in username</HelpBlock>
-        </Form>),
-        <Button onClick={this.deleteGroup}>Delete Group</Button>
-      ];
+      management_buttons =
+        (<Col sm={7} xs={12}>
+          <h3><ControlLabel>Group Management</ControlLabel></h3>
+          <Form horizontal onSubmit={this.inviteUser}>
+            <FormGroup
+              controlId="formUsername"
+              validationState={this.usernameValidationState()}
+            >
+              <Col componentClass={ControlLabel} sm={3}>
+                Username
+              </Col>
+              <Col sm={6}>
+                <FormControl
+                  name="username"
+                  type="text"
+                  placeholder="User to invite"
+                  value={this.state.username}
+                  onChange={this.inputChange}
+                />
+              </Col>
+              <Col sm={2}>
+                <Button type="submit">Invite</Button>
+              </Col>
+            </FormGroup>
+            <HelpBlock>No spaces allowed in username</HelpBlock>
+          </Form>
+          <Button onClick={this.deleteGroup}>Delete Group</Button>
+        </Col>
+      );
     }
 
     return (
@@ -118,11 +126,7 @@ class GroupManager extends React.Component {
               {users}
             </ListGroup>
           </Col>
-
-          <Col sm={7} xs={12}>
-            <h3><ControlLabel>Group Management</ControlLabel></h3>
-            {management_buttons}
-          </Col>
+          {management_buttons}
         </Row>
       </Grid>
     );

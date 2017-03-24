@@ -32,6 +32,10 @@ class Group extends React.Component {
     if (nextProps.dbId !== this.props.dbId) this.refresh(nextProps.dbId);
   }
 
+  componentWillUnmount() {
+    document.removeEventListener('gallery_updated', this.refresh, false);
+  }
+
   refresh(dbId) {
     dbId = (typeof dbId === 'number') ? dbId : this.props.dbId;
 

@@ -35,7 +35,7 @@ const PrimaryContent = ({ page, parent }) =>
 const InvitesContent = ({ parent }) => {
   let invites_react = [];
   invites_react = parent.state.invites.map(invite =>
-    <ListGroupItem>
+    <ListGroupItem key={invite.groupname}>
       <InputGroup>
         <p>{invite.groupname}</p>
         <Button
