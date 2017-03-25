@@ -9,33 +9,45 @@ import { success, danger } from '../helpers/notifier';
 
 const append_gallery_event_name = 'append_gallery';
 
-const SelectTools = ({ multiSelect, addAllToGallery, selectAll, removeAll }) => {
+const SelectTools = ({ multiSelect, addAllToGallery, selectAll, removeAll, fixed }) => {
   if (!multiSelect) {
     return <br />;
   }
   return (
-    <Navbar collapseOnSelect>
-      <Navbar.Header>
-        <Navbar.Brand>
-          Tools
-        </Navbar.Brand>
-        <Navbar.Toggle />
-      </Navbar.Header>
-      <Nav bsStyle="pills">
-        <NavItem onClick={_ => selectAll(true)}>
-          <Glyphicon glyph="plus" />Select All
-        </NavItem>
-        <NavItem onClick={_ => selectAll(false)}>
-          <Glyphicon glyph="minus" />Deselect All
-        </NavItem>
-        <NavItem onClick={addAllToGallery}>
-          <Glyphicon glyph="th" />Add To Gallery
-        </NavItem>
-        <NavItem onClick={removeAll}>
-          <Glyphicon glyph="remove" />Remove
-        </NavItem>
-      </Nav>
-    </Navbar>
+    <div>
+      <span
+        style={{
+          display: fixed ? 'block' : 'none',
+          height: '72px'
+        }}
+      />
+      <Navbar className={fixed ? 'fixed-pos' : ''}>
+        <Navbar.Header>
+          <Navbar.Brand>
+            Tools
+          </Navbar.Brand>
+          <Navbar.Toggle />
+        </Navbar.Header>
+        <Nav bsStyle="pills">
+          <NavItem onClick={_ => selectAll(true)}>
+            <Glyphicon glyph="plus" />
+            Select All
+          </NavItem>
+          <NavItem onClick={_ => selectAll(false)}>
+            <Glyphicon glyph="minus" />
+            Deselect All
+          </NavItem>
+          <NavItem onClick={addAllToGallery}>
+            <Glyphicon glyph="th" />
+            Add To Gallery
+          </NavItem>
+          <NavItem onClick={removeAll}>
+            <Glyphicon glyph="remove" />
+            Remove
+          </NavItem>
+        </Nav>
+      </Navbar>
+    </div>
   );
 };
 
@@ -43,7 +55,8 @@ SelectTools.propTypes = {
   multiSelect: React.PropTypes.bool.isRequired,
   addAllToGallery: React.PropTypes.func.isRequired,
   selectAll: React.PropTypes.func.isRequired,
-  removeAll: React.PropTypes.func.isRequired
+  removeAll: React.PropTypes.func.isRequired,
+  fixed: React.PropTypes.bool.isRequired
 };
 
 class Gallery extends React.Component {
@@ -56,6 +69,7 @@ class Gallery extends React.Component {
       selection: [],
       itemsLimit: 0,
       itemsTotal: 0,
+      fixSelectTools: false
     };
 
     // Bind functions
@@ -209,11 +223,22 @@ class Gallery extends React.Component {
     return (
       <Row>
         <Col xs={12}>
+          <Waypoint
+            onEnter={() => {
+              console.log('onEnter');
+              this.setState({ fixSelectTools: false });
+            }}
+            onLeave={() => {
+              console.log('onLeave');
+              this.setState({ fixSelectTools: true });
+            }}
+          />
           <SelectTools
             multiSelect={this.props.multiSelect}
             addAllToGallery={this.addAllToGallery}
             selectAll={this.selectAll}
             removeAll={this.removeAll}
+            fixed={this.state.fixSelectTools}
           />
         </Col>
         <Col xs={4}>
