@@ -58,9 +58,7 @@ class LoginForm extends React.Component {
     return (
       <Grid>
         <br />
-        <Button
-          onClick={this.back}
-        >Back</Button>
+        <Button onClick={this.back}>Back</Button>
         <Form horizontal onSubmit={this.login}>
           <h1><ControlLabel>Login to Account</ControlLabel></h1>
           <FormGroup
