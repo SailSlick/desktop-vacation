@@ -52,7 +52,7 @@ class Gallery extends React.Component {
 
   refresh(dbId) {
     const db_update = (typeof dbId !== 'number');
-    dbId = (typeof dbId === 'number') ? dbId : this.props.dbId;
+    dbId = (!db_update) ? dbId : this.props.dbId;
 
     Galleries.get(dbId, gallery =>
       Galleries.expand(gallery, (subgalleries, images) =>
@@ -166,10 +166,9 @@ class Gallery extends React.Component {
           multiSelect={this.props.multiSelect}
           selected={this.state.selection.indexOf(image.$loki) !== -1}
         />
-      ));
 
       // Limit number of items to show
-      items = items.slice(0, this.state.itemsLimit);
+      )).slice(0, this.state.itemsLimit);
     }
     return (
       <Row>
