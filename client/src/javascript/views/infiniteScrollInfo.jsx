@@ -1,7 +1,6 @@
 import React from 'react';
 
 const InfinteScrollInfo = ({ itemsLimit, itemsTotal }) => {
-  console.log(itemsLimit, itemsTotal);
   if (itemsLimit >= itemsTotal) {
     return (
       <h4 className="scroll-info">End of gallery</h4>

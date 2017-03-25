@@ -31,6 +31,7 @@ All the following commands should be run from the `client` folder
 | mocha                   | dev         | Unit testing suite               |
 | mocha-jenkins-reporter  | dev         | Compiles Jenkins-friendly report |
 | react                   | dev         | Component based dom manipulation |
+| react-waypoint          | dev         | Detect elements leave/enter view |
 | rollup                  | dev         | Minifier and compiler for ES     |
 | sinon                   | dev         | Spies, stupds and mocks          |
 | source-map-support      | dev         | Improves stack tracing           |
