@@ -1,5 +1,6 @@
 import React from 'react';
 import { eachOf } from 'async';
+import Waypoint from 'react-waypoint';
 import { Col, Row, Nav, Navbar, NavItem, Glyphicon } from 'react-bootstrap';
 import Image from './image.jsx';
 import GalleryCard from './gallerycard.jsx';
@@ -52,7 +53,9 @@ class Gallery extends React.Component {
     this.state = {
       subgalleries: [],
       images: [],
-      selection: []
+      selection: [],
+      itemsLimit: 0,
+      itemsTotal: 0,
     };
 
     // Bind functions
@@ -63,6 +66,7 @@ class Gallery extends React.Component {
     this.removeAll = this.removeAll.bind(this);
     this.selectItem = this.selectItem.bind(this);
     this.selectAll = this.selectAll.bind(this);
+    this.loadMore = this.loadMore.bind(this);
 
     // Hook event to catch when an image is added
     document.addEventListener('gallery_updated', this.refresh, false);
@@ -82,6 +86,7 @@ class Gallery extends React.Component {
   }
 
   refresh(dbId) {
+    const db_update = (typeof dbId !== 'number');
     dbId = (typeof dbId === 'number') ? dbId : this.props.dbId;
 
     Galleries.get(dbId, gallery =>
@@ -89,7 +94,9 @@ class Gallery extends React.Component {
         this.setState({
           subgalleries,
           images,
-          selection: []
+          selection: [],
+          itemsLimit: (db_update && this.state.itemsLimit >= 12) ? this.state.itemsLimit : 12,
+          itemsTotal: subgalleries.length + images.length
         }, () => {
           console.log('Gallery refreshed');
           this.props.onRefresh();
@@ -162,6 +169,14 @@ class Gallery extends React.Component {
     }, cb);
   }
 
+  loadMore() {
+    // Don't do anything if we're at the end
+    if (this.state.itemsLimit === this.state.itemsTotal) return;
+
+    const itemsLimit = Math.min(this.state.itemsLimit + 12, this.state.itemsTotal);
+    this.setState({ itemsLimit });
+  }
+
   render() {
     let items = this.state.subgalleries.map(subgallery =>
       <GalleryCard
@@ -187,6 +202,9 @@ class Gallery extends React.Component {
           selected={this.state.selection.indexOf(image.$loki) !== -1}
         />
       ));
+
+      // Limit number of items to show
+      items = items.slice(0, this.state.itemsLimit);
     }
     return (
       <Row>
@@ -206,6 +224,9 @@ class Gallery extends React.Component {
         </Col>
         <Col xs={4}>
           {items.map((item, i) => ((i + 1) % 3 === 0 && item) || null)}
+        </Col>
+        <Col xs={12}>
+          <Waypoint onEnter={this.loadMore} />
         </Col>
       </Row>
     );
