@@ -5,8 +5,9 @@ import { Col, Row } from 'react-bootstrap';
 import Image from './image.jsx';
 import GalleryCard from './gallerycard.jsx';
 import SelectTools from './selectTools.jsx';
-import Galleries from '../models/galleries';
+import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
 import { success, danger } from '../helpers/notifier';
+import Galleries from '../models/galleries';
 
 const append_gallery_event_name = 'append_gallery';
 
@@ -189,9 +190,15 @@ class Gallery extends React.Component {
         <Col xs={4}>
           {items.map((item, i) => ((i + 1) % 3 === 0 && item) || null)}
         </Col>
-        <Col xs={12}>
-          <Waypoint onEnter={this.loadMore} />
-        </Col>
+        { (this.props.simple) ? <Col /> : (
+          <Col xs={12}>
+            <InfiniteScrollInfo
+              itemsLimit={this.state.itemsLimit}
+              itemsTotal={this.state.itemsTotal}
+            />
+            <Waypoint onEnter={this.loadMore} />
+          </Col>
+        )}
       </Row>
     );
   }

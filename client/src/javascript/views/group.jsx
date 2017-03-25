@@ -2,10 +2,11 @@ import React from 'react';
 import Waypoint from 'react-waypoint';
 import { Col, Row } from 'react-bootstrap';
 import Image from './image.jsx';
+import GalleryCard from './gallerycard.jsx';
+import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
+import { success, danger } from '../helpers/notifier';
 import Groups from '../models/groups';
 import Host from '../models/host';
-import GalleryCard from './gallerycard.jsx';
-import { success, danger } from '../helpers/notifier';
 
 class Group extends React.Component {
   constructor(props) {
@@ -127,6 +128,10 @@ class Group extends React.Component {
           {items.map((item, i) => ((i + 1) % 3 === 0 && item) || null)}
         </Col>
         <Col xs={12}>
+          <InfiniteScrollInfo
+            itemsLimit={this.state.itemsLimit}
+            itemsTotal={this.state.itemsTotal}
+          />
           <Waypoint onEnter={this.loadMore} />
         </Col>
       </Row>
