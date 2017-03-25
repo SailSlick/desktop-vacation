@@ -25,7 +25,7 @@ class Image extends React.Component {
     this.deleteConfirmation = this.deleteConfirmation.bind(this);
     this.confirmDelete = this.confirmDelete.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
-    this.handleChange = this.handleChange.bind(this);
+    this.handleTagChange = this.handleTagChange.bind(this);
   }
 
   onClick() {
@@ -90,7 +90,7 @@ class Image extends React.Component {
     });
   }
 
-  handleChange(event) {
+  handleTagChange(event) {
     this.setState({ newTag: event.target.value });
   }
 
@@ -111,7 +111,7 @@ class Image extends React.Component {
     );
     const tags = (
       <Col>
-        <h4>Tags</h4>
+        <h4>Tags:</h4>
         <ListGroup>
           {this.props.tags.map(tag => (
             // eslint-disable-next-line jsx-a11y/no-static-element-interactions
@@ -140,7 +140,7 @@ class Image extends React.Component {
                   type="text"
                   placeholder="new tag"
                   value={this.state.newTag}
-                  onChange={this.handleChange}
+                  onChange={this.handleTagChange}
                 />
               </Col>
               <Col xs={3} md={2}>

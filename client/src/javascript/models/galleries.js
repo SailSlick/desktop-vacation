@@ -21,7 +21,11 @@ const Galleries = {
       const doc = {
         name,
         subgalleries: [],
-        images: []
+        images: [],
+        metadata: {
+          rating: 0,
+          tags: []
+        }
       };
       return gallery_db.insert(doc, (inserted_gallery) => {
         BASE_GALLERY_ID = inserted_gallery.$loki;
@@ -119,7 +123,7 @@ const Galleries = {
   // Returns:
   //   - Subgalleries with thumbnail locations
   //   - Images with full details
-  expand: (gallery, cb) => {
+  expand: (gallery, filter, cb) => {
     // Expand Subgalleries
     map(gallery.subgalleries, (id, next) =>
       Galleries.get(id, (subgallery) => {
@@ -144,6 +148,18 @@ const Galleries = {
           Images.get(image_id, image => next(null, image)),
         (err_img, images) => {
           subgalleries = subgalleries.filter(x => !x.group);
+          if (filter.name !== '') {
+            subgalleries.filter(x => x.name.indexOf(filter.name) !== -1);
+            images.filter(x => x.name.indexOf(filter.name) !== -1);
+          }
+          if (filter.tag !== '') {
+            subgalleries.filter(x => x.matadata.tags.indexOf(filter.tags) !== -1);
+            images.filter(x => x.matadata.tags.indexOf(filter.tags) !== -1);
+          }
+          if (filter.rating !== 0) {
+            subgalleries.filter(x => x.matadata.rating === filter.rating);
+            images.filter(x => x.matadata.rating === filter.rating);
+          }
           cb(subgalleries, images);
         }
       )

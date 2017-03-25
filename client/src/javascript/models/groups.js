@@ -102,8 +102,8 @@ const Groups = {
   },
 
   // TODO Waiting on server syncing to complete server update.
-  updateMeta: (gid, id, metadata, cb) => {
-    Galleries.updateMeta(id, metadata, cb);
+  updateMetadata: (gid, id, metadata, cb) => {
+    Galleries.updateMetadata(id, metadata, cb);
   },
 
   inviteUser: (gid, username, cb) => {
@@ -140,10 +140,13 @@ const Groups = {
     });
   },
 
-  leaveGroup: (gid, cb) => {
+  leaveGroup: (gid, id, cb) => {
     Host.getIndex(1, (doc) => {
       Groups.removeUser(gid, doc.username, (err, msg) => {
-        cb(err, msg);
+        Galleries.remove(id, (ret) => {
+          if (ret) return cb(500, ret);
+          return cb(err, msg);
+        });
       });
     });
   },
@@ -234,17 +237,31 @@ const Groups = {
   // Returns:
   //   - Subgalleries with thumbnail locations
   //   - Images with full details
-  expand: (gallery, cb) => {
+  expand: (gallery, filter, cb) => {
     if (!gallery) {
       cb([], []);
     } else {
-      gallery.subgalleries = gallery.subgalleries.filter(x => x._id);
-      gallery.subgalleries.map(x =>
+      let subgalleries = gallery.subgalleries;
+      const images = gallery.images;
+      subgalleries = subgalleries.filter(x => x._id);
+      subgalleries.map(x =>
         Galleries.getMongo(x._id, (subgallery) => {
           if (subgallery) x.$loki = subgallery.$loki;
         })
       );
-      cb(gallery.subgalleries, gallery.images);
+      if (filter.name !== '') {
+        subgalleries.filter(x => x.name.indexOf(filter.name) !== -1);
+        images.filter(x => x.name.indexOf(filter.name) !== -1);
+      }
+      if (filter.tag !== '') {
+        subgalleries.filter(x => x.matadata.tags.indexOf(filter.tags) !== -1);
+        images.filter(x => x.matadata.tags.indexOf(filter.tags) !== -1);
+      }
+      if (filter.rating !== 0) {
+        subgalleries.filter(x => x.matadata.rating === filter.rating);
+        images.filter(x => x.matadata.rating === filter.rating);
+      }
+      cb(subgalleries, images);
     }
   }
 };

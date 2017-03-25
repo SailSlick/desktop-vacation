@@ -22,13 +22,11 @@ const PrimaryContent = ({ page, parent }) => {
   return [
     (<Gallery
       dbId={parent.state.galleryId}
-      filter={parent.state.filter}
       onChange={parent.changeGallery}
       multiSelect={parent.state.multiSelect}
     />),
     (<Group
       dbId={parent.state.groupId}
-      filter={parent.state.filter}
       onChange={parent.changeGroup}
       multiSelect={parent.state.multiSelect}
     />),
@@ -84,8 +82,7 @@ class Main extends React.Component {
       galleryname: '',
       groupUsersModal: false,
       invitesModal: false,
-      invites: [],
-      filter: {}
+      invites: []
     };
 
     this.onSelectGallery = this.onSelectGallery.bind(this);
