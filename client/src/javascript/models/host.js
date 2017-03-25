@@ -109,6 +109,7 @@ const Host = {
     request(options, (err, response, body) => {
       if (!body) return cb(500, 'server down');
       if (body.status !== 200) return cb(body.status, body.error);
+      Host.uid = '';
       return Host.deleteCookies(() => {
         cb(null, body.message);
       });
@@ -162,9 +163,7 @@ const Host = {
     host_db.updateOne({ $loki: Host.user }, { remoteGallery: remote }, _ => cb());
   },
 
-  deleteAccount: (password, cb) => {
-    // check pw again
-
+  deleteAccount: (cb) => {
     // post to /user/delete
     const options = {
       uri: server_uri.concat('/user/delete'),
@@ -174,7 +173,12 @@ const Host = {
     };
     request(options, (err, response, body) => {
       if (!body) return cb(500, 'server down');
-      if (body.status !== 200) return cb(body.status, body.error);
+      if (body.status !== 200) {
+        return Host.deleteCookies(() => {
+          cb(body.status, body.error);
+        });
+      }
+      Host.uid = '';
       // remove cookie from jar
       return Host.deleteCookies(() => {
         // remove presence from client, keep images
@@ -200,6 +204,11 @@ const Host = {
     };
     request(options, (err, response, body) => {
       if (!body) return cb(500, 'server down');
+      if (body.status === 401) {
+        return Host.deleteCookies(() => {
+          cb(body.status, body.error);
+        });
+      }
       if (body.status !== 200) return cb(body.status, body.error);
       document.dispatchEvent(host_update_event);
       return cb(null, body.message);

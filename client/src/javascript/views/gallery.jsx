@@ -23,16 +23,20 @@ const SelectTools = ({ multiSelect, addAllToGallery, selectAll, removeAll }) => 
       </Navbar.Header>
       <Nav bsStyle="pills">
         <NavItem onClick={_ => selectAll(true)}>
-          <Glyphicon glyph="plus" />Select All
+          <Glyphicon glyph="plus" />
+          Select All
         </NavItem>
         <NavItem onClick={_ => selectAll(false)}>
-          <Glyphicon glyph="minus" />Deselect All
+          <Glyphicon glyph="minus" />
+          Deselect All
         </NavItem>
         <NavItem onClick={addAllToGallery}>
-          <Glyphicon glyph="th" />Add To Gallery
+          <Glyphicon glyph="th" />
+          Add To Gallery
         </NavItem>
         <NavItem onClick={removeAll}>
-          <Glyphicon glyph="remove" />Remove
+          <Glyphicon glyph="remove" />
+          Remove
         </NavItem>
       </Nav>
     </Navbar>

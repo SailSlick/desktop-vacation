@@ -17,14 +17,17 @@ const ActionMenu = ({ simple, group, setSlideshow, onRemove, groupConvert, group
       ...
       <div className="dropdown-menu img-menu">
         <MenuItem onClick={setSlideshow}>
-          <Glyphicon glyph="film" />Slideshow
+          <Glyphicon glyph="film" />
+          Slideshow
         </MenuItem>
         <MenuItem divider />
         <MenuItem onClick={onRemove}>
-          <Glyphicon glyph="remove" />Remove
+          <Glyphicon glyph="remove" />
+          Remove
         </MenuItem>
         <MenuItem onClick={groupConvert}>
-          <Glyphicon glyph="transfer" />Switch to Group
+          <Glyphicon glyph="transfer" />
+          Switch to Group
         </MenuItem>
       </div>
     </figcaption>
@@ -33,11 +36,13 @@ const ActionMenu = ({ simple, group, setSlideshow, onRemove, groupConvert, group
       ...
       <div className="dropdown-menu img-menu">
         <MenuItem onClick={setSlideshow}>
-          <Glyphicon glyph="film" />Slideshow
+          <Glyphicon glyph="film" />
+          Slideshow
         </MenuItem>
         <MenuItem divider />
         <MenuItem onClick={groupMenu}>
-          <Glyphicon glyph="list" />Group Manager
+          <Glyphicon glyph="list" />
+          Group Manager
         </MenuItem>
       </div>
     </figcaption>
