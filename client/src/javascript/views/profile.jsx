@@ -7,48 +7,31 @@ import SettingsForm from './settingsForm.jsx';
 import { success, danger } from '../helpers/notifier';
 
 
-const ProfileContent = ({ page, parent }) => {
-  Host.get({ $gt: 0 }, (cb) => {
-    if (cb) parent.state.username = cb.username;
-  });
-  if (parent.isAuthed(page) && page === 0) {
-    parent.state.page = 1;
-    page = 1;
-  }
-  return [
+const ProfileContent = ({ page, parent }) =>
+  [
     (<Grid>
       <h1>Hi {parent.state.username}</h1>
       <h1>Profile</h1>
       <Row>
-        <Button
-          onClick={_ => parent.changePage(3)}
-        >Login</Button>
+        <Button onClick={_ => parent.changePage(3)}>Login</Button>
       </Row>
       <br />
       <Row>
-        <Button
-          onClick={_ => parent.changePage(2)}
-        >Create Account</Button>
+        <Button onClick={_ => parent.changePage(2)}>Create Account</Button>
       </Row>
     </Grid>),
     (<Grid>
       <h1>Hi, {parent.state.username}</h1>
       <Row>
-        <Button
-          onClick={parent.logout}
-        >Logout</Button>
+        <Button onClick={parent.logout}>Logout</Button>
       </Row>
       <br />
       <Row>
-        <Button
-          onClick={parent.deleteAccount}
-        >Delete Account</Button>
+        <Button onClick={parent.deleteAccount}>Delete Account</Button>
       </Row>
       <br />
       <Row>
-        <Button
-          onClick={_ => parent.changePage(4)}
-        >Change Settings</Button>
+        <Button onClick={_ => parent.changePage(4)}>Change Settings</Button>
       </Row>
     </Grid>),
     (<CreateForm
@@ -61,47 +44,55 @@ const ProfileContent = ({ page, parent }) => {
       parentPage={parent.backToPage}
     />)
   ][page];
-};
 
 
 class Profile extends React.Component {
   constructor(props) {
     super(props);
+    const isAuthed = Host.isAuthed();
 
     this.state = {
       username: 'please make an account',
-      page: 0,
+      page: isAuthed ? 1 : 0,
       loggedIn: false
     };
 
     // Bind functions
-    this.profilePage = this.profilePage.bind(this);
     this.backToPage = this.backToPage.bind(this);
     this.changePage = this.changePage.bind(this);
     this.logout = this.logout.bind(this);
-    this.isAuthed = this.isAuthed.bind(this);
     this.deleteAccount = this.deleteAccount.bind(this);
   }
 
-  profilePage() {
-    // This is to show the profile details
-    console.log('changing to Profile home');
-    let pageNumber = 0;
-    if (this.state.loggedIn) pageNumber = 1;
-    this.setState({ page: pageNumber });
+  componentDidMount() {
+    Host.get({ $gt: 0 }, (doc) => {
+      if (doc) this.setState({ username: doc.username });
+    });
   }
 
   backToPage(loggedIn) {
     // This is to show the profile details
     console.log('back to Profile home', loggedIn);
-    let pageNumber = 0;
-    if (loggedIn) pageNumber = 1;
-    this.setState({ page: pageNumber, loggedIn });
+    if (loggedIn) {
+      this.props.accountCreated();
+      Host.get({ $gt: 0 }, (doc) => {
+        if (doc) this.setState({ page: 1, username: doc.username });
+      });
+      return;
+    }
+    this.setState({ page: 0, loggedIn });
   }
 
   changePage(page) {
     console.log('changing to page:', page);
-    this.setState({ page });
+    // Return to login page if..
+    // - You're not logged in
+    // - You're not trying to log in
+    if (!Host.isAuthed() && page !== 2 && page !== 3) {
+      this.setState({ page: 0 });
+    } else {
+      this.setState({ page });
+    }
   }
 
   logout() {
@@ -109,25 +100,13 @@ class Profile extends React.Component {
       if (err) danger(ret);
       else {
         success(ret);
-        this.setState({ username: '', loggedIn: false, page: 0 });
+        this.setState({ username: 'please make an account', loggedIn: false, page: 0 });
       }
     });
   }
 
-  isAuthed(page) {
-    const ret = Host.isAuthed();
-    if (ret) {
-      if (page <= 1) this.state.page = 1;
-      this.state.loggedIn = true;
-      return true;
-    }
-    if (page < 2 || page === 4) this.state.page = 0;
-    this.state.loggedIn = false;
-    return false;
-  }
-
-  deleteAccount(password) {
-    Host.deleteAccount(password, (err, ret) => {
+  deleteAccount() {
+    Host.deleteAccount((err, ret) => {
       if (err) danger(ret);
       else {
         success(ret);
@@ -142,5 +121,9 @@ class Profile extends React.Component {
     );
   }
 }
+
+Profile.propTypes = {
+  accountCreated: React.PropTypes.func.isRequired
+};
 
 export default Profile;
