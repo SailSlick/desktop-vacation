@@ -103,7 +103,8 @@ const Groups = {
 
   // TODO Waiting on server syncing to complete server update.
   updateMetadata: (gid, id, metadata, cb) => {
-    Galleries.updateMetadata(id, metadata, cb);
+    if (id === 0) cb(null);
+    else Galleries.updateMetadata(id, metadata, cb);
   },
 
   inviteUser: (gid, username, cb) => {
@@ -242,24 +243,26 @@ const Groups = {
       cb([], []);
     } else {
       let subgalleries = gallery.subgalleries;
-      const images = gallery.images;
+      let images = gallery.images;
       subgalleries = subgalleries.filter(x => x._id);
-      subgalleries.map(x =>
+      subgalleries = subgalleries.map((x) => {
         Galleries.getMongo(x._id, (subgallery) => {
           if (subgallery) x.$loki = subgallery.$loki;
-        })
-      );
-      if (filter.name !== '') {
-        subgalleries.filter(x => x.name.indexOf(filter.name) !== -1);
-        images.filter(x => x.name.indexOf(filter.name) !== -1);
+          x.$loki = 0;
+        });
+        return x;
+      });
+      if (filter.name && filter.name !== '') {
+        subgalleries = subgalleries.filter(x => x.name.indexOf(filter.name) !== -1);
+        images = images.filter(x => x.location.indexOf(filter.name) !== -1);
       }
-      if (filter.tag !== '') {
-        subgalleries.filter(x => x.matadata.tags.indexOf(filter.tags) !== -1);
-        images.filter(x => x.matadata.tags.indexOf(filter.tags) !== -1);
+      if (filter.tag && filter.tag !== '') {
+        subgalleries = subgalleries.filter(x => x.metadata.tags.indexOf(filter.tags) !== -1);
+        images = images.filter(x => x.metadata.tags.indexOf(filter.tags) !== -1);
       }
-      if (filter.rating !== 0) {
-        subgalleries.filter(x => x.matadata.rating === filter.rating);
-        images.filter(x => x.matadata.rating === filter.rating);
+      if (filter.rating && filter.rating !== 0) {
+        subgalleries = subgalleries.filter(x => x.metadata.rating === filter.rating);
+        images = images.filter(x => x.metadata.rating === filter.rating);
       }
       cb(subgalleries, images);
     }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { eachOf } from 'async';
-import { Col, Row, Nav, Navbar, NavItem, Glyphicon, Grid, ListGroup, ListGroupItem, Form, FormControl, Button } from 'react-bootstrap';
+import { Col, Row, Nav, Navbar, NavItem, Glyphicon, Grid, Dropdown, Form, FormControl, FormGroup, Button, InputGroup, MenuItem } from 'react-bootstrap';
 import Image from './image.jsx';
 import GalleryCard from './gallerycard.jsx';
 import Galleries from '../models/galleries';
@@ -8,7 +8,9 @@ import { success, danger } from '../helpers/notifier';
 
 const append_gallery_event_name = 'append_gallery';
 
-const SelectTools = ({ multiSelect, addAllToGallery, selectAll, removeAll, changeFilter }) => {
+const SelectTools = ({
+  multiSelect, addAllToGallery, selectAll, removeAll, changeFilter, clearFilter
+}) => {
   if (!multiSelect) {
     return <br />;
   }
@@ -20,28 +22,43 @@ const SelectTools = ({ multiSelect, addAllToGallery, selectAll, removeAll, chang
         </Navbar.Brand>
         <Navbar.Toggle />
       </Navbar.Header>
-      <Nav bsStyle="pills">
-        <NavItem onClick={_ => selectAll(true)}>
-          <Glyphicon glyph="plus" />
-          Select All
-        </NavItem>
-        <NavItem onClick={_ => selectAll(false)}>
-          <Glyphicon glyph="minus" />
-          Deselect All
-        </NavItem>
-        <NavItem onClick={addAllToGallery}>
-          <Glyphicon glyph="th" />
-          Add To Gallery
-        </NavItem>
-        <NavItem onClick={removeAll}>
-          <Glyphicon glyph="remove" />
-          Remove
-        </NavItem>
-        <NavItem onClick={changeFilter}>
-          <Glyphicon glyph="search" />
-          Remove
-        </NavItem>
-      </Nav>
+      <Navbar.Collapse>
+        <Nav bsStyle="pills">
+          <NavItem onClick={_ => selectAll(true)}>
+            <Glyphicon glyph="plus" />
+            Select All
+          </NavItem>
+          <NavItem onClick={_ => selectAll(false)}>
+            <Glyphicon glyph="minus" />
+            Deselect All
+          </NavItem>
+          <NavItem onClick={addAllToGallery}>
+            <Glyphicon glyph="th" />
+            Add To Gallery
+          </NavItem>
+          <NavItem onClick={removeAll}>
+            <Glyphicon glyph="remove" />
+            Remove
+          </NavItem>
+          <NavItem onClick={clearFilter}>
+            <Glyphicon glyph="remove" />
+            Clear Filter
+          </NavItem>
+        </Nav>
+        <Navbar.Form pullLeft>
+          <Form onSubmit={changeFilter}>
+            <FormGroup>
+              <FormControl name="filterValue" type="text" placeholder="Filter gallery" />
+              <FormControl name="filterKey" componentClass="select">
+                <option value="name">name</option>
+                <option value="tag">tag</option>
+                <option value="rating">rating</option>
+              </FormControl>
+            </FormGroup>
+            <Button type="submit">Filter</Button>
+          </Form>
+        </Navbar.Form>
+      </Navbar.Collapse>
     </Navbar>
   );
 };
@@ -51,7 +68,8 @@ SelectTools.propTypes = {
   addAllToGallery: React.PropTypes.func.isRequired,
   selectAll: React.PropTypes.func.isRequired,
   removeAll: React.PropTypes.func.isRequired,
-  changeFilter: React.PropTypes.func.isRequired
+  changeFilter: React.PropTypes.func.isRequired,
+  clearFilter: React.PropTypes.func.isRequired
 };
 
 class Gallery extends React.Component {
@@ -70,6 +88,7 @@ class Gallery extends React.Component {
         tag: '',
         rating: 0
       },
+      filterChanged: false
     };
 
     // Bind functions
@@ -82,6 +101,8 @@ class Gallery extends React.Component {
     this.selectAll = this.selectAll.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
     this.handleTagChange = this.handleTagChange.bind(this);
+    this.changeFilter = this.changeFilter.bind(this);
+    this.clearFilter = this.clearFilter.bind(this);
 
     // Hook event to catch when an image is added
     document.addEventListener('gallery_updated', this.refresh, false);
@@ -92,7 +113,9 @@ class Gallery extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.dbId !== this.props.dbId) this.refresh(nextProps.dbId);
+    if (nextProps.dbId !== this.props.dbId || this.state.filterChanged) {
+      this.refresh(nextProps.dbId);
+    }
   }
 
   componentWillUnmount() {
@@ -111,7 +134,8 @@ class Gallery extends React.Component {
           selection: [],
           rating: gallery.metadata.rating,
           tags: gallery.metadata.tags,
-          newTag: ''
+          newTag: '',
+          filterChanged: false
         }, () => {
           console.log('Gallery refreshed');
           this.props.onRefresh();
@@ -189,11 +213,13 @@ class Gallery extends React.Component {
     let tags = this.state.tags;
 
     if (typeof field === 'number') rating = field;
-    if (typeof field === 'object') tags = field;
     if (typeof field === 'string') {
-      if (field.length === 0) return danger('Empty tag');
+      if (field === '') return danger('Empty tag');
       if (toRemove) tags = tags.filter(val => val !== field);
-      else tags.push(field);
+      else {
+        if (tags.indexOf(field) !== -1) return danger('Tag exists');
+        tags.push(field);
+      }
     }
 
     const metadata = { metadata: { rating, tags } };
@@ -208,8 +234,23 @@ class Gallery extends React.Component {
     this.setState({ newTag: event.target.value });
   }
 
-  changeFilter() {
-    this.setState({ filter: {} });
+  changeFilter(event) {
+    event.preventDefault();
+    const filter = {};
+    const key = event.target.filterKey.value;
+    let value = event.target.filterValue.value;
+    if (key === 'rating') {
+      value = Number(value);
+      if (isNaN(value) || value > 5 || value < 0) return danger('Rating must be a number between 0 & 5');
+    }
+    filter[key] = value;
+    success('Filtering');
+    return this.setState({ filter, filterChanged: true });
+  }
+
+  clearFilter() {
+    success('Filter cleared');
+    return this.setState({ filter: {}, filterChanged: true });
   }
 
   render() {
@@ -220,55 +261,57 @@ class Gallery extends React.Component {
             <h4>Subgalleries: {this.state.subgalleries.length}</h4>
             <h4>Images: {this.state.images.length}</h4>
           </Col>
-          <Col xs={5} md={5}>
-            <h4>Tags:
-              <ListGroup>
+          <Col xs={2} md={2}>
+            <Dropdown pullRight id="tags-dropdown">
+              <Dropdown.Toggle>
+                Tags
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
                 {this.state.tags.map(tag => (
                   // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-                  <ListGroupItem key={tag}>
-                    <Row>
-                      <Col xs={9} md={10}>
-                        <p>{tag}</p>
-                      </Col>
-                      <Col xs={3} md={2}>
-                        <Button bsStyle="link" onClick={_ => this.updateMetadata(tag, true)}>
+                  <MenuItem key={tag} >
+                    <InputGroup>
+                      <p colSpan="2">{tag}</p>
+                      <InputGroup.Button>
+                        <Button
+                          bsStyle="link"
+                          onClick={e => e.preventDefault() || this.updateMetadata(tag, true)}
+                        >
                           <Glyphicon glyph={'trash'} />
                         </Button>
-                      </Col>
-                    </Row>
-                  </ListGroupItem>
-                ))
-                }
-                <Form
-                  horizontal
-                  onSubmit={e => e.preventDefault() ||
-                    this.updateMetadata(this.state.newTag, false)}
-                >
-                  <Row>
-                    <Col xs={9} md={10}>
-                      <FormControl
-                        name="newTag"
-                        type="text"
-                        placeholder="new tag"
-                        value={this.state.newTag}
-                        onChange={this.handleTagChange}
-                      />
-                    </Col>
-                    <Col xs={3} md={2}>
-                      <Button bsStyle="link" type="submit">
-                        <Glyphicon glyph={'plus'} />
-                      </Button>
-                    </Col>
-                  </Row>
-                </Form>
-              </ListGroup>
-            </h4>
+                      </InputGroup.Button>
+                    </InputGroup>
+                  </MenuItem>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
           </Col>
-          <Col xs={5} md={5}>
+          <Col xs={4} md={4}>
+            <Form
+              horizontal
+              onSubmit={e => e.preventDefault() || this.updateMetadata(this.state.newTag, false)}
+            >
+              <InputGroup>
+                <FormControl
+                  name="newTag"
+                  type="text"
+                  placeholder="new tag"
+                  value={this.state.newTag}
+                  onChange={this.handleTagChange}
+                />
+                <InputGroup.Button>
+                  <Button type="submit">
+                    <Glyphicon glyph={'plus'} />
+                  </Button>
+                </InputGroup.Button>
+              </InputGroup>
+            </Form>
+          </Col>
+          <Col xs={4} md={4}>
             <h4>Rating:
               {[1, 2, 3, 4, 5].map(val => (
                 // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-                <a key={val} onClick={_ => this.updateMetadata(val, false)} >
+                <a key={val} onClick={e => e.preventDefault() || this.updateMetadata(val, false)} >
                   <Glyphicon glyph={this.state.rating >= val ? 'star' : 'star-empty'} />
                 </a>
               ))
@@ -311,16 +354,17 @@ class Gallery extends React.Component {
     return (
       <Row>
         <Col xs={12}>
+          {this.props.dbId > 1 ? galleryDetails : ' '}
+        </Col>
+        <Col xs={12}>
           <SelectTools
             multiSelect={this.props.multiSelect}
             addAllToGallery={this.addAllToGallery}
             selectAll={this.selectAll}
             removeAll={this.removeAll}
             changeFilter={this.changeFilter}
+            clearFilter={this.clearFilter}
           />
-        </Col>
-        <Col xs={12}>
-          {this.props.dbId > 1 ? galleryDetails : <br />}
         </Col>
         <Col xs={4}>
           {items.map((item, i) => (i % 3 === 0 && item) || null)}

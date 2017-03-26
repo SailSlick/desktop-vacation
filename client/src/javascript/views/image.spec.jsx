@@ -24,6 +24,8 @@ describe('Image Component', () => {
       test_component = mount(<Image
         key={test_image.$loki}
         dbId={test_image.$loki}
+        rating={test_image.metadata.rating}
+        tags={test_image.metadata.tags}
         src={test_image_path}
         onRemove={removeSpy}
       />);

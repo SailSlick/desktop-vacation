@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, MenuItem, Button, Glyphicon, Image as BsImage, Grid, Col, Row, ListGroup, ListGroupItem, Form, FormControl } from 'react-bootstrap';
+import { Modal, MenuItem, Button, Glyphicon, Image as BsImage, Grid, Col, Row, Table, Form, FormControl, InputGroup } from 'react-bootstrap';
 import Wallpaper from '../helpers/wallpaper-client';
 import Images from '../models/images';
 import { success, danger } from '../helpers/notifier';
@@ -76,14 +76,17 @@ class Image extends React.Component {
     let tags = this.props.tags;
 
     if (typeof field === 'number') rating = field;
-    if (typeof field === 'object') tags = field;
     if (typeof field === 'string') {
+      if (field === '') return danger('Empty tag');
       if (toRemove) tags = tags.filter(val => val !== field);
-      else tags.push(field);
+      else {
+        if (tags.indexOf(field) !== -1) return danger('Tag exists');
+        tags.push(field);
+      }
     }
 
     const metadata = { metadata: { rating, tags } };
-    Images.updateMetadata(this.props.dbId, metadata, (doc) => {
+    return Images.updateMetadata(this.props.dbId, metadata, (doc) => {
       if (!doc) return danger('Updating metadata failed');
       if (typeof field === 'string') this.setState({ newTag: '' });
       return success('Metadata updated');
@@ -111,46 +114,50 @@ class Image extends React.Component {
     );
     const tags = (
       <Col>
-        <h4>Tags:</h4>
-        <ListGroup>
-          {this.props.tags.map(tag => (
-            // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-            <ListGroupItem key={tag}>
-              <Row>
-                <Col xs={9} md={10}>
-                  <p>{tag}</p>
-                </Col>
-                <Col xs={3} md={2}>
-                  <Button bsStyle="link" onClick={_ => this.updateMetadata(tag, true)}>
+        <Table>
+          <thead>
+            <tr>
+              <th>
+                <h4>Tags:</h4>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.props.tags.map(tag => (
+              // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+              <tr key={tag} >
+                <td colSpan="2">{tag}</td>
+                <td>
+                  <Button
+                    bsStyle="link"
+                    onClick={e => e.preventDefault() || this.updateMetadata(tag, true)}
+                  >
                     <Glyphicon glyph={'trash'} />
                   </Button>
-                </Col>
-              </Row>
-            </ListGroupItem>
-          ))
-          }
-          <Form
-            horizontal
-            onSubmit={e => e.preventDefault() || this.updateMetadata(this.state.newTag, false)}
-          >
-            <Row>
-              <Col xs={9} md={10}>
-                <FormControl
-                  name="newTag"
-                  type="text"
-                  placeholder="new tag"
-                  value={this.state.newTag}
-                  onChange={this.handleTagChange}
-                />
-              </Col>
-              <Col xs={3} md={2}>
-                <Button bsStyle="link" type="submit">
-                  <Glyphicon glyph={'plus'} />
-                </Button>
-              </Col>
-            </Row>
-          </Form>
-        </ListGroup>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+        <Form
+          horizontal
+          onSubmit={e => e.preventDefault() || this.updateMetadata(this.state.newTag, false)}
+        >
+          <InputGroup>
+            <FormControl
+              name="newTag"
+              type="text"
+              placeholder="new tag"
+              value={this.state.newTag}
+              onChange={this.handleTagChange}
+            />
+            <InputGroup.Button>
+              <Button type="submit">
+                <Glyphicon glyph={'plus'} />
+              </Button>
+            </InputGroup.Button>
+          </InputGroup>
+        </Form>
       </Col>
     );
 

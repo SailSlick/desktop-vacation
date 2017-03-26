@@ -26,7 +26,8 @@ const PrimaryContent = ({ page, parent }) => {
       multiSelect={parent.state.multiSelect}
     />),
     (<Group
-      dbId={parent.state.groupId}
+      groupId={parent.state.groupId}
+      dbId={parent.state.galleryId}
       onChange={parent.changeGroup}
       multiSelect={parent.state.multiSelect}
     />),
@@ -236,12 +237,13 @@ class Main extends React.Component {
     });
   }
 
-  changeGroup(groupId) {
+  changeGroup(groupId, lokiId) {
     // This if prevents deleted galleries/non-existent Ids
     // causing big issues
     if (groupId) {
       this.setState({
         groupId,
+        galleryId: lokiId,
         imageSelection: null,
         multiSelect: false,
         page: 1,
@@ -336,7 +338,9 @@ class Main extends React.Component {
                 <MenuItem onClick={this.getNewGalleryName}>Add</MenuItem>
               </NavDropdown>
               <NavDropdown title="Groups" id="groups">
-                <MenuItem onClick={_ => this.changeGroup(BASE_GROUP_ID)}>View</MenuItem>
+                <MenuItem onClick={_ => this.changeGroup(BASE_GROUP_ID, BASE_GALLERY_ID)}>
+                  View
+                </MenuItem>
                 <MenuItem onClick={this.getNewGroupName}>Add</MenuItem>
                 <MenuItem onClick={this.getInvitesModal}>Invites</MenuItem>
               </NavDropdown>
@@ -347,7 +351,7 @@ class Main extends React.Component {
                 <MenuItem onClick={_ => Slideshow.clear()}>Clear</MenuItem>
               </NavDropdown>
               <NavItem onClick={_ => this.profileView()}>Profile</NavItem>
-              <NavItem onClick={this.toggleSelectMode}>Select</NavItem>
+              <NavItem onClick={this.toggleSelectMode}>Tools</NavItem>
             </Nav>
           </Navbar.Collapse>
         </Navbar>

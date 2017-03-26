@@ -148,17 +148,17 @@ const Galleries = {
           Images.get(image_id, image => next(null, image)),
         (err_img, images) => {
           subgalleries = subgalleries.filter(x => !x.group);
-          if (filter.name !== '') {
-            subgalleries.filter(x => x.name.indexOf(filter.name) !== -1);
-            images.filter(x => x.name.indexOf(filter.name) !== -1);
+          if (filter.name && filter.name !== '') {
+            subgalleries = subgalleries.filter(x => x.name.indexOf(filter.name) !== -1);
+            images = images.filter(x => x.location.indexOf(filter.name) !== -1);
           }
-          if (filter.tag !== '') {
-            subgalleries.filter(x => x.matadata.tags.indexOf(filter.tags) !== -1);
-            images.filter(x => x.matadata.tags.indexOf(filter.tags) !== -1);
+          if (filter.tag && filter.tag !== '') {
+            subgalleries = subgalleries.filter(x => x.metadata.tags.indexOf(filter.tags) !== -1);
+            images = images.filter(x => x.metadata.tags.indexOf(filter.tags) !== -1);
           }
-          if (filter.rating !== 0) {
-            subgalleries.filter(x => x.matadata.rating === filter.rating);
-            images.filter(x => x.matadata.rating === filter.rating);
+          if (filter.rating && filter.rating !== 0) {
+            subgalleries = subgalleries.filter(x => x.metadata.rating === filter.rating);
+            images = images.filter(x => x.metadata.rating === filter.rating);
           }
           cb(subgalleries, images);
         }
