@@ -52,6 +52,11 @@ npm install
 npm start
 ```
 
+# Shortcuts
+- `shift+s`: Enter select mode
+- `ctrl+a`: Select all images
+- `ctrl+shift+a`: Deselect all images
+
 # Testing
 
 ```bash
