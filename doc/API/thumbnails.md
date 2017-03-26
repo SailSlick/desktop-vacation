@@ -34,7 +34,7 @@ and the Open Graph API, as well as our own needs.
 | Name  | Description                            | Aspect Ratio |
 |-------|----------------------------------------|--------------|
 | fit   | Squeeze/Stretch appropriately          | Square       |
-| fill  | Fill container by overflowing x/y axis | Square       |
+| fill  | Fill container by overflowing x/y axis | Dynamic      |
 | growx | Fix height, scale width                | Dynamic      |
 | growy | Fix width, scale height                | Dynamic      |
 
