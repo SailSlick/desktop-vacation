@@ -32,7 +32,6 @@ export default class SelectTools extends React.Component {
             <Navbar.Brand>
               Tools
             </Navbar.Brand>
-            <Navbar.Toggle />
           </Navbar.Header>
           <Nav bsStyle="pills">
             <NavItem onClick={_ => this.props.selectAll(true)}>
