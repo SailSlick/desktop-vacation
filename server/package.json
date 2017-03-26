@@ -21,7 +21,8 @@
     "debug": "^2.6.1",
     "express": "^4.14.1",
     "express-session": "^1.15.0",
-    "mongodb": "^2.2.22"
+    "mongodb": "^2.2.22",
+    "sharp": "^0.17.2"
   },
   "devDependencies": {
     "chai": "^3.5.0",

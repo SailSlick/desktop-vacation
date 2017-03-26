@@ -10,7 +10,6 @@ db.addCollection('images');
 
 const hostname = 'Sully';
 
-
 function makeHost(mainGal) {
   // insert users
   const userData = {

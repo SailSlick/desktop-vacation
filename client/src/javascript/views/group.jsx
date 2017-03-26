@@ -96,7 +96,6 @@ class Group extends React.Component {
     this.changeFilter = this.changeFilter.bind(this);
     this.clearFilter = this.clearFilter.bind(this);
 
-    // Hook event to catch when a gallery is added
     document.addEventListener('gallery_updated', this.refresh, false);
   }
 
@@ -111,7 +110,6 @@ class Group extends React.Component {
   }
 
   componentWillUnmount() {
-    // Unhook all events
     document.removeEventListener('gallery_updated', this.refresh, false);
   }
 
@@ -258,7 +256,7 @@ class Group extends React.Component {
       <GalleryCard
         group
         key={`g${subgallery._id}`}
-        dbId={subgallery.$loki}
+        dbId={subgallery.$loki || 0}
         mongoId={subgallery._id}
         name={subgallery.name}
         uid={subgallery.uid}

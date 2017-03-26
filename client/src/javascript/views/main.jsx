@@ -15,11 +15,8 @@ import { success, danger } from '../helpers/notifier';
 const BASE_GALLERY_ID = 1;
 const BASE_GROUP_ID = '1';
 
-const PrimaryContent = ({ page, parent }) => {
-  Galleries.get(BASE_GALLERY_ID, (gallery) => {
-    if (!gallery) page = 2;
-  });
-  return [
+const PrimaryContent = ({ page, parent }) =>
+  [
     (<Gallery
       dbId={parent.state.galleryId}
       onChange={parent.changeGallery}
@@ -32,15 +29,14 @@ const PrimaryContent = ({ page, parent }) => {
       multiSelect={parent.state.multiSelect}
     />),
     (<Profile
-      onChange={parent.profileView}
+      accountCreated={parent.accountCreated}
     />)
   ][page];
-};
 
 const InvitesContent = ({ parent }) => {
   let invites_react = [];
   invites_react = parent.state.invites.map(invite =>
-    <ListGroupItem>
+    <ListGroupItem key={invite.groupname}>
       <InputGroup>
         <p>{invite.groupname}</p>
         <Button
@@ -83,7 +79,8 @@ class Main extends React.Component {
       galleryname: '',
       groupUsersModal: false,
       invitesModal: false,
-      invites: []
+      invites: [],
+      account: false
     };
 
     this.onSelectGallery = this.onSelectGallery.bind(this);
@@ -101,6 +98,7 @@ class Main extends React.Component {
     this.changeGroup = this.changeGroup.bind(this);
     this.inputChange = this.inputChange.bind(this);
     this.getInvitesModal = this.getInvitesModal.bind(this);
+    this.accountCreated = this.accountCreated.bind(this);
     this.joinGroup = this.joinGroup.bind(this);
     this.refuseInvite = this.refuseInvite.bind(this);
     this.inviteRefresh = this.inviteRefresh.bind(this);
@@ -108,6 +106,10 @@ class Main extends React.Component {
     // Events
     document.addEventListener('append_gallery', this.showGallerySelector, false);
     document.addEventListener('notify', this.showAlert, false);
+  }
+
+  componentWillMount() {
+    this.accountCreated();
   }
 
   componentWillUnmount() {
@@ -150,6 +152,16 @@ class Main extends React.Component {
     this.setState({ invitesModal: true });
   }
 
+  accountCreated() {
+    Galleries.get(BASE_GALLERY_ID, (gallery) => {
+      if (!gallery) {
+        this.setState({ page: 2, account: false });
+        return;
+      }
+      this.setState({ account: true });
+    });
+  }
+
   showGallerySelector(evt) {
     this.setState({
       selectGalleryModal: true,
@@ -159,8 +171,12 @@ class Main extends React.Component {
 
   addNewGallery(event, cb) {
     event.preventDefault();
+    if (!this.state.account) {
+      danger('Account not created');
+      return;
+    }
     const galleryname = event.target.galleryname.value;
-    return Galleries.add(galleryname, (new_gallery, err_msg) => {
+    Galleries.add(galleryname, (new_gallery, err_msg) => {
       this.setState({ newGalleryModal: false, page: 0 });
       if (err_msg) {
         danger(err_msg);
@@ -186,6 +202,11 @@ class Main extends React.Component {
   }
 
   changeGallery(galleryId) {
+    if (!this.state.account) {
+      danger('Account not created');
+      return;
+    }
+
     // This if prevents deleted galleries/non-existent Ids
     // causing big issues
     if (galleryId) {
@@ -224,6 +245,10 @@ class Main extends React.Component {
   }
 
   addNewGroup(event) {
+    if (!this.state.account) {
+      danger('Account not created');
+      return;
+    }
     event.preventDefault();
     const galleryname = event.target.galleryname.value;
 
@@ -238,6 +263,10 @@ class Main extends React.Component {
   }
 
   changeGroup(groupId, lokiId) {
+    if (!this.state.account) {
+      danger('Account not created');
+      return;
+    }
     // This if prevents deleted galleries/non-existent Ids
     // causing big issues
     if (groupId) {
