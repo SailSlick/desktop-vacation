@@ -35,6 +35,7 @@ All the following commands should be run from the `client` folder
 | sinon                   | dev         | Spies, stupds and mocks          |
 | source-map-support      | dev         | Improves stack tracing           |
 | spectron                | dev         | E2E testing suite                |
+| nock                    | dev         | HTTP response mocking            |
 | xvfb-maybe              | dev         | Creates virtual X framebuffer    |
 
 # Installation
