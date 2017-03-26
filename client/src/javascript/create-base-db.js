@@ -33,9 +33,12 @@ function makeGallery() {
   const galname = hostname.concat('_all');
   const galleryData = {
     name: galname,
-    tags: [],
     subgalleries: [],
-    images: []
+    images: [],
+    metadata: {
+      rating: 0,
+      tags: []
+    }
   };
   const mainGal = galleries.insert(galleryData);
   console.log('Gallery added, details:', mainGal);

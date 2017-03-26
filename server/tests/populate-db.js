@@ -19,9 +19,12 @@ function galleries2(imageRefs, galleryRefs, userId) {
     name: 'testuser_all',
     uid: userId,
     users: [],
-    tags: ['blam'],
     subgallaries: galleryRefs,
-    images: imageRefs
+    images: imageRefs,
+    metadata: {
+      rating: 0,
+      tags: []
+    }
   };
   dbConnG.insertOne(galData2, (cb) => {
     console.log('Galleries added, main ref:', cb);
@@ -35,16 +38,22 @@ function galleries1(imageRefs, userId) {
     name: 'phone',
     uid: userId,
     users: [],
-    tags: ['oohlaala'],
     subgallaries: [],
-    images: imageRefs.slice(0, 3)
+    images: imageRefs.slice(0, 3),
+    metadata: {
+      rating: 0,
+      tags: []
+    }
   }, {
     name: 'winter',
     uid: userId,
     users: [],
-    tags: ['oohlaala'],
     subgallaries: [],
-    images: imageRefs.slice(0, 2)
+    images: imageRefs.slice(0, 2),
+    metadata: {
+      rating: 0,
+      tags: []
+    }
   }];
   dbConnG.insertMany(galData, (cb) => {
     console.log('sub gallery refs:', cb);
