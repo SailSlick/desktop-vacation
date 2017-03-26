@@ -1,5 +1,6 @@
 import React from 'react';
 import { eachOf } from 'async';
+import mousetrap from 'mousetrap';
 import Waypoint from 'react-waypoint';
 import { Col, Row } from 'react-bootstrap';
 import Image from './image.jsx';
@@ -36,6 +37,22 @@ class Gallery extends React.Component {
 
     // Hook event to catch when an image is added
     document.addEventListener('gallery_updated', this.refresh, false);
+    mousetrap.bind('ctrl+a', () => {
+      if (this.props.multiSelect) {
+        this.selectAll(true);
+      }
+
+      // Don't bubble
+      return false;
+    });
+    mousetrap.bind('ctrl+shift+a', () => {
+      if (this.props.multiSelect) {
+        this.selectAll(false);
+      }
+
+      // Don't bubble
+      return false;
+    });
   }
 
   componentDidMount() {
@@ -44,11 +61,16 @@ class Gallery extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.dbId !== this.props.dbId) this.refresh(nextProps.dbId);
+    if (!nextProps.multiSelect) {
+      this.setState({ selection: [] });
+    }
   }
 
   componentWillUnmount() {
     // Unhook all events
     document.removeEventListener('gallery_updated', this.refresh, false);
+    mousetrap.unbind('ctrl+a');
+    mousetrap.unbind('ctrl+shift+a');
   }
 
   refresh(dbId) {
@@ -192,11 +214,14 @@ class Gallery extends React.Component {
         </Col>
         { (this.props.simple) ? <Col /> : (
           <Col xs={12}>
-            <InfiniteScrollInfo
-              itemsLimit={this.state.itemsLimit}
-              itemsTotal={this.state.itemsTotal}
-            />
-            <Waypoint onEnter={this.loadMore} />
+            <Waypoint onEnter={this.loadMore}>
+              <div>
+                <InfiniteScrollInfo
+                  itemsLimit={this.state.itemsLimit}
+                  itemsTotal={this.state.itemsTotal}
+                />
+              </div>
+            </Waypoint>
           </Col>
         )}
       </Row>

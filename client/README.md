@@ -30,6 +30,7 @@ All the following commands should be run from the `client` folder
 | istanbul                | dev         | Code coverage reporter           |
 | mocha                   | dev         | Unit testing suite               |
 | mocha-jenkins-reporter  | dev         | Compiles Jenkins-friendly report |
+| mousetrap               | dev         | Bind to keys in BrowserWindow    |
 | react                   | dev         | Component based dom manipulation |
 | react-waypoint          | dev         | Detect elements leave/enter view |
 | rollup                  | dev         | Minifier and compiler for ES     |

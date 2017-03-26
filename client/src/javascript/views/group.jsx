@@ -128,11 +128,14 @@ class Group extends React.Component {
           {items.map((item, i) => ((i + 1) % 3 === 0 && item) || null)}
         </Col>
         <Col xs={12}>
-          <InfiniteScrollInfo
-            itemsLimit={this.state.itemsLimit}
-            itemsTotal={this.state.itemsTotal}
-          />
-          <Waypoint onEnter={this.loadMore} />
+          <Waypoint onEnter={this.loadMore}>
+            <div>
+              <InfiniteScrollInfo
+                itemsLimit={this.state.itemsLimit}
+                itemsTotal={this.state.itemsTotal}
+              />
+            </div>
+          </Waypoint>
         </Col>
       </Row>
     );
