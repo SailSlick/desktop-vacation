@@ -1,3 +1,4 @@
+const fs = require('fs');
 const chai = require('chai');
 const thumbTools = require('../middleware/thumbnails');
 
@@ -46,5 +47,19 @@ describe('Thumbnails API', () => {
         })
       )
     )
+  );
+
+  it('can be streamed to a file', done =>
+    thumbTools.generate(test_image_path, 'md', 'fit', (err, buffer, info) => {
+      should.not.exist(err);
+      const file_name = `test_image_thumb.${info.format}`;
+      fs.open(file_name, 'w', (fd_err, fd) => {
+        should.not.exist(fd_err);
+        fs.write(fd, buffer, (fs_err) => {
+          should.not.exist(fs_err);
+          done();
+        });
+      });
+    })
   );
 });
