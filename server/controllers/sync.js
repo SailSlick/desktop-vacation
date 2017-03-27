@@ -72,5 +72,23 @@ module.exports = {
         image.file.pipe(res);
       }
     });
+  },
+
+  remove: (req, res, next) => {
+    if (!req.params.id) {
+      next({ status: 400, error: 'Invalid image id' });
+    }
+    galleries.remoteImageGlobal(req.params.id, req.session.uid, (galleryErr) => {
+      if (galleryErr) {
+        next({ status: 400, error: galleryErr });
+      }
+      images.remove(req.session.uid, req.params.id, (imageErr) => {
+        if (imageErr) {
+          next({ status: 400, error: imageErr });
+        } else {
+          next({ status: 200, message: 'image deleted' });
+        }
+      });
+    });
   }
 };

@@ -24,5 +24,15 @@ module.exports = {
         });
       }
     });
+  },
+
+  remove(uid, id, next) {
+    db.removeOne({ _id: db.getId(id), uid }, (removed) => {
+      if (removed) {
+        next();
+      } else {
+        next('cannot find image, or invalid permissions');
+      }
+    });
   }
 };

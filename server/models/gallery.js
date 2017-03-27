@@ -84,6 +84,20 @@ module.exports = {
     );
   },
 
+  remoteImageGlobal: (imageId, uid, next) => {
+    db.col.update(
+      { uid, images: imageId },
+      { $pull: { images: imageId } },
+      (err, count, _) => {
+        if (err || count < 1) {
+          next('invalid gallery, or invalid permissions');
+        } else {
+          next();
+        }
+      }
+    );
+  },
+
   updateGid: (galleryname, id, data, cb) => {
     db.updateOne({ name: galleryname, id }, data, (res) => {
       if (res) return cb('updated one gallery');
