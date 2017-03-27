@@ -76,7 +76,7 @@ export default {
           // XXX: Ask Lucas about how to set proper user data
           newFilePath = path.join(
             __dirname, 'userData',
-            `${uriToId(url)}.${mime.extension(res.headers['content-type'])}`
+            `${uriToId(imageUrl)}.${mime.extension(res.headers['content-type'])}`
           );
           req.pipe(fs.createWriteStream(newFilePath));
         } else {
@@ -94,10 +94,8 @@ export default {
         Images.setLocation(image.$loki, newFilePath, (setErr) => {
           if (setErr) {
             console.error('Failed to set new image location');
-            cb(null, newFilePath);
-          } else {
-            cb(null, newFilePath);
           }
+          cb(null, newFilePath);
         });
       });
     });
