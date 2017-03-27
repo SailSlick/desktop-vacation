@@ -26,6 +26,7 @@ module.exports = {
     });
   },
 
+  // look into weather this is truely removing the GridFS file chunks
   remove(uid, id, next) {
     db.removeOne({ _id: db.getId(id), uid }, (removed) => {
       if (removed) {

@@ -74,7 +74,7 @@ module.exports = {
       { uid, _id: db.getId(gid) },
       { $addToSet: { images: { $each: imageIds } } }, (err, updated) => {
         if (err || updated.matchedCount !== 1) {
-          next('invalid gallery, or invalid permissions');
+          next('invalid gallery transaction. please notify admin');
         } else if (gid === baseGalleryId) {
           next(null);
         } else {

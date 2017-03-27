@@ -80,7 +80,9 @@ module.exports = {
     }
     galleries.remoteImageGlobal(req.params.id, req.session.uid, (galleryErr) => {
       if (galleryErr) {
-        next({ status: 400, error: galleryErr });
+        console.error('!!! Error that should never happen');
+        console.error(galleryErr);
+        next({ status: 500, error: galleryErr });
       }
       images.remove(req.session.uid, req.params.id, (imageErr) => {
         if (imageErr) {

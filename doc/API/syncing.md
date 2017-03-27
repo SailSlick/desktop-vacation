@@ -116,3 +116,35 @@ Refer to the [db spec](../galleries.md) for more information on this response.
 |---------------------------|--------|
 | `'invalid gid'`           |   400  |
 | `'gallery doesn't exist'` |   404  |
+
+## Removing Images Globally
+
+`GET /image/<id:string>/remove`
+
+Upon successful request, remove the image from the server and all galleries.
+
+**Note**: to the vexation of some of you this is a GET request. This may be subject
+to change.
+
+### URL Parameters
+
+| Name       | Type      | Description                                       |
+|------------|-----------|---------------------------------------------------|
+| id         | string    | a string referencing an images's id on the server |
+
+### Response
+
+`Status: 200 OK`
+```
+{
+  "message": "image deleted",
+}
+```
+
+### Expected Errors
+
+| Error Message                                 | Status |
+|-----------------------------------------------|--------|
+| `'Invalid image id'`                          |   400  |
+| `'cannot find image, or invalid permissions'` |   400  |
+| `'invalid gallery transaction. please notify admin'` | 500 |
