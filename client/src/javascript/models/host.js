@@ -92,7 +92,6 @@ const Host = {
         }
 
         Host.uid = body.uid;
-        document.dispatchEvent(host_logged_in_event);
         return Host.setBaseRemote(body.gallery, () => cb(null, body.message));
       });
     });
@@ -143,7 +142,6 @@ const Host = {
           });
         }
         return createClientAccount(username, body, (msg_err, msg) => {
-          document.dispatchEvent(host_logged_in_event);
           Host.uid = body.uid;
           cb(msg_err, msg);
         });

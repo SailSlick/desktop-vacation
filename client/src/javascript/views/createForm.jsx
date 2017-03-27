@@ -3,6 +3,8 @@ import { Form, FormGroup, FormControl, ControlLabel, HelpBlock, Button, Col, Gri
 import Host from '../models/host';
 import { success, danger } from '../helpers/notifier';
 
+const host_logged_in_event = new Event('host_logged_in');
+
 class CreateForm extends React.Component {
   constructor(props) {
     super(props);
@@ -64,6 +66,7 @@ class CreateForm extends React.Component {
       else {
         success(ret);
         this.props.parentPage(true);
+        document.dispatchEvent(host_logged_in_event);
       }
     });
   }
