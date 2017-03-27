@@ -262,11 +262,14 @@ const Galleries = {
   },
 
   syncRoot: () => {
-    Host.getByIndex(Host.user, (userData) => {
+    Host.getIndex(Host.user, (userData) => {
       if (!userData) {
         console.error('User data doesn\'t exist.');
         console.error('Kernel panic - not syncing. Attempted to kill init');
+        return;
       }
+      // The reason addRemoteId is called here is to ensure that the base gallery
+      // has the correct remote. On first sync, this will not be the case
       Galleries.addRemoteId(BASE_GALLERY_ID, userData.remoteGallery, () => {
         const options = {
           uri: Host.server_uri.concat(`/gallery/${userData.remoteGallery}`),
@@ -275,8 +278,12 @@ const Galleries = {
           json: true
         };
         return request(options, (err, response, body) => {
-          if (response.statusCode !== 200 || !body.data.images || body.data.images.length === 0) {
-            console.error('Could not add remote to base gallery');
+          if (response.statusCode !== 200 || !body.data.images) {
+            console.error(`Failure to sync, code: ${response.StatusCode}`);
+            console.error(body);
+            return;
+          } else if (body.data.images.length === 0) {
+            console.log('No images to sync');
             return;
           }
           map(body.data.images, Images.download, (downloadErr, imageIds) => {

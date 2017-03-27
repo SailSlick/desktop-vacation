@@ -2,60 +2,121 @@ import request from 'request';
 import fs from 'fs';
 import path from 'path';
 import url from 'url';
-import { extension } from 'mime-types';
+import mime from 'mime-types';
 import Images from '../models/images';
 import Host from '../models/host';
 import { danger, success } from './notifier';
 
+function formImageUrl(id) {
+  return Host.server_uri.concat(`/image/${id}`);
+}
+
+function uriToId(uri) {
+  // Forgive the following code, it's actually the "correct" way to do it.
+  // It may be slower than actually just going left until the first /
+  // and using everything to the right. If you think this is how it should
+  // be done, comment BAZINGA here in the code review.
+  return path.parse(url.parse(uri).pathname).base;
+}
+
 export default {
   uploadImages: (galleryRemoteId, imageId) => {
     Images.get(imageId, (file) => {
+      if (file.uri) {
+        danger('Item is already synced');
+        return;
+      }
       const formData = {
-        gid: galleryRemoteId
+        gid: galleryRemoteId,
+        images: [fs.createReadStream(file.location)]
       };
-      formData['images[0]'] = fs.createReadStream(file.location);
       const options = {
         formData,
         uri: Host.server_uri.concat('/gallery/upload'),
         method: 'POST',
         jar: Host.cookie_jar,
+        json: true
       };
-      request(options, (err, res, body) => {
-        if (err) {
-          danger('Could not sync image');
+      request(options, (reqErr, res, body) => {
+        if (reqErr) {
+          danger(`Could not sync image: ${reqErr}`);
+        } else if (res.statusCode === 401) {
+          danger('This should never happen! Pride yourself on that.');
         } else if (res.statusCode !== 200) {
-          danger(`Invalid request: ${body.error}`);
+          danger(`Invalid request: ${body}`);
         } else {
-          success(body.message);
+          Images.setUri(imageId, formImageUrl(body['image-ids'][0]), (err) => {
+            if (err) danger(err);
+            else success('Images uploaded');
+          });
         }
       });
     });
   },
 
+  // This function takes a url and downloads it to disk
   urlToFile: (imageUrl, cb) => {
-    let newFilePath = null;
-    const req = request
-    .get(imageUrl)
-    .on('response', (res) => {
-      if (res.statusCode === 200) {
-        newFilePath = path.join(
-          __dirname, 'userData',
-          `${path.parse(url.parse(imageUrl).pathname).base}.${extension(res.headers['content-type'])}`
-        );
-        req.pipe(fs.createWriteStream(newFilePath));
+    Images.getByUri(imageUrl, (image) => {
+      if (image.location) {
+        cb(null, image.location);
+        return;
+      }
+      console.log('Downloading image to disk');
+      const options = {
+        uri: imageUrl,
+        jar: Host.cookie_jar
+      };
+      // Because the path of the file depends on the type of response, I had to
+      // do some janky things here and use this promise syntax
+      let newFilePath = null;
+      const req = request
+      .get(options)
+      .on('response', (res) => {
+        if (res.statusCode === 200) {
+          // XXX: Ask Lucas about how to set proper user data
+          newFilePath = path.join(
+            __dirname, 'userData',
+            `${uriToId(url)}.${mime.extension(res.headers['content-type'])}`
+          );
+          req.pipe(fs.createWriteStream(newFilePath));
+        } else {
+          danger('Couldn\'t download image');
+          cb('Status code was not 200', null);
+        }
+      })
+      .on('error', (err) => {
+        if (err) {
+          danger('Something went wrong somewhere...');
+          cb(err, null);
+        }
+      })
+      .on('end', () => {
+        Images.setLocation(image.$loki, newFilePath, (setErr) => {
+          if (setErr) {
+            console.error('Failed to set new image location');
+            cb(null, newFilePath);
+          } else {
+            cb(null, newFilePath);
+          }
+        });
+      });
+    });
+  },
+
+  removeSynced: (uri, cb) => {
+    const remoteId = uriToId(uri);
+    const options = {
+      uri: Host.server_uri.concat(`/image/${remoteId}/remove`),
+      jar: Host.cookie_jar
+    };
+    request(options, (reqErr, response, body) => {
+      if (reqErr) {
+        cb(reqErr);
+      } else if (response.statusCode !== 200) {
+        cb(body.error);
       } else {
-        danger('Couldn\'t download image');
-        cb('Status code was not 200', null);
+        cb(null);
       }
-    })
-    .on('error', (err) => {
-      if (err) {
-        danger('Request is stupid! Sorry!', null);
-        cb(err, null);
-      }
-    })
-    .on('end', () => {
-      cb(null, newFilePath);
     });
   }
 };

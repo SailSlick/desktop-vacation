@@ -142,7 +142,7 @@ const Host = {
             cb(body.status, body.error);
           });
         }
-        return createClientAccount(username, body.message, (msg_err, msg) => {
+        return createClientAccount(username, body, (msg_err, msg) => {
           document.dispatchEvent(host_logged_in_event);
           Host.uid = body.uid;
           cb(msg_err, msg);
@@ -160,7 +160,7 @@ const Host = {
   },
 
   setBaseRemote: (remote, cb) => {
-    host_db.updateOne({ $loki: Host.user }, { remoteGallery: remote }, _ => cb());
+    host_db.updateOne({ $loki: Host.user }, { remoteGallery: remote }, d => cb(d));
   },
 
   deleteAccount: (cb) => {
@@ -226,7 +226,7 @@ const Host = {
     host_db.findOne({ username }, cb);
   },
 
-  getByIndex: (index, cb) => {
+  getIndex: (index, cb) => {
     host_db.findIndex(index, cb);
   },
 

@@ -4,8 +4,9 @@ import { Col, Row, Nav, Navbar, NavItem, Glyphicon } from 'react-bootstrap';
 import Image from './image.jsx';
 import GalleryCard from './gallerycard.jsx';
 import Galleries from '../models/galleries';
+import Host from '../models/host';
 import { success, danger } from '../helpers/notifier';
-import sync from '../helpers/sync';
+import Sync from '../helpers/sync';
 
 const append_gallery_event_name = 'append_gallery';
 
@@ -133,15 +134,19 @@ class Gallery extends React.Component {
     }
   }
 
-  uploadItem(ids) {
-    Galleries.getRemoteId(this.props.dbId, (remote) => {
-      console.log(`syncing, gallery: ${remote}`);
-      if (!remote || remote.length <= 0) {
-        danger('Can\'t sync, try signing in!');
-      } else {
-        sync.uploadImages(remote, ids);
-      }
-    });
+  uploadItem(id) {
+    if (Host.isAuthed()) {
+      Galleries.getRemoteId(this.props.dbId, (remote) => {
+        console.log(`syncing, gallery: ${remote}`);
+        if (remote && !remote.length <= 0) {
+          Sync.uploadImages(remote, id);
+        } else {
+          danger('Oops, something went very wrong. Try restarting?');
+        }
+      });
+    } else {
+      danger('Can\'t sync, try signing in!');
+    }
   }
 
   removeAll(cb) {

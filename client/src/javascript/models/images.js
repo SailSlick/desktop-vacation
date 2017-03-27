@@ -1,6 +1,7 @@
 import fs from 'fs';
 import Host from './host';
 import DbConn from '../helpers/db';
+import Sync from '../helpers/sync';
 
 let image_db;
 
@@ -8,6 +9,10 @@ let image_db;
 const Images = {
   get: (id, cb) => {
     image_db.findOne({ $loki: id }, cb);
+  },
+
+  getByUri: (uri, cb) => {
+    image_db.findOne({ uri }, cb);
   },
 
   add: (path, cb) => {
@@ -37,8 +42,28 @@ const Images = {
     );
   },
 
+  setLocation: (id, location, cb) => {
+    image_db.updateOne({ $loki: id }, { location }, () => {
+      image_db.save(() => cb());
+    });
+  },
+
+  setUri: (imageIds, uri, cb) => {
+    image_db.updateOne({ $loki: imageIds }, { uri }, (d) => {
+      console.log(d);
+      image_db.save(cb);
+    });
+  },
+
   remove: (id, cb) => {
-    image_db.removeOne({ $loki: id }, cb);
+    image_db.findOne({ $loki: id }, (doc) => {
+      if (doc && doc.uri && Host.isAuthed()) {
+        Sync.removeSynced(doc.uri, (err) => {
+          if (err) console.error(err);
+        });
+      }
+      image_db.removeOne({ $loki: id }, cb);
+    });
   },
 
   clear: (cb) => {
