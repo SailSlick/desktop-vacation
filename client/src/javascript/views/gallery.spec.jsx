@@ -18,8 +18,10 @@ describe('Gallery Component', () => {
   let test_gallery;
   let test_image;
   let test_component;
+  let galleriesUpdateMetadataStub;
 
-  before(done =>
+  before((done) => {
+    galleriesUpdateMetadataStub = stub(Galleries, 'updateMetadata');
     // Create test image
     Images.add(test_image_path, (inserted_image) => {
       test_image = inserted_image;
@@ -38,14 +40,35 @@ describe('Gallery Component', () => {
           />);
         });
       });
-    })
-  );
+    });
+  });
 
   // Remove test image and gallery
   after((done) => {
     test_component.unmount();
     Images.remove(test_image.$loki, () => true);
     Galleries.remove(test_gallery.$loki, () => done());
+  });
+
+  it('can add a tag', (done) => {
+    galleriesUpdateMetadataStub.reset();
+    test_component.instance().updateMetadata('hula', false);
+    galleriesUpdateMetadataStub.called.should.be.ok;
+    done();
+  });
+
+  it('can remove a tag', (done) => {
+    galleriesUpdateMetadataStub.reset();
+    test_component.instance().updateMetadata('hula', true);
+    galleriesUpdateMetadataStub.called.should.be.ok;
+    done();
+  });
+
+  it('can update the rating', (done) => {
+    galleriesUpdateMetadataStub.reset();
+    test_component.instance().updateMetadata(3, false);
+    galleriesUpdateMetadataStub.called.should.be.ok;
+    done();
   });
 
   it('can display images in gallery', (done) => {

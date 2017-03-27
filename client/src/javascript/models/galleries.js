@@ -153,8 +153,8 @@ const Galleries = {
             images = images.filter(x => x.location.indexOf(filter.name) !== -1);
           }
           if (filter.tag && filter.tag !== '') {
-            subgalleries = subgalleries.filter(x => x.metadata.tags.indexOf(filter.tags) !== -1);
-            images = images.filter(x => x.metadata.tags.indexOf(filter.tags) !== -1);
+            subgalleries = subgalleries.filter(x => x.metadata.tags.indexOf(filter.tag) !== -1);
+            images = images.filter(x => x.metadata.tags.indexOf(filter.tag) !== -1);
           }
           if (filter.rating && filter.rating !== 0) {
             subgalleries = subgalleries.filter(x => x.metadata.rating === filter.rating);
