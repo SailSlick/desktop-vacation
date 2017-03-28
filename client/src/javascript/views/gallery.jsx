@@ -28,7 +28,6 @@ class Gallery extends React.Component {
         tag: '',
         rating: 0
       },
-      filterChanged: false,
       itemsLimit: 0,
       itemsTotal: 0,
       fixSelectTools: false
@@ -72,11 +71,19 @@ class Gallery extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.dbId !== this.props.dbId || this.state.filterChanged) {
-      this.refresh(nextProps.dbId);
+    if (nextProps.dbId !== this.props.dbId) {
+      this.refresh(nextProps.dbId, this.state.filter);
     }
     if (!nextProps.multiSelect) {
       this.setState({ selection: [] });
+    }
+  }
+
+  componentWillUpdate(nextProps, nextState) {
+    if (this.state.filter.rating !== nextState.filter.rating ||
+    this.state.filter.name !== nextState.filter.name ||
+    this.state.filter.tag !== nextState.filter.tag) {
+      this.refresh(nextProps.dbId, nextState.filter);
     }
   }
 
@@ -87,12 +94,12 @@ class Gallery extends React.Component {
     mousetrap.unbind('ctrl+shift+a');
   }
 
-  refresh(dbId) {
+  refresh(dbId, filter) {
     const db_update = (typeof dbId !== 'number');
     dbId = (!db_update) ? dbId : this.props.dbId;
 
     Galleries.get(dbId, gallery =>
-      Galleries.expand(gallery, this.state.filter, (subgalleries, images) =>
+      Galleries.expand(gallery, filter, (subgalleries, images) =>
         this.setState({
           subgalleries,
           images,
@@ -100,7 +107,6 @@ class Gallery extends React.Component {
           rating: gallery.metadata.rating,
           tags: gallery.metadata.tags,
           newTag: '',
-          filterChanged: false,
           itemsLimit: (db_update && this.state.itemsLimit >= 12) ? this.state.itemsLimit : 12,
           itemsTotal: subgalleries.length + images.length
         }, () => {
@@ -208,12 +214,12 @@ class Gallery extends React.Component {
     }
     filter[key] = value;
     success('Filtering');
-    return this.setState({ filter, filterChanged: true });
+    return this.setState({ filter });
   }
 
-  clearFilter() {
-    success('Filter cleared');
-    return this.setState({ filter: {}, filterChanged: true });
+  clearFilter(notQuiet) {
+    if (notQuiet) success('Filter cleared');
+    return this.setState({ filter: { name: '', tag: '', rating: 0 } });
   }
 
   loadMore() {

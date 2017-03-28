@@ -243,7 +243,7 @@ const Groups = {
       cb([], []);
     } else {
       let subgalleries = gallery.subgalleries;
-      let images = gallery.images;
+      const images = gallery.images;
       subgalleries = subgalleries.filter(x => x._id);
       subgalleries = subgalleries.map((x) => {
         Galleries.getMongo(x._id, (subgallery) => {
@@ -252,19 +252,7 @@ const Groups = {
         });
         return x;
       });
-      if (filter.name && filter.name !== '') {
-        subgalleries = subgalleries.filter(x => x.name.indexOf(filter.name) !== -1);
-        images = images.filter(x => x.location.indexOf(filter.name) !== -1);
-      }
-      if (filter.tag && filter.tag !== '') {
-        subgalleries = subgalleries.filter(x => x.metadata.tags.indexOf(filter.tags) !== -1);
-        images = images.filter(x => x.metadata.tags.indexOf(filter.tags) !== -1);
-      }
-      if (filter.rating && filter.rating !== 0) {
-        subgalleries = subgalleries.filter(x => x.metadata.rating === filter.rating);
-        images = images.filter(x => x.metadata.rating === filter.rating);
-      }
-      cb(subgalleries, images);
+      Galleries.filter(subgalleries, images, filter, cb);
     }
   }
 };

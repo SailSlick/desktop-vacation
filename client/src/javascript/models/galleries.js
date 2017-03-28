@@ -120,6 +120,24 @@ const Galleries = {
 
   getMongo: (id, cb) => gallery_db.findOne({ mongoId: id }, cb),
 
+  filter: (subgalleries, images, filter, cb) => {
+    if (filter) {
+      if (filter.name && filter.name !== '') {
+        subgalleries = subgalleries.filter(x => x.name.indexOf(filter.name) !== -1);
+        images = images.filter(x => x.location.indexOf(filter.name) !== -1);
+      }
+      if (filter.tag && filter.tag !== '') {
+        subgalleries = subgalleries.filter(x => x.metadata.tags.indexOf(filter.tag) !== -1);
+        images = images.filter(x => x.metadata.tags.indexOf(filter.tag) !== -1);
+      }
+      if (filter.rating && filter.rating !== 0) {
+        subgalleries = subgalleries.filter(x => x.metadata.rating === filter.rating);
+        images = images.filter(x => x.metadata.rating === filter.rating);
+      }
+    }
+    cb(subgalleries, images);
+  },
+
   // Returns:
   //   - Subgalleries with thumbnail locations
   //   - Images with full details
@@ -148,19 +166,7 @@ const Galleries = {
           Images.get(image_id, image => next(null, image)),
         (err_img, images) => {
           subgalleries = subgalleries.filter(x => !x.group);
-          if (filter.name && filter.name !== '') {
-            subgalleries = subgalleries.filter(x => x.name.indexOf(filter.name) !== -1);
-            images = images.filter(x => x.location.indexOf(filter.name) !== -1);
-          }
-          if (filter.tag && filter.tag !== '') {
-            subgalleries = subgalleries.filter(x => x.metadata.tags.indexOf(filter.tag) !== -1);
-            images = images.filter(x => x.metadata.tags.indexOf(filter.tag) !== -1);
-          }
-          if (filter.rating && filter.rating !== 0) {
-            subgalleries = subgalleries.filter(x => x.metadata.rating === filter.rating);
-            images = images.filter(x => x.metadata.rating === filter.rating);
-          }
-          cb(subgalleries, images);
+          Galleries.filter(subgalleries, images, filter, cb);
         }
       )
     );

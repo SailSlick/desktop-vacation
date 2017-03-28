@@ -11,6 +11,12 @@ export default class SelectTools extends React.Component {
     };
   }
 
+  componentWillReceiveProps(nextProps) {
+    if (!nextProps.multiSelect && this.props.multiSelect) {
+      this.props.clearFilter(false);
+    }
+  }
+
   render() {
     if (!this.props.multiSelect) {
       return <br />;

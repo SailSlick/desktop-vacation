@@ -25,7 +25,6 @@ class Group extends React.Component {
         tag: '',
         rating: 0
       },
-      filterChanged: false,
       itemsLimit: 0,
       itemsTotal: 0
     };
@@ -46,8 +45,19 @@ class Group extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.groupId !== this.props.groupId || this.state.filterChanged) {
-      this.refresh(nextProps.groupId);
+    if (nextProps.groupId !== this.props.groupId) {
+      this.refresh(nextProps.groupId, this.state.filter);
+    }
+    if (!nextProps.multiSelect) {
+      this.setState({ selection: [] });
+    }
+  }
+
+  componentWillUpdate(nextProps, nextState) {
+    if (this.state.filter.rating !== nextState.filter.rating ||
+    this.state.filter.name !== nextState.filter.name ||
+    this.state.filter.tag !== nextState.filter.tag) {
+      this.refresh(nextProps.dbId, nextState.filter);
     }
   }
 
@@ -55,7 +65,7 @@ class Group extends React.Component {
     document.removeEventListener('gallery_updated', this.refresh, false);
   }
 
-  refresh(groupId) {
+  refresh(groupId, filter) {
     const db_update = (typeof groupId !== 'number');
     groupId = (typeof groupId === 'string') ? groupId : this.props.groupId;
 
@@ -64,7 +74,7 @@ class Group extends React.Component {
     if (Host.isAuthed()) {
       Groups.get(groupId, (err, res, gallery) => {
         if (err) danger(`${err}: ${res}`);
-        return Groups.expand(gallery, this.state.filter, (subgalleries, images) => {
+        return Groups.expand(gallery, filter, (subgalleries, images) => {
           this.setState({
             subgalleries,
             images,
@@ -120,9 +130,9 @@ class Group extends React.Component {
     return this.setState({ filter, filterChanged: true });
   }
 
-  clearFilter() {
-    success('Filter cleared');
-    return this.setState({ filter: {}, filterChanged: true });
+  clearFilter(notQuiet) {
+    if (notQuiet) success('Filter cleared');
+    return this.setState({ filter: { name: '', tag: '', rating: 0 } });
   }
 
   loadMore() {
