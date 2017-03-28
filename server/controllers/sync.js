@@ -1,13 +1,10 @@
 const async = require('async');
-const util = require('util');
 const images = require('../models/image');
 const galleries = require('../models/gallery');
 const user = require('../models/user');
 
 module.exports = {
   upload: (req, res, next) => {
-    console.log(util.inspect(req.body, false, null));
-    console.log(req.headers['content-type']);
     if (!req.files) {
       next({ status: 400, error: 'no files sent' });
       return;
@@ -29,11 +26,7 @@ module.exports = {
           next({ status: 400, error: err });
           return;
         }
-        user.getBaseGallery(req.session.uid, (baseGalleryErr, baseGalleryId) => {
-          if (baseGalleryErr) {
-            next({ error: baseGalleryErr, status: 500 });
-            return;
-          }
+        user.getBaseGallery(req.session.uid, (baseGalleryId) => {
           galleries.addImages(
             req.body.gid,
             baseGalleryId.toString(),
@@ -78,9 +71,8 @@ module.exports = {
     if (!req.params.id) {
       next({ status: 400, error: 'Invalid image id' });
     }
-    galleries.remoteImageGlobal(req.params.id, req.session.uid, (galleryErr) => {
+    galleries.removeImageGlobal(req.params.id, req.session.uid, (galleryErr) => {
       if (galleryErr) {
-        console.error('!!! Error that should never happen');
         console.error(galleryErr);
         next({ status: 500, error: galleryErr });
       }

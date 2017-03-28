@@ -88,9 +88,6 @@ class DbConn {
   // updateOne: update one doc in the collection (e.g. add email to user)
   // query in {x:y} format, data in {x:y} format
   updateOne(query, data, cb) {
-    if (query._id && typeof query._id === 'string') {
-      query._id = new MongoClient.ObjectID(query._id);
-    }
     return this.col.updateOne(query, { $set: data }, (err, result) => {
       errCheck(err, () => {
         if (result.matchedCount === 1 && result.modifiedCount === 1) {
@@ -136,10 +133,8 @@ class DbConn {
     });
   }
 
-  readFile(id) {
-    return this.gfs.createReadStream({
-      _id: id
-    });
+  readFile(_id) {
+    return this.gfs.createReadStream({ _id });
   }
 
   // removeMany: remove all docs matching query from collection (e.g. delete gallery)

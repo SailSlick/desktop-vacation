@@ -3,10 +3,7 @@ const DBTools = require('../middleware/db');
 const db = new DBTools('galleries');
 
 module.exports = {
-  verifyGalleryName: galleryName =>
-    typeof galleryName === 'string' && galleryName.length > 0,
-
-  verifyGroupname: groupname =>
+  verifyGalleryName: groupname =>
     typeof groupname === 'string' && groupname.length <= 20 && groupname.length >= 3,
 
   verifyGid: gid => typeof gid === 'string' && gid.length === 24,
@@ -67,16 +64,19 @@ module.exports = {
 
   addImages: (gid, baseGalleryId, uid, imageIds, next) => {
     if (imageIds.length === 0) {
-      next(null);
+      next();
       return;
     }
     db.col.updateOne(
       { uid, _id: db.getId(gid) },
-      { $addToSet: { images: { $each: imageIds } } }, (err, updated) => {
-        if (err || updated.matchedCount !== 1) {
-          next('invalid gallery transaction. please notify admin');
+      { $addToSet: { images: { $each: imageIds } } },
+      (err, updated) => {
+        if (err) {
+          next(err);
+        } else if (updated.matchedCount !== 1) {
+          next('no galleries updated');
         } else if (gid === baseGalleryId) {
-          next(null);
+          next();
         } else {
           module.exports.addImages(baseGalleryId, baseGalleryId, uid, imageIds, next);
         }
@@ -84,16 +84,13 @@ module.exports = {
     );
   },
 
-  remoteImageGlobal: (imageId, uid, next) => {
-    db.col.update(
+  removeImageGlobal: (imageId, uid, next) => {
+    db.updateMany(
       { uid, images: imageId },
       { $pull: { images: imageId } },
-      (err, count, _) => {
-        if (err || count < 1) {
-          next('invalid gallery, or invalid permissions');
-        } else {
-          next();
-        }
+      (success) => {
+        if (!success) return next('invalid gallery, or invalid permissions');
+        return next();
       }
     );
   },

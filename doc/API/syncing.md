@@ -119,12 +119,9 @@ Refer to the [db spec](../galleries.md) for more information on this response.
 
 ## Removing Images Globally
 
-`GET /image/<id:string>/remove`
+`POST /image/<id:string>/remove`
 
 Upon successful request, remove the image from the server and all galleries.
-
-**Note**: to the vexation of some of you this is a GET request. This may be subject
-to change.
 
 ### URL Parameters
 
@@ -145,6 +142,6 @@ to change.
 
 | Error Message                                 | Status |
 |-----------------------------------------------|--------|
-| `'Invalid image id'`                          |   400  |
+| `'invalid image id'`                          |   400  |
 | `'cannot find image, or invalid permissions'` |   400  |
 | `'invalid gallery transaction. please notify admin'` | 500 |

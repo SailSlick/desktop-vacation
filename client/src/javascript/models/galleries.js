@@ -14,7 +14,7 @@ const gallery_update_event = new Event('gallery_updated');
 const Galleries = {
   should_save: true,
 
-  addBase: (name, cb) => {
+  addBase: (name, remote, cb) => {
     gallery_db.findOne({ name }, (found_gallery) => {
       if (found_gallery) {
         console.error(`Gallery ${name} already exists`);
@@ -22,6 +22,7 @@ const Galleries = {
       }
       const doc = {
         name,
+        remote,
         tags: [],
         subgalleries: [],
         images: []
@@ -43,7 +44,6 @@ const Galleries = {
       }
       const doc = {
         name,
-        remote: '',
         group: false,
         tags: [],
         subgalleries: [],
@@ -263,38 +263,40 @@ const Galleries = {
   },
 
   syncRoot: () => {
-    Host.getIndex(Host.user, (userData) => {
+    Host.getIndex(Host.userId, (userData) => {
       if (!userData) {
         console.error('User data doesn\'t exist.');
         console.error('Kernel panic - not syncing. Attempted to kill init');
         return;
       }
-      Galleries.addRemoteId(BASE_GALLERY_ID, userData.remoteGallery, (_) => {
-        const options = {
-          uri: Host.server_uri.concat(`/gallery/${userData.remoteGallery}`),
-          jar: Host.cookie_jar,
-          method: 'GET',
-          json: true
-        };
-        request(options, (err, response, body) => {
-          if (response.statusCode !== 200 || !body.data.images) {
-            console.error(`Failure to sync, code: ${response.StatusCode}`);
-            console.error(body);
-            return;
-          } else if (body.data.images.length === 0) {
-            console.log('No images to sync');
-            return;
-          }
-          map(body.data.images, Images.download, (downloadErr, imageIds) => {
-            if (downloadErr) console.error(downloadErr);
-            each(imageIds,
-              (id, cb) => Galleries.addSyncItem(BASE_GALLERY_ID, id, cb),
-              (addErr) => {
-                console.log(imageIds);
-                if (addErr) console.error(addErr);
-              }
-            );
-          });
+      const options = {
+        uri: Host.server_uri.concat(`/gallery/${userData.remoteGallery}`),
+        jar: Host.cookie_jar,
+        method: 'GET',
+        json: true
+      };
+      request(options, (err, response, body) => {
+        if (response.statusCode !== 200 || !body.data.images) {
+          console.error(`Failure to sync, code: ${response.StatusCode}`);
+          console.error(body.error);
+          return;
+        } else if (body.data.images.length === 0) {
+          console.log('No images to sync');
+          return;
+        }
+        map(body.data.images, Images.download, (downloadErr, imageIds) => {
+          if (downloadErr) console.error(downloadErr);
+          each(imageIds,
+            (id, cb) => {
+              Galleries.addItem(BASE_GALLERY_ID, id, (addErr, _res) => {
+                if (addErr) cb(err);
+                else cb();
+              });
+            },
+            (addErr) => {
+              if (addErr) console.error(addErr);
+            }
+          );
         });
       });
     });

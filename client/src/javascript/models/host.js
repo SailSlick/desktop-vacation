@@ -17,7 +17,7 @@ if (process.env.NODE_ENV !== 'dev') {
 function createClientAccount(username, res, cb) {
   // insert users
   const galname = username.concat('_all');
-  Galleries.addBase(galname, (ret) => {
+  Galleries.addBase(galname, res.gallery, (ret) => {
     if (!ret) return cb(500, "gallery couldn't be made on client");
     // insert users
     const userData = {
@@ -44,7 +44,7 @@ const Host = {
 
   cookie_jar: request.jar(),
 
-  user: 1,
+  userId: 1,
 
   uid: '',
 
@@ -148,8 +148,8 @@ const Host = {
   },
 
   getBaseRemote: (cb) => {
-    host_db.findOne({ $loki: Host.user }, (doc) => {
-      console.log(`finding remote gallery: ${doc.remoteGallery}`);
+    host_db.findOne({ $loki: Host.userId }, (doc) => {
+      console.log(`remote gallery: ${doc.remoteGallery}`);
       if (!doc) return cb('');
       return cb(doc.remoteGallery);
     });

@@ -138,7 +138,7 @@ class Gallery extends React.Component {
     if (Host.isAuthed()) {
       Galleries.getRemoteId(this.props.dbId, (remote) => {
         console.log(`syncing, gallery: ${remote}`);
-        if (remote && !remote.length <= 0) {
+        if (remote) {
           Sync.uploadImages(remote, id);
         } else {
           danger('Can\'t sync from subgallery.');

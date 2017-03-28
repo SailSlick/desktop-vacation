@@ -54,12 +54,6 @@ const Images = {
     );
   },
 
-  setLocation: (id, location, cb) => {
-    image_db.updateOne({ $loki: id }, { location }, () => {
-      image_db.save(() => cb());
-    });
-  },
-
   setRemote: (id, remote, cb) => (
     image_db.updateOne({ $loki: id }, { remote }, () => image_db.save(cb))
   ),

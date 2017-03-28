@@ -36,10 +36,8 @@ export default {
       request(options, (reqErr, res, body) => {
         if (reqErr) {
           danger(`Could not sync image: ${reqErr}`);
-        } else if (res.statusCode === 401) {
-          danger('This should never happen! Pride yourself on that.');
         } else if (res.statusCode !== 200) {
-          danger(`Invalid request: ${body}`);
+          danger(`Invalid request: ${body.error}`);
         } else {
           Images.setRemote(imageId, body['image-ids'][0], (err) => {
             if (err) danger(err);
@@ -77,7 +75,7 @@ export default {
     })
     .on('error', (err) => {
       if (err) {
-        danger('Something went wrong somewhere...');
+        danger('Invalid image');
         cb(err, null);
       }
     })
@@ -88,7 +86,8 @@ export default {
     const remoteId = uriToId(uri);
     const options = {
       uri: Host.server_uri.concat(`/image/${remoteId}/remove`),
-      jar: Host.cookie_jar
+      jar: Host.cookie_jar,
+      method: 'POST'
     };
     request(options, (reqErr, response, body) => {
       if (reqErr) {

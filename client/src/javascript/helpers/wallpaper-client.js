@@ -1,9 +1,7 @@
 import { ipcRenderer as ipc } from 'electron';
 
 export default {
-  set: (filePath) => {
-    ipc.send('set-wallpaper', filePath);
-  },
+  set: path => ipc.send('set-wallpaper', path),
 
   get: () => 'not yet implemented'
 };

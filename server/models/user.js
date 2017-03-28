@@ -24,7 +24,7 @@ module.exports = {
         if (added) {
           galleryModel.create(username.concat('_all'), null, added.toString(), (g_id) => {
             userData.gallery = g_id;
-            return db.updateOne({ _id: added }, userData, (res) => {
+            return db.updateOne({ _id: db.getId(added) }, userData, (res) => {
               if (res) return cb(null, { uid: added, baseGalleryId: g_id });
               return cb('database communication error', null);
             });
@@ -74,9 +74,9 @@ module.exports = {
   getBaseGallery: (uid, cb) => {
     db.findOne({ _id: db.getId(uid) }, (doc) => {
       if (!doc) {
-        cb('invalid user', null);
+        cb(null);
       } else {
-        cb(null, doc.gallery);
+        cb(doc.gallery);
       }
     });
   }

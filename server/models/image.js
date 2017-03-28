@@ -4,7 +4,8 @@ const db = new DBTools('fs.files');
 
 module.exports = {
   add(uid, imageId, next) {
-    db.updateOne({ _id: imageId }, { uid }, (success) => {
+    // The file should already exist thanks to multer
+    db.updateOne({ _id: db.getId(imageId) }, { uid }, (success) => {
       if (!success) {
         next('Failure adding user id to image');
       } else {
@@ -14,7 +15,7 @@ module.exports = {
   },
 
   get(uid, id, next) {
-    db.findOne({ _id: db.getId(id) }, (doc) => {
+    db.findOne({ _id: db.getId(id), uid }, (doc) => {
       if (!doc) {
         next('cannot find image, or invalid permissions', null);
       } else {
@@ -26,14 +27,10 @@ module.exports = {
     });
   },
 
-  // look into weather this is truely removing the GridFS file chunks
   remove(uid, id, next) {
     db.removeOne({ _id: db.getId(id), uid }, (removed) => {
-      if (removed) {
-        next();
-      } else {
-        next('cannot find image, or invalid permissions');
-      }
+      if (removed) return next();
+      return next('cannot find image, or invalid permissions');
     });
   }
 };

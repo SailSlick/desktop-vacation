@@ -9,10 +9,10 @@ module.exports = {
     const username = req.session.username;
     const groupname = req.body.groupname;
 
-    if (!galleryModel.verifyGroupname(groupname)) {
+    if (!galleryModel.verifyGalleryName(groupname)) {
       return next({ status: 400, error: 'invalid groupname' });
     }
-    return userModel.getBaseGallery(uid, (_, baseGalleryId) =>
+    return userModel.getBaseGallery(uid, baseGalleryId => (
       galleryModel.create(groupname, baseGalleryId, uid, (ret) => {
         if (ret === 'user already has db of that name') {
           return next({ status: 400, error: ret });
@@ -31,17 +31,17 @@ module.exports = {
         }
         return next({ status: 500, message: 'creation failed' });
       })
-    );
+    ));
   },
 
   create: (req, res, next) => {
     const uid = req.session.uid;
     const galleryname = req.body.galleryname;
 
-    if (!galleryModel.verifyGroupname(galleryname)) {
+    if (!galleryModel.verifyGalleryName(galleryname)) {
       return next({ status: 400, error: 'invalid groupname' });
     }
-    return userModel.getBaseGallery(uid, (_, baseGalleryId) => {
+    return userModel.getBaseGallery(uid, (baseGalleryId) => {
       galleryModel.create(galleryname, baseGalleryId, uid, (ret) => {
         if (ret === 'user already has db of that name') {
           return next({ status: 400, error: ret });
