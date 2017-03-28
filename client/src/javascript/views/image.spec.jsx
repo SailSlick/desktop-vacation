@@ -79,12 +79,6 @@ describe('Image Component', () => {
     done();
   });
 
-  it('can render tag buttons', (done) => {
-    test_component.should.have.state('expanded', true);
-    test_component.find('[name="newTag"]').should.exist;
-    done();
-  });
-
   it('can close expand modal', (done) => {
     test_component.should.have.state('expanded', true);
     Simulate.click(document.body.getElementsByClassName('modal')[0]);

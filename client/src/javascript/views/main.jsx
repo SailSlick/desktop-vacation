@@ -1,5 +1,6 @@
 import React from 'react';
 import { eachOf } from 'async';
+import mousetrap from 'mousetrap';
 import { AlertList } from 'react-bs-notifier';
 import { ipcRenderer as ipc } from 'electron';
 import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup, FormControl, ListGroup, ListGroupItem, InputGroup } from 'react-bootstrap';
@@ -106,6 +107,7 @@ class Main extends React.Component {
     // Events
     document.addEventListener('append_gallery', this.showGallerySelector, false);
     document.addEventListener('notify', this.showAlert, false);
+    mousetrap.bind('shift+s', this.toggleSelectMode);
   }
 
   componentWillMount() {
@@ -116,6 +118,7 @@ class Main extends React.Component {
     // Unhook all events
     document.removeEventListener('append_gallery', this.showGallerySelector, false);
     document.removeEventListener('notify', this.showAlert, false);
+    mousetrap.unbind('shift+s');
   }
 
   onSelectGallery(galleryId) {
@@ -475,12 +478,12 @@ class Main extends React.Component {
   }
 }
 
-PrimaryContent.PropTypes = {
+PrimaryContent.propTypes = {
   page: React.PropTypes.number.isRequired,
   parent: React.PropTypes.instanceOf(Main).isRequired
 };
 
-InvitesContent.PropTypes = {
+InvitesContent.propTypes = {
   parent: React.PropTypes.instanceOf(Main).isRequired
 };
 

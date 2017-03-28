@@ -1,76 +1,16 @@
 import React from 'react';
 import { eachOf } from 'async';
-import { Col, Row, Nav, Navbar, NavItem, Glyphicon, Grid, Dropdown, Form, FormControl, FormGroup, Button, InputGroup, MenuItem } from 'react-bootstrap';
+import mousetrap from 'mousetrap';
+import Waypoint from 'react-waypoint';
+import { Col, Row, Glyphicon, Grid, Dropdown, Form, FormControl, Button, InputGroup, MenuItem } from 'react-bootstrap';
 import Image from './image.jsx';
 import GalleryCard from './gallerycard.jsx';
-import Galleries from '../models/galleries';
+import SelectTools from './selectTools.jsx';
+import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
 import { success, danger } from '../helpers/notifier';
+import Galleries from '../models/galleries';
 
 const append_gallery_event_name = 'append_gallery';
-
-const SelectTools = ({
-  multiSelect, addAllToGallery, selectAll, removeAll, changeFilter, clearFilter
-}) => {
-  if (!multiSelect) {
-    return <br />;
-  }
-  return (
-    <Navbar collapseOnSelect>
-      <Navbar.Header>
-        <Navbar.Brand>
-          Tools
-        </Navbar.Brand>
-        <Navbar.Toggle />
-      </Navbar.Header>
-      <Navbar.Collapse>
-        <Nav bsStyle="pills">
-          <NavItem onClick={_ => selectAll(true)}>
-            <Glyphicon glyph="plus" />
-            Select All
-          </NavItem>
-          <NavItem onClick={_ => selectAll(false)}>
-            <Glyphicon glyph="minus" />
-            Deselect All
-          </NavItem>
-          <NavItem onClick={addAllToGallery}>
-            <Glyphicon glyph="th" />
-            Add To Gallery
-          </NavItem>
-          <NavItem onClick={removeAll}>
-            <Glyphicon glyph="remove" />
-            Remove
-          </NavItem>
-          <NavItem onClick={clearFilter}>
-            <Glyphicon glyph="remove" />
-            Clear Filter
-          </NavItem>
-        </Nav>
-        <Navbar.Form pullLeft>
-          <Form onSubmit={changeFilter}>
-            <FormGroup>
-              <FormControl name="filterValue" type="text" placeholder="Filter gallery" />
-              <FormControl name="filterKey" componentClass="select">
-                <option value="name">name</option>
-                <option value="tag">tag</option>
-                <option value="rating">rating</option>
-              </FormControl>
-            </FormGroup>
-            <Button type="submit">Filter</Button>
-          </Form>
-        </Navbar.Form>
-      </Navbar.Collapse>
-    </Navbar>
-  );
-};
-
-SelectTools.propTypes = {
-  multiSelect: React.PropTypes.bool.isRequired,
-  addAllToGallery: React.PropTypes.func.isRequired,
-  selectAll: React.PropTypes.func.isRequired,
-  removeAll: React.PropTypes.func.isRequired,
-  changeFilter: React.PropTypes.func.isRequired,
-  clearFilter: React.PropTypes.func.isRequired
-};
 
 class Gallery extends React.Component {
   constructor(props) {
@@ -88,7 +28,10 @@ class Gallery extends React.Component {
         tag: '',
         rating: 0
       },
-      filterChanged: false
+      filterChanged: false,
+      itemsLimit: 0,
+      itemsTotal: 0,
+      fixSelectTools: false
     };
 
     // Bind functions
@@ -103,9 +46,26 @@ class Gallery extends React.Component {
     this.handleTagChange = this.handleTagChange.bind(this);
     this.changeFilter = this.changeFilter.bind(this);
     this.clearFilter = this.clearFilter.bind(this);
+    this.loadMore = this.loadMore.bind(this);
 
     // Hook event to catch when an image is added
     document.addEventListener('gallery_updated', this.refresh, false);
+    mousetrap.bind('ctrl+a', () => {
+      if (this.props.multiSelect) {
+        this.selectAll(true);
+      }
+
+      // Don't bubble
+      return false;
+    });
+    mousetrap.bind('ctrl+shift+a', () => {
+      if (this.props.multiSelect) {
+        this.selectAll(false);
+      }
+
+      // Don't bubble
+      return false;
+    });
   }
 
   componentDidMount() {
@@ -116,15 +76,21 @@ class Gallery extends React.Component {
     if (nextProps.dbId !== this.props.dbId || this.state.filterChanged) {
       this.refresh(nextProps.dbId);
     }
+    if (!nextProps.multiSelect) {
+      this.setState({ selection: [] });
+    }
   }
 
   componentWillUnmount() {
     // Unhook all events
     document.removeEventListener('gallery_updated', this.refresh, false);
+    mousetrap.unbind('ctrl+a');
+    mousetrap.unbind('ctrl+shift+a');
   }
 
   refresh(dbId) {
-    dbId = (typeof dbId === 'number') ? dbId : this.props.dbId;
+    const db_update = (typeof dbId !== 'number');
+    dbId = (!db_update) ? dbId : this.props.dbId;
 
     Galleries.get(dbId, gallery =>
       Galleries.expand(gallery, this.state.filter, (subgalleries, images) =>
@@ -135,7 +101,9 @@ class Gallery extends React.Component {
           rating: gallery.metadata.rating,
           tags: gallery.metadata.tags,
           newTag: '',
-          filterChanged: false
+          filterChanged: false,
+          itemsLimit: (db_update && this.state.itemsLimit >= 12) ? this.state.itemsLimit : 12,
+          itemsTotal: subgalleries.length + images.length
         }, () => {
           console.log('Gallery refreshed');
           this.props.onRefresh();
@@ -253,6 +221,14 @@ class Gallery extends React.Component {
     return this.setState({ filter: {}, filterChanged: true });
   }
 
+  loadMore() {
+    // Don't do anything if we're at the end
+    if (this.state.itemsLimit === this.state.itemsTotal) return;
+
+    const itemsLimit = Math.min(this.state.itemsLimit + 12, this.state.itemsTotal);
+    this.setState({ itemsLimit });
+  }
+
   render() {
     const galleryDetails = (
       <Grid>
@@ -349,7 +325,9 @@ class Gallery extends React.Component {
           multiSelect={this.props.multiSelect}
           selected={this.state.selection.indexOf(image.$loki) !== -1}
         />
-      ));
+
+      // Limit number of items to show
+      )).slice(0, this.state.itemsLimit);
     }
     return (
       <Row>
@@ -375,6 +353,18 @@ class Gallery extends React.Component {
         <Col xs={4}>
           {items.map((item, i) => ((i + 1) % 3 === 0 && item) || null)}
         </Col>
+        { (this.props.simple) ? <Col /> : (
+          <Col xs={12}>
+            <Waypoint onEnter={this.loadMore}>
+              <div>
+                <InfiniteScrollInfo
+                  itemsLimit={this.state.itemsLimit}
+                  itemsTotal={this.state.itemsTotal}
+                />
+              </div>
+            </Waypoint>
+          </Col>
+        )}
       </Row>
     );
   }

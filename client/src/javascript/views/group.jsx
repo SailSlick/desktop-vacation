@@ -1,74 +1,13 @@
 import React from 'react';
-import { Col, Row, Grid, Dropdown, Button, Glyphicon, Navbar, Nav, NavItem, FormGroup, Form, FormControl, MenuItem, InputGroup } from 'react-bootstrap';
+import Waypoint from 'react-waypoint';
+import { Col, Row, Grid, Dropdown, Button, Glyphicon, Form, FormControl, MenuItem, InputGroup } from 'react-bootstrap';
 import Image from './image.jsx';
+import GalleryCard from './gallerycard.jsx';
+import SelectTools from './selectTools.jsx';
+import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
+import { success, danger } from '../helpers/notifier';
 import Groups from '../models/groups';
 import Host from '../models/host';
-import GalleryCard from './gallerycard.jsx';
-import { success, danger } from '../helpers/notifier';
-
-const SelectTools = ({
-  multiSelect, addAllToGallery, selectAll, removeAll, changeFilter, clearFilter
-}) => {
-  if (!multiSelect) {
-    return <br />;
-  }
-  return (
-    <Navbar collapseOnSelect>
-      <Navbar.Header>
-        <Navbar.Brand>
-          Tools
-        </Navbar.Brand>
-        <Navbar.Toggle />
-      </Navbar.Header>
-      <Navbar.Collapse>
-        <Nav bsStyle="pills">
-          <NavItem onClick={_ => selectAll(true)}>
-            <Glyphicon glyph="plus" />
-            Select All
-          </NavItem>
-          <NavItem onClick={_ => selectAll(false)}>
-            <Glyphicon glyph="minus" />
-            Deselect All
-          </NavItem>
-          <NavItem onClick={addAllToGallery}>
-            <Glyphicon glyph="th" />
-            Add To Gallery
-          </NavItem>
-          <NavItem onClick={removeAll}>
-            <Glyphicon glyph="remove" />
-            Remove
-          </NavItem>
-          <NavItem onClick={clearFilter}>
-            <Glyphicon glyph="remove" />
-            Clear Filter
-          </NavItem>
-        </Nav>
-        <Navbar.Form pullLeft>
-          <Form onSubmit={changeFilter}>
-            <FormGroup>
-              <FormControl name="filterValue" type="text" placeholder="Filter gallery" />
-              <FormControl name="filterKey" componentClass="select">
-                <option value="name">name</option>
-                <option value="tag">tag</option>
-                <option value="rating">rating</option>
-              </FormControl>
-            </FormGroup>
-            <Button type="submit">Filter</Button>
-          </Form>
-        </Navbar.Form>
-      </Navbar.Collapse>
-    </Navbar>
-  );
-};
-
-SelectTools.propTypes = {
-  multiSelect: React.PropTypes.bool.isRequired,
-  addAllToGallery: React.PropTypes.func.isRequired,
-  selectAll: React.PropTypes.func.isRequired,
-  removeAll: React.PropTypes.func.isRequired,
-  changeFilter: React.PropTypes.func.isRequired,
-  clearFilter: React.PropTypes.func.isRequired
-};
 
 class Group extends React.Component {
   constructor(props) {
@@ -86,7 +25,9 @@ class Group extends React.Component {
         tag: '',
         rating: 0
       },
-      filterChanged: false
+      filterChanged: false,
+      itemsLimit: 0,
+      itemsTotal: 0
     };
 
     // Bind functions
@@ -95,6 +36,8 @@ class Group extends React.Component {
     this.handleTagChange = this.handleTagChange.bind(this);
     this.changeFilter = this.changeFilter.bind(this);
     this.clearFilter = this.clearFilter.bind(this);
+    this.deleteGroup = this.deleteGroup.bind(this);
+    this.loadMore = this.loadMore.bind(this);
 
     document.addEventListener('gallery_updated', this.refresh, false);
   }
@@ -114,7 +57,9 @@ class Group extends React.Component {
   }
 
   refresh(groupId) {
+    const db_update = (typeof groupId !== 'number');
     groupId = (typeof groupId === 'string') ? groupId : this.props.groupId;
+
     // Null the group ID if we're looking at the base group
     if (groupId === '1') groupId = null;
     if (Host.isAuthed()) {
@@ -123,7 +68,9 @@ class Group extends React.Component {
         return Groups.expand(gallery, this.state.filter, (subgalleries, images) => {
           this.setState({
             subgalleries,
-            images
+            images,
+            itemsLimit: (db_update && this.state.itemsLimit >= 12) ? this.state.itemsLimit : 12,
+            itemsTotal: subgalleries.length + images.length
           }, () => {
             console.log('Group refreshed', groupId);
           });
@@ -181,6 +128,14 @@ class Group extends React.Component {
   clearFilter() {
     success('Filter cleared');
     return this.setState({ filter: {}, filterChanged: true });
+  }
+
+  loadMore() {
+    // Don't do anything if we're at the end
+    if (this.state.itemsLimit === this.state.itemsTotal) return;
+
+    const itemsLimit = Math.min(this.state.itemsLimit + 12, this.state.itemsTotal);
+    this.setState({ itemsLimit });
   }
 
   render() {
@@ -276,7 +231,9 @@ class Group extends React.Component {
         tags={image.metadata.tags}
         rating={image.metadata.rating}
       />
-    ));
+
+    // Limit number of items to show
+    )).slice(0, this.state.itemsLimit);
 
     return (
       <Row>
@@ -305,6 +262,16 @@ class Group extends React.Component {
         </Col>
         <Col xs={4}>
           {items.map((item, i) => ((i + 1) % 3 === 0 && item) || null)}
+        </Col>
+        <Col xs={12}>
+          <Waypoint onEnter={this.loadMore}>
+            <div>
+              <InfiniteScrollInfo
+                itemsLimit={this.state.itemsLimit}
+                itemsTotal={this.state.itemsTotal}
+              />
+            </div>
+          </Waypoint>
         </Col>
       </Row>
     );
