@@ -32,6 +32,18 @@ const Images = {
     });
   },
 
+  addRemote: (location, remote, cb) => {
+    const doc = {
+      location,
+      remote,
+      hash: '',
+      metadata: { rating: 0, tags: [] }
+    };
+    // since an existance check is already done to prevent duplicate downloads
+    // just add the doc
+    return image_db.insert(doc, cb);
+  },
+
   delete: (id, cb) => {
     Images.get(id, image =>
       // Check file exists & we have write access
@@ -48,17 +60,14 @@ const Images = {
     });
   },
 
-  setUri: (imageIds, uri, cb) => {
-    image_db.updateOne({ $loki: imageIds }, { uri }, (d) => {
-      console.log(d);
-      image_db.save(cb);
-    });
-  },
+  setRemote: (id, remote, cb) => (
+    image_db.updateOne({ $loki: id }, { remote }, () => image_db.save(cb))
+  ),
 
   remove: (id, cb) => {
     image_db.findOne({ $loki: id }, (doc) => {
-      if (doc && doc.uri && Host.isAuthed()) {
-        Sync.removeSynced(doc.uri, (err) => {
+      if (doc && doc.remote && Host.isAuthed()) {
+        Sync.removeSynced(doc.remote, (err) => {
           if (err) console.error(err);
         });
       }
@@ -73,17 +82,22 @@ const Images = {
     });
   },
 
-  download: (remoteId, cb) => {
-    const image = {
-      hash: '',
-      metadata: { rating: 0, tags: [] },
-      uri: Host.server_uri.concat(`/image/${remoteId}`)
-    };
-    image_db.findOne({ uri: image.uri }, (doc) => {
-      if (doc) return cb(null, doc.$loki);
-      return image_db.insert(image, inserted_doc => cb(null, inserted_doc.$loki));
+  download: (remote, cb) => {
+    image_db.findOne({ remote }, (existingDoc) => {
+      if (existingDoc) {
+        cb(null, existingDoc.$loki);
+      } else {
+        Sync.downloadImage(remote, (err, location) => {
+          if (err) console.error(err);
+          else {
+            console.log(`Adding image at ${location}`);
+            Images.addRemote(location, remote, (doc) => {
+              cb(null, doc.$loki);
+            });
+          }
+        });
+      }
     });
-    cb;
   }
 };
 

@@ -141,7 +141,7 @@ class Gallery extends React.Component {
         if (remote && !remote.length <= 0) {
           Sync.uploadImages(remote, id);
         } else {
-          danger('Oops, something went very wrong. Try restarting?');
+          danger('Can\'t sync from subgallery.');
         }
       });
     } else {
@@ -203,7 +203,7 @@ class Gallery extends React.Component {
         <Image
           key={image.$loki}
           dbId={image.$loki}
-          src={image.location || image.uri}
+          src={image.location}
           onUpload={this.uploadItem}
           onRemove={this.removeItem}
           onSelect={this.selectItem}

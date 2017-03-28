@@ -6,7 +6,6 @@ import Galleries from './galleries';
 let host_db;
 
 const host_update_event = new Event('host_updated');
-const host_logged_in_event = new Event('host_logged_in');
 
 let server_uri;
 if (process.env.NODE_ENV !== 'dev') {
@@ -86,13 +85,12 @@ const Host = {
         if (!host_doc) {
           console.log('Create client side account for prev account.');
           return createClientAccount(username, body, (msg_err, msg) => {
-            document.dispatchEvent(host_logged_in_event);
             cb(msg_err, msg);
           });
         }
 
         Host.uid = body.uid;
-        return Host.setBaseRemote(body.gallery, () => cb(null, body.message));
+        return cb(null, body.message);
       });
     });
   },
@@ -155,10 +153,6 @@ const Host = {
       if (!doc) return cb('');
       return cb(doc.remoteGallery);
     });
-  },
-
-  setBaseRemote: (remote, cb) => {
-    host_db.updateOne({ $loki: Host.user }, { remoteGallery: remote }, d => cb(d));
   },
 
   deleteAccount: (cb) => {

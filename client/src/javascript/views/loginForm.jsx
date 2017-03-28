@@ -3,6 +3,8 @@ import { Form, FormGroup, FormControl, ControlLabel, HelpBlock, Button, Col, Gri
 import Host from '../models/host';
 import { success, danger } from '../helpers/notifier';
 
+const sync_root_event = new Event('sync_root');
+
 class LoginForm extends React.Component {
   constructor(props) {
     super(props);
@@ -50,6 +52,7 @@ class LoginForm extends React.Component {
       else {
         success(ret);
         this.props.parentPage(true);
+        document.dispatchEvent(sync_root_event);
       }
     });
   }

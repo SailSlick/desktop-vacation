@@ -29,10 +29,9 @@ routes.post('/user/delete', user.delete);
 
 // images
 
-// Due to how images are viewed client side
-// not using auth for sync will need to change
+// Images dont always take ids
+routes.use('/images/*', user.requireAuth);
 routes.get('/image/:id/', sync.download);
-routes.use('/images/*/remove', user.requireAuth);
 routes.get('/image/:id/remove', sync.remove);
 
 // gallery

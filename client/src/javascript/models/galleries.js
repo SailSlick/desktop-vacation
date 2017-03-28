@@ -230,6 +230,7 @@ const Galleries = {
     });
   },
 
+  // This function is neccesry to allow it to work with async.each
   addSyncItem: (gid, imageId, cb) => {
     Galleries.addItem(gid, imageId, (res, err) => {
       if (err === 'Cannot find gallery') {
@@ -268,16 +269,14 @@ const Galleries = {
         console.error('Kernel panic - not syncing. Attempted to kill init');
         return;
       }
-      // The reason addRemoteId is called here is to ensure that the base gallery
-      // has the correct remote. On first sync, this will not be the case
-      Galleries.addRemoteId(BASE_GALLERY_ID, userData.remoteGallery, () => {
+      Galleries.addRemoteId(BASE_GALLERY_ID, userData.remoteGallery, (_) => {
         const options = {
           uri: Host.server_uri.concat(`/gallery/${userData.remoteGallery}`),
           jar: Host.cookie_jar,
           method: 'GET',
           json: true
         };
-        return request(options, (err, response, body) => {
+        request(options, (err, response, body) => {
           if (response.statusCode !== 200 || !body.data.images) {
             console.error(`Failure to sync, code: ${response.StatusCode}`);
             console.error(body);
@@ -311,7 +310,7 @@ document.addEventListener('gallery_updated', () =>
   gallery_db.save(_ => console.log('Database saved')),
 false);
 
-document.addEventListener('host_logged_in', Galleries.syncRoot, false);
+document.addEventListener('sync_root', Galleries.syncRoot, false);
 
 // IPC Calls
 ipc.on('selected-directory', (event, files) => {
