@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import url from 'url';
 import mime from 'mime-types';
+import DbConn from './db';
 import Images from '../models/images';
 import Host from '../models/host';
 import { danger, success } from './notifier';
@@ -64,7 +65,7 @@ export default {
       if (res.statusCode === 200) {
         // XXX: Ask Lucas about how to set proper user data
         newFilePath = path.join(
-          __dirname, 'userData',
+          DbConn.getUserData(),
           `${uriToId(imageUrl)}.${mime.extension(res.headers['content-type'])}`
         );
         req.pipe(fs.createWriteStream(newFilePath));

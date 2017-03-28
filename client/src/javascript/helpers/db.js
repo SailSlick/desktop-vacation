@@ -8,12 +8,12 @@ const ready_event = new Event('database_loaded');
 
 function createConnection(storagePath) {
   const dbPath = join(storagePath, 'vacation.json');
-
   // Copy empty db to the folder if it doesn't exist
   if (!jetpack.exists(dbPath)) jetpack.copy(join(__dirname, 'userData', 'vacation.json'), dbPath);
 
   // Load the database now
   db = new Loki(dbPath);
+  db.userData = storagePath;
   db.loadDatabase({}, () => {
     console.log('Database loaded from', dbPath);
     document.dispatchEvent(ready_event);
@@ -23,6 +23,10 @@ function createConnection(storagePath) {
 class DbConn {
   constructor(colName) {
     this.col = db.getCollection(colName);
+  }
+
+  static getUserData() {
+    return db.userData;
   }
 
   // eslint-disable-next-line class-methods-use-this
