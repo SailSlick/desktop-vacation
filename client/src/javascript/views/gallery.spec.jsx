@@ -45,6 +45,7 @@ describe('Gallery Component', () => {
 
   // Remove test image and gallery
   after((done) => {
+    galleriesUpdateMetadataStub.restore();
     test_component.unmount();
     Images.remove(test_image.$loki, () => true);
     Galleries.remove(test_gallery.$loki, () => done());

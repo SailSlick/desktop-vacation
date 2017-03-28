@@ -193,7 +193,7 @@ const Galleries = {
   },
 
   updateMetadata: (id, metadata, cb) => {
-    gallery_db.updateOne({ $loki: id }, metadata, (doc) => {
+    gallery_db.updateOne({ $loki: id }, { metadata }, (doc) => {
       if (doc && Galleries.should_save) {
         document.dispatchEvent(gallery_update_event);
       }

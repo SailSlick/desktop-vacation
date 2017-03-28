@@ -2,10 +2,11 @@ import React from 'react';
 import { eachOf } from 'async';
 import mousetrap from 'mousetrap';
 import Waypoint from 'react-waypoint';
-import { Col, Row, Glyphicon, Grid, Dropdown, Form, FormControl, Button, InputGroup, MenuItem } from 'react-bootstrap';
+import { Col, Row } from 'react-bootstrap';
 import Image from './image.jsx';
 import GalleryCard from './gallerycard.jsx';
 import SelectTools from './selectTools.jsx';
+import GalleryBar from './galleryBar.jsx';
 import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
 import { success, danger } from '../helpers/notifier';
 import Galleries from '../models/galleries';
@@ -22,7 +23,6 @@ class Gallery extends React.Component {
       selection: [],
       rating: 0,
       tags: [],
-      newTag: '',
       filter: {
         name: '',
         tag: '',
@@ -43,7 +43,6 @@ class Gallery extends React.Component {
     this.selectItem = this.selectItem.bind(this);
     this.selectAll = this.selectAll.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
-    this.handleTagChange = this.handleTagChange.bind(this);
     this.changeFilter = this.changeFilter.bind(this);
     this.clearFilter = this.clearFilter.bind(this);
     this.loadMore = this.loadMore.bind(this);
@@ -190,16 +189,12 @@ class Gallery extends React.Component {
       }
     }
 
-    const metadata = { metadata: { rating, tags } };
+    const metadata = { rating, tags };
     return Galleries.updateMetadata(this.props.dbId, metadata, (doc) => {
       if (!doc) return danger('Updating metadata failed');
       if (typeof field === 'string') this.setState({ newTag: '' });
       return success('Metadata updated');
     });
-  }
-
-  handleTagChange(event) {
-    this.setState({ newTag: event.target.value });
   }
 
   changeFilter(event) {
@@ -231,71 +226,13 @@ class Gallery extends React.Component {
 
   render() {
     const galleryDetails = (
-      <Grid>
-        <Row>
-          <Col xs={2} md={2}>
-            <h4>Subgalleries: {this.state.subgalleries.length}</h4>
-            <h4>Images: {this.state.images.length}</h4>
-          </Col>
-          <Col xs={2} md={2}>
-            <Dropdown pullRight id="tags-dropdown">
-              <Dropdown.Toggle>
-                Tags
-              </Dropdown.Toggle>
-              <Dropdown.Menu>
-                {this.state.tags.map(tag => (
-                  // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-                  <MenuItem key={tag} >
-                    <InputGroup>
-                      <p colSpan="2">{tag}</p>
-                      <InputGroup.Button>
-                        <Button
-                          bsStyle="link"
-                          onClick={e => e.preventDefault() || this.updateMetadata(tag, true)}
-                        >
-                          <Glyphicon glyph={'trash'} />
-                        </Button>
-                      </InputGroup.Button>
-                    </InputGroup>
-                  </MenuItem>
-                ))}
-              </Dropdown.Menu>
-            </Dropdown>
-          </Col>
-          <Col xs={4} md={4}>
-            <Form
-              horizontal
-              onSubmit={e => e.preventDefault() || this.updateMetadata(this.state.newTag, false)}
-            >
-              <InputGroup>
-                <FormControl
-                  name="newTag"
-                  type="text"
-                  placeholder="new tag"
-                  value={this.state.newTag}
-                  onChange={this.handleTagChange}
-                />
-                <InputGroup.Button>
-                  <Button type="submit">
-                    <Glyphicon glyph={'plus'} />
-                  </Button>
-                </InputGroup.Button>
-              </InputGroup>
-            </Form>
-          </Col>
-          <Col xs={4} md={4}>
-            <h4>Rating:
-              {[1, 2, 3, 4, 5].map(val => (
-                // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-                <a key={val} onClick={e => e.preventDefault() || this.updateMetadata(val, false)} >
-                  <Glyphicon glyph={this.state.rating >= val ? 'star' : 'star-empty'} />
-                </a>
-              ))
-              }
-            </h4>
-          </Col>
-        </Row>
-      </Grid>
+      <GalleryBar
+        updateMetadata={this.updateMetadata}
+        rating={this.state.rating}
+        tags={this.state.tags}
+        numSubgalleries={this.state.subgalleries.length}
+        numImages={this.state.images.length}
+      />
     );
 
     let items = this.state.subgalleries.map(subgallery =>

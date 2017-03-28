@@ -88,7 +88,9 @@ class SettingsForm extends React.Component {
         <br />
         <Button
           onClick={this.back}
-        >Back</Button>
+        >
+          Back
+        </Button>
         <Form horizontal onSubmit={this.changeSettings}>
           <h1><ControlLabel>Profile Settings</ControlLabel></h1>
           <FormGroup

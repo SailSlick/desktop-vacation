@@ -142,7 +142,7 @@ describe('Galleries model', () => {
 
   it('can update rating metdata for a gallery', (done) => {
     const metadata = { rating: 4, tags: test_gallery.metadata.tags };
-    Galleries.updateMetadata(test_gallery.$loki, { metadata }, (updatedGallery) => {
+    Galleries.updateMetadata(test_gallery.$loki, metadata, (updatedGallery) => {
       updatedGallery.metadata.rating.should.equal(4);
       done();
     });
@@ -150,7 +150,7 @@ describe('Galleries model', () => {
 
   it('can update tag metadata for a gallery', (done) => {
     const metadata = { rating: test_gallery.metadata.rating, tags: ['test'] };
-    Galleries.updateMetadata(test_gallery.$loki, { metadata }, (updatedGallery) => {
+    Galleries.updateMetadata(test_gallery.$loki, metadata, (updatedGallery) => {
       updatedGallery.metadata.tags.should.include('test');
       done();
     });
