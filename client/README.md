@@ -30,7 +30,9 @@ All the following commands should be run from the `client` folder
 | istanbul                | dev         | Code coverage reporter           |
 | mocha                   | dev         | Unit testing suite               |
 | mocha-jenkins-reporter  | dev         | Compiles Jenkins-friendly report |
+| mousetrap               | dev         | Bind to keys in BrowserWindow    |
 | react                   | dev         | Component based dom manipulation |
+| react-waypoint          | dev         | Detect elements leave/enter view |
 | rollup                  | dev         | Minifier and compiler for ES     |
 | sinon                   | dev         | Spies, stupds and mocks          |
 | source-map-support      | dev         | Improves stack tracing           |
@@ -49,6 +51,11 @@ npm install
 ```bash
 npm start
 ```
+
+# Shortcuts
+- `shift+s`: Enter select mode
+- `ctrl+a`: Select all images
+- `ctrl+shift+a`: Deselect all images
 
 # Testing
 
