@@ -52,16 +52,4 @@ describe('GalleryBar Component', () => {
     test_component.find('h4').at(1).text().should.equal('Images: '.concat(test_gallery.images.length));
     done();
   });
-
-  it('can update newTag state value', (done) => {
-    test_component.find('[name="newTag"]').simulate('change',
-      {
-        target: {
-          name: 'newTag',
-          value: 'cohones'
-        }
-      });
-    test_component.should.have.state('newTag', 'cohones');
-    done();
-  });
 });

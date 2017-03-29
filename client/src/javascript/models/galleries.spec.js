@@ -140,7 +140,7 @@ describe('Galleries model', () => {
     )
   );
 
-  it('can update rating metdata for a gallery', (done) => {
+  it('can update rating metadata for a gallery', (done) => {
     const metadata = { rating: 4, tags: test_gallery.metadata.tags };
     Galleries.updateMetadata(test_gallery.$loki, metadata, (updatedGallery) => {
       updatedGallery.metadata.rating.should.equal(4);

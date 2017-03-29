@@ -31,7 +31,7 @@ describe('Images model', () => {
     })
   );
 
-  it('can update rating metdata for an image', (done) => {
+  it('can update rating metadata for an image', (done) => {
     const metadata = { rating: 4, tags: test_image.metadata.tags };
     Images.updateMetadata(test_image.$loki, { metadata }, (updatedImage) => {
       updatedImage.metadata.rating.should.equal(4);

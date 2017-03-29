@@ -122,11 +122,11 @@ const Galleries = {
 
   filter: (subgalleries, images, filter, cb) => {
     if (filter) {
-      if (filter.name && filter.name !== '') {
+      if (filter.name) {
         subgalleries = subgalleries.filter(x => x.name.indexOf(filter.name) !== -1);
         images = images.filter(x => x.location.indexOf(filter.name) !== -1);
       }
-      if (filter.tag && filter.tag !== '') {
+      if (filter.tag) {
         subgalleries = subgalleries.filter(x => x.metadata.tags.indexOf(filter.tag) !== -1);
         images = images.filter(x => x.metadata.tags.indexOf(filter.tag) !== -1);
       }

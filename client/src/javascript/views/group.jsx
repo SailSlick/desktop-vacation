@@ -34,7 +34,6 @@ class Group extends React.Component {
     this.updateMetadata = this.updateMetadata.bind(this);
     this.changeFilter = this.changeFilter.bind(this);
     this.clearFilter = this.clearFilter.bind(this);
-    this.deleteGroup = this.deleteGroup.bind(this);
     this.loadMore = this.loadMore.bind(this);
 
     document.addEventListener('gallery_updated', this.refresh, false);
@@ -127,7 +126,7 @@ class Group extends React.Component {
     }
     filter[key] = value;
     success('Filtering');
-    return this.setState({ filter, filterChanged: true });
+    return this.setState({ filter });
   }
 
   clearFilter(notQuiet) {

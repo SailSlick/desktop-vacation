@@ -5,15 +5,7 @@ export default class GalleryBar extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      newTag: ''
-    };
-
-    this.handleTagChange = this.handleTagChange.bind(this);
-  }
-
-  handleTagChange(event) {
-    this.setState({ newTag: event.target.value });
+    this.state = {};
   }
 
   render() {
@@ -54,15 +46,13 @@ export default class GalleryBar extends React.Component {
             <Form
               horizontal
               onSubmit={e => e.preventDefault() ||
-                this.props.updateMetadata(this.state.newTag, false)}
+                this.props.updateMetadata(e.target.newTag.value, false)}
             >
               <InputGroup>
                 <FormControl
                   name="newTag"
                   type="text"
                   placeholder="new tag"
-                  value={this.state.newTag}
-                  onChange={this.handleTagChange}
                 />
                 <InputGroup.Button>
                   <Button type="submit">

@@ -12,8 +12,7 @@ class Image extends React.Component {
 
     this.state = {
       expanded: false,
-      deleteConfirmation: false,
-      newTag: ''
+      deleteConfirmation: false
     };
 
     this.onClick = this.onClick.bind(this);
@@ -25,7 +24,6 @@ class Image extends React.Component {
     this.deleteConfirmation = this.deleteConfirmation.bind(this);
     this.confirmDelete = this.confirmDelete.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
-    this.handleTagChange = this.handleTagChange.bind(this);
   }
 
   onClick() {
@@ -93,10 +91,6 @@ class Image extends React.Component {
     });
   }
 
-  handleTagChange(event) {
-    this.setState({ newTag: event.target.value });
-  }
-
   render() {
     let classes = 'figure img-card rounded';
     if (this.props.selected) classes += ' selected';
@@ -117,9 +111,9 @@ class Image extends React.Component {
         <Table>
           <thead>
             <tr>
-              <th>
+              <td>
                 <h4>Tags:</h4>
-              </th>
+              </td>
             </tr>
           </thead>
           <tbody>
@@ -141,15 +135,14 @@ class Image extends React.Component {
         </Table>
         <Form
           horizontal
-          onSubmit={e => e.preventDefault() || this.updateMetadata(this.state.newTag, false)}
+          onSubmit={e => e.preventDefault() ||
+            this.updateMetadata(e.target.newTag.value, false)}
         >
           <InputGroup>
             <FormControl
               name="newTag"
               type="text"
               placeholder="new tag"
-              value={this.state.newTag}
-              onChange={this.handleTagChange}
             />
             <InputGroup.Button>
               <Button type="submit">
@@ -163,7 +156,7 @@ class Image extends React.Component {
 
     const metadataRow = (
       <row>
-        <Col><h2>Metdata</h2></Col>
+        <Col><h2>Metadata</h2></Col>
         {starRating}
         {tags}
       </row>
