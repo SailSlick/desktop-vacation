@@ -1,10 +1,12 @@
 import React from 'react';
+import Waypoint from 'react-waypoint';
 import { Col, Row } from 'react-bootstrap';
 import Image from './image.jsx';
+import GalleryCard from './gallerycard.jsx';
+import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
+import { success, danger } from '../helpers/notifier';
 import Groups from '../models/groups';
 import Host from '../models/host';
-import GalleryCard from './gallerycard.jsx';
-import { success, danger } from '../helpers/notifier';
 
 class Group extends React.Component {
   constructor(props) {
@@ -14,11 +16,14 @@ class Group extends React.Component {
       subgalleries: [],
       images: [],
       loggedIn: false,
+      itemsLimit: 0,
+      itemsTotal: 0
     };
 
     // Bind functions
     this.refresh = this.refresh.bind(this);
     this.deleteGroup = this.deleteGroup.bind(this);
+    this.loadMore = this.loadMore.bind(this);
 
     // Hook event to catch when an image is added
     document.addEventListener('gallery_updated', this.refresh, false);
@@ -37,7 +42,8 @@ class Group extends React.Component {
   }
 
   refresh(dbId) {
-    dbId = (typeof dbId === 'number') ? dbId : this.props.dbId;
+    const db_update = (typeof dbId !== 'number');
+    dbId = (!db_update) ? dbId : this.props.dbId;
 
     // Null the group ID if we're looking at the base group
     if (dbId === '1') dbId = null;
@@ -47,7 +53,9 @@ class Group extends React.Component {
         return Groups.expand(gallery, (subgalleries, images) =>
           this.setState({
             subgalleries,
-            images
+            images,
+            itemsLimit: (db_update && this.state.itemsLimit >= 12) ? this.state.itemsLimit : 12,
+            itemsTotal: subgalleries.length + images.length
           }, () => {
             console.log('Group refreshed', dbId);
           })
@@ -74,6 +82,14 @@ class Group extends React.Component {
     }
   }
 
+  loadMore() {
+    // Don't do anything if we're at the end
+    if (this.state.itemsLimit === this.state.itemsTotal) return;
+
+    const itemsLimit = Math.min(this.state.itemsLimit + 12, this.state.itemsTotal);
+    this.setState({ itemsLimit });
+  }
+
   render() {
     const items = this.state.subgalleries.map(subgallery =>
       <GalleryCard
@@ -95,7 +111,9 @@ class Group extends React.Component {
         src={image.location}
         onRemove={this.removeItem}
       />
-    ));
+
+    // Limit number of items to show
+    )).slice(0, this.state.itemsLimit);
 
     return (
       <Row>
@@ -108,6 +126,16 @@ class Group extends React.Component {
         </Col>
         <Col xs={4}>
           {items.map((item, i) => ((i + 1) % 3 === 0 && item) || null)}
+        </Col>
+        <Col xs={12}>
+          <Waypoint onEnter={this.loadMore}>
+            <div>
+              <InfiniteScrollInfo
+                itemsLimit={this.state.itemsLimit}
+                itemsTotal={this.state.itemsTotal}
+              />
+            </div>
+          </Waypoint>
         </Col>
       </Row>
     );

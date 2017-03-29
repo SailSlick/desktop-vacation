@@ -81,20 +81,24 @@ class Image extends React.Component {
           ...
           <div className="dropdown-menu img-menu">
             <MenuItem onClick={this.setAsWallpaper}>
-              <Glyphicon glyph="picture" />Set as Wallpaper
+              <Glyphicon glyph="picture" />
+              Set as Wallpaper
             </MenuItem>
             <MenuItem onClick={this.addToGallery}>
-              <Glyphicon glyph="th" />Add to gallery
+              <Glyphicon glyph="th" />
+              Add to gallery
             </MenuItem>
             <MenuItem onClick={this.upload}>
               <Glyphicon glyph="upload" />Sync
             </MenuItem>
             <MenuItem divider />
             <MenuItem onClick={this.remove}>
-              <Glyphicon glyph="remove" />Remove
+              <Glyphicon glyph="remove" />
+              Remove
             </MenuItem>
             <MenuItem onClick={this.deleteConfirmation}>
-              <Glyphicon glyph="trash" />Remove &amp; Delete
+              <Glyphicon glyph="trash" />
+              Remove &amp; Delete
             </MenuItem>
           </div>
         </figcaption>
