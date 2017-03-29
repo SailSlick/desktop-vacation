@@ -12,23 +12,17 @@ describe('Selection Toolbar Component', () => {
   let addAllStub;
   let selectAllStub;
   let removeAllStub;
-  let clearFilterStub;
-  let changeFilterStub;
   let test_component;
 
   before(() => {
     selectAllStub = stub();
     removeAllStub = stub();
     addAllStub = stub();
-    clearFilterStub = stub();
-    changeFilterStub = stub();
     test_component = mount(<SelectTools
       multiSelect
       addAllToGallery={addAllStub}
       selectAll={selectAllStub}
       removeAll={removeAllStub}
-      clearFilter={clearFilterStub}
-      changeFilter={changeFilterStub}
     />);
   });
 
@@ -37,7 +31,7 @@ describe('Selection Toolbar Component', () => {
   });
 
   it('can render', (done) => {
-    test_component.find('NavItem').should.have.length(5);
+    test_component.find('NavItem').should.have.length(4);
     done();
   });
 
@@ -61,20 +55,6 @@ describe('Selection Toolbar Component', () => {
     removeAllStub.reset();
     test_component.find('Glyphicon').at(3).simulate('click');
     removeAllStub.called.should.be.ok;
-    done();
-  });
-
-  it('can change the filter', (done) => {
-    changeFilterStub.reset();
-    test_component.find('Form').first().simulate('submit');
-    changeFilterStub.called.should.be.ok;
-    done();
-  });
-
-  it('can clear the filter', (done) => {
-    clearFilterStub.reset();
-    test_component.find('Glyphicon').at(4).simulate('click');
-    clearFilterStub.called.should.be.ok;
     done();
   });
 

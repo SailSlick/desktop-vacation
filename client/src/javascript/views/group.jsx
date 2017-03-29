@@ -20,11 +20,6 @@ class Group extends React.Component {
       loggedIn: false,
       rating: 0,
       tags: [],
-      filter: {
-        name: '',
-        tag: '',
-        rating: 0
-      },
       itemsLimit: 0,
       itemsTotal: 0
     };
@@ -32,8 +27,6 @@ class Group extends React.Component {
     // Bind functions
     this.refresh = this.refresh.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
-    this.changeFilter = this.changeFilter.bind(this);
-    this.clearFilter = this.clearFilter.bind(this);
     this.loadMore = this.loadMore.bind(this);
 
     document.addEventListener('gallery_updated', this.refresh, false);
@@ -44,19 +37,14 @@ class Group extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.groupId !== this.props.groupId) {
-      this.refresh(nextProps.groupId, this.state.filter);
+    if (nextProps.dbId !== this.props.dbId ||
+    this.props.filter.rating !== nextProps.filter.rating ||
+    this.props.filter.name !== nextProps.filter.name ||
+    this.props.filter.tag !== nextProps.filter.tag) {
+      this.refresh(nextProps.dbId, nextProps.filter);
     }
     if (!nextProps.multiSelect) {
       this.setState({ selection: [] });
-    }
-  }
-
-  componentWillUpdate(nextProps, nextState) {
-    if (this.state.filter.rating !== nextState.filter.rating ||
-    this.state.filter.name !== nextState.filter.name ||
-    this.state.filter.tag !== nextState.filter.tag) {
-      this.refresh(nextProps.dbId, nextState.filter);
     }
   }
 
@@ -67,6 +55,7 @@ class Group extends React.Component {
   refresh(groupId, filter) {
     const db_update = (typeof groupId !== 'number');
     groupId = (typeof groupId === 'string') ? groupId : this.props.groupId;
+    filter = filter || this.props.filter;
 
     // Null the group ID if we're looking at the base group
     if (groupId === '1') groupId = null;
@@ -110,28 +99,8 @@ class Group extends React.Component {
     const metadata = { rating, tags };
     return Groups.updateMetadata(this.props.groupId, this.props.dbId, metadata, (doc) => {
       if (!doc) return danger('Updating metadata failed');
-      if (typeof field === 'string') this.setState({ newTag: '' });
       return success('Metadata updated');
     });
-  }
-
-  changeFilter(event) {
-    event.preventDefault();
-    const filter = {};
-    const key = event.target.filterKey.value;
-    let value = event.target.filterValue.value;
-    if (key === 'rating') {
-      value = Number(value);
-      if (isNaN(value) || value > 5 || value < 0) return danger('Rating must be a number between 0 & 5');
-    }
-    filter[key] = value;
-    success('Filtering');
-    return this.setState({ filter });
-  }
-
-  clearFilter(notQuiet) {
-    if (notQuiet) success('Filter cleared');
-    return this.setState({ filter: { name: '', tag: '', rating: 0 } });
   }
 
   loadMore() {
@@ -150,6 +119,7 @@ class Group extends React.Component {
         tags={this.state.tags}
         numSubgalleries={this.state.subgalleries.length}
         numImages={this.state.images.length}
+        showing={this.props.infoBar}
       />
     );
 
@@ -184,7 +154,7 @@ class Group extends React.Component {
     return (
       <Row>
         <Col xs={12}>
-          {this.props.groupId > 1 ? groupDetails : ' '}
+          {this.props.groupId !== '1' ? groupDetails : ' '}
         </Col>
         <Col xs={12}>
           <SelectTools
@@ -192,12 +162,7 @@ class Group extends React.Component {
             addAllToGallery={this.addAllToGallery}
             selectAll={this.selectAll}
             removeAll={this.removeAll}
-            changeFilter={this.changeFilter}
-            clearFilter={this.clearFilter}
           />
-        </Col>
-        <Col xs={12}>
-          {this.props.groupId !== '1' ? groupDetails : <br />}
         </Col>
         <br />
         <Col xs={4}>
@@ -228,7 +193,23 @@ Group.propTypes = {
   groupId: React.PropTypes.string.isRequired,
   dbId: React.PropTypes.number.isRequired,
   onChange: React.PropTypes.func.isRequired,
-  multiSelect: React.PropTypes.bool.isRequired
+  infoBar: React.PropTypes.bool,
+  multiSelect: React.PropTypes.bool,
+  filter: React.PropTypes.shape({
+    rating: React.PropTypes.number,
+    tag: React.PropTypes.string,
+    name: React.PropTypes.string
+  })
+};
+
+Group.defaultProps = {
+  filter: {
+    name: '',
+    rating: 0,
+    tag: ''
+  },
+  multiSelect: false,
+  infoBar: false,
 };
 
 export default Group;

@@ -36,6 +36,7 @@ describe('GalleryBar Component', () => {
       tags={test_gallery.metadata.tags}
       numImages={test_gallery.images.length}
       numSubgalleries={test_gallery.subgalleries.length}
+      showing
     />);
     done();
   });

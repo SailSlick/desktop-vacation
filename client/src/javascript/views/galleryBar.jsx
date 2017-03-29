@@ -9,14 +9,19 @@ export default class GalleryBar extends React.Component {
   }
 
   render() {
+    if (!this.props.showing) {
+      return <br />;
+    }
     return (
       <Grid>
         <Row>
           <Col xs={2} md={2}>
             <h4>Subgalleries: {this.props.numSubgalleries}</h4>
-            <h4>Images: {this.props.numImages}</h4>
           </Col>
           <Col xs={2} md={2}>
+            <h4>Images: {this.props.numImages}</h4>
+          </Col>
+          <Col xs={1} md={1}>
             <Dropdown pullRight id="tags-dropdown">
               <Dropdown.Toggle>
                 Tags
@@ -42,7 +47,7 @@ export default class GalleryBar extends React.Component {
               </Dropdown.Menu>
             </Dropdown>
           </Col>
-          <Col xs={4} md={4}>
+          <Col xs={3} md={3}>
             <Form
               horizontal
               onSubmit={e => e.preventDefault() ||
@@ -87,5 +92,6 @@ GalleryBar.propTypes = {
   rating: React.PropTypes.number.isRequired,
   tags: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
   numImages: React.PropTypes.number.isRequired,
-  numSubgalleries: React.PropTypes.number.isRequired
+  numSubgalleries: React.PropTypes.number.isRequired,
+  showing: React.PropTypes.bool.isRequired,
 };

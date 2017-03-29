@@ -86,7 +86,6 @@ class Image extends React.Component {
     const metadata = { metadata: { rating, tags } };
     return Images.updateMetadata(this.props.dbId, metadata, (doc) => {
       if (!doc) return danger('Updating metadata failed');
-      if (typeof field === 'string') this.setState({ newTag: '' });
       return success('Metadata updated');
     });
   }

@@ -3,7 +3,7 @@ import { eachOf } from 'async';
 import mousetrap from 'mousetrap';
 import { AlertList } from 'react-bs-notifier';
 import { ipcRenderer as ipc } from 'electron';
-import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup, FormControl, ListGroup, ListGroupItem, InputGroup } from 'react-bootstrap';
+import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup, FormControl, ListGroup, ListGroupItem, InputGroup, Form, Glyphicon } from 'react-bootstrap';
 import Gallery from './gallery.jsx';
 import Galleries from '../models/galleries';
 import Slideshow from '../helpers/slideshow-client';
@@ -22,12 +22,16 @@ const PrimaryContent = ({ page, parent }) =>
       dbId={parent.state.galleryId}
       onChange={parent.changeGallery}
       multiSelect={parent.state.multiSelect}
+      filter={parent.state.filter}
+      infoBar={parent.state.infoBar}
     />),
     (<Group
       groupId={parent.state.groupId}
       dbId={parent.state.galleryId}
       onChange={parent.changeGroup}
       multiSelect={parent.state.multiSelect}
+      filter={parent.state.filter}
+      infoBar={parent.state.infoBar}
     />),
     (<Profile
       accountCreated={parent.accountCreated}
@@ -81,7 +85,13 @@ class Main extends React.Component {
       groupUsersModal: false,
       invitesModal: false,
       invites: [],
-      account: false
+      account: false,
+      infoBar: false,
+      filter: {
+        name: '',
+        tag: '',
+        rating: 0
+      }
     };
 
     this.onSelectGallery = this.onSelectGallery.bind(this);
@@ -94,6 +104,7 @@ class Main extends React.Component {
     this.showAlert = this.showAlert.bind(this);
     this.dismissAlert = this.dismissAlert.bind(this);
     this.toggleSelectMode = this.toggleSelectMode.bind(this);
+    this.toggleInfoBarMode = this.toggleInfoBarMode.bind(this);
     this.getNewGroupName = this.getNewGroupName.bind(this);
     this.addNewGroup = this.addNewGroup.bind(this);
     this.changeGroup = this.changeGroup.bind(this);
@@ -103,11 +114,13 @@ class Main extends React.Component {
     this.joinGroup = this.joinGroup.bind(this);
     this.refuseInvite = this.refuseInvite.bind(this);
     this.inviteRefresh = this.inviteRefresh.bind(this);
+    this.changeFilter = this.changeFilter.bind(this);
 
     // Events
     document.addEventListener('append_gallery', this.showGallerySelector, false);
     document.addEventListener('notify', this.showAlert, false);
     mousetrap.bind('shift+s', this.toggleSelectMode);
+    mousetrap.bind('shift+i', this.toggleInfoBarMode);
   }
 
   componentWillMount() {
@@ -217,8 +230,13 @@ class Main extends React.Component {
         galleryId,
         imageSelection: null,
         multiSelect: false,
+        infoBar: false,
         page: 0,
-        filter: {}
+        filter: {
+          name: '',
+          tag: '',
+          rating: 0
+        }
       });
     }
   }
@@ -237,6 +255,12 @@ class Main extends React.Component {
   toggleSelectMode() {
     this.setState({
       multiSelect: !this.state.multiSelect
+    });
+  }
+
+  toggleInfoBarMode() {
+    this.setState({
+      infoBar: !this.state.infoBar
     });
   }
 
@@ -278,8 +302,13 @@ class Main extends React.Component {
         galleryId: lokiId,
         imageSelection: null,
         multiSelect: false,
+        infoBar: false,
         page: 1,
-        filter: {}
+        filter: {
+          name: '',
+          tag: '',
+          rating: 0
+        }
       });
     }
   }
@@ -350,6 +379,24 @@ class Main extends React.Component {
     }
   }
 
+  changeFilter(event) {
+    event.preventDefault();
+    const filter = {
+      name: '',
+      tag: '',
+      rating: 0
+    };
+    const key = event.target.filterKey.value;
+    let value = event.target.filterValue.value;
+    if (key === 'rating') {
+      value = Number(value);
+      if (isNaN(value) || value > 5 || value < 0) return danger('Rating must be a number between 0 & 5');
+    }
+    filter[key] = value;
+    success('Filtering');
+    return this.setState({ filter });
+  }
+
   render() {
     return (
       <div>
@@ -368,6 +415,7 @@ class Main extends React.Component {
               <NavDropdown title="Galleries" id="galleries">
                 <MenuItem onClick={_ => this.changeGallery(BASE_GALLERY_ID)}>View</MenuItem>
                 <MenuItem onClick={this.getNewGalleryName}>Add</MenuItem>
+                <MenuItem onClick={this.toggleInfoBarMode}>Info Bar</MenuItem>
               </NavDropdown>
               <NavDropdown title="Groups" id="groups">
                 <MenuItem onClick={_ => this.changeGroup(BASE_GROUP_ID, BASE_GALLERY_ID)}>
@@ -375,6 +423,7 @@ class Main extends React.Component {
                 </MenuItem>
                 <MenuItem onClick={this.getNewGroupName}>Add</MenuItem>
                 <MenuItem onClick={this.getInvitesModal}>Invites</MenuItem>
+                <MenuItem onClick={this.toggleInfoBarMode}>Info Bar</MenuItem>
               </NavDropdown>
               <NavDropdown title="Slideshow" id="slideshow">
                 <MenuItem onClick={_ => Slideshow.set(this.state.galleryId)}>
@@ -383,8 +432,28 @@ class Main extends React.Component {
                 <MenuItem onClick={_ => Slideshow.clear()}>Clear</MenuItem>
               </NavDropdown>
               <NavItem onClick={_ => this.profileView()}>Profile</NavItem>
-              <NavItem onClick={this.toggleSelectMode}>Tools</NavItem>
+              <NavItem onClick={this.toggleSelectMode}>MultiSelect</NavItem>
             </Nav>
+            <Navbar.Form pullRight>
+              <Form onSubmit={this.changeFilter}>
+                <FormGroup>
+                  <FormControl name="filterKey" componentClass="select">
+                    <option value="name">name</option>
+                    <option value="tag">tag</option>
+                    <option value="rating">rating</option>
+                  </FormControl>
+                  {' '}
+                  <InputGroup>
+                    <FormControl name="filterValue" type="text" placeholder="Filter view" />
+                    <InputGroup.Button>
+                      <Button type="submit">
+                        <Glyphicon glyph={'search'} />
+                      </Button>
+                    </InputGroup.Button>
+                  </InputGroup>
+                </FormGroup>
+              </Form>
+            </Navbar.Form>
           </Navbar.Collapse>
         </Navbar>
 

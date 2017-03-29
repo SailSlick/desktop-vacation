@@ -23,11 +23,6 @@ class Gallery extends React.Component {
       selection: [],
       rating: 0,
       tags: [],
-      filter: {
-        name: '',
-        tag: '',
-        rating: 0
-      },
       itemsLimit: 0,
       itemsTotal: 0,
       fixSelectTools: false
@@ -42,8 +37,6 @@ class Gallery extends React.Component {
     this.selectItem = this.selectItem.bind(this);
     this.selectAll = this.selectAll.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
-    this.changeFilter = this.changeFilter.bind(this);
-    this.clearFilter = this.clearFilter.bind(this);
     this.loadMore = this.loadMore.bind(this);
 
     // Hook event to catch when an image is added
@@ -71,19 +64,14 @@ class Gallery extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.dbId !== this.props.dbId) {
-      this.refresh(nextProps.dbId, this.state.filter);
+    if (nextProps.dbId !== this.props.dbId ||
+    this.props.filter.rating !== nextProps.filter.rating ||
+    this.props.filter.name !== nextProps.filter.name ||
+    this.props.filter.tag !== nextProps.filter.tag) {
+      this.refresh(nextProps.dbId, nextProps.filter);
     }
     if (!nextProps.multiSelect) {
       this.setState({ selection: [] });
-    }
-  }
-
-  componentWillUpdate(nextProps, nextState) {
-    if (this.state.filter.rating !== nextState.filter.rating ||
-    this.state.filter.name !== nextState.filter.name ||
-    this.state.filter.tag !== nextState.filter.tag) {
-      this.refresh(nextProps.dbId, nextState.filter);
     }
   }
 
@@ -97,6 +85,7 @@ class Gallery extends React.Component {
   refresh(dbId, filter) {
     const db_update = (typeof dbId !== 'number');
     dbId = (!db_update) ? dbId : this.props.dbId;
+    filter = filter || this.props.filter;
 
     Galleries.get(dbId, gallery =>
       Galleries.expand(gallery, filter, (subgalleries, images) =>
@@ -106,7 +95,6 @@ class Gallery extends React.Component {
           selection: [],
           rating: gallery.metadata.rating,
           tags: gallery.metadata.tags,
-          newTag: '',
           itemsLimit: (db_update && this.state.itemsLimit >= 12) ? this.state.itemsLimit : 12,
           itemsTotal: subgalleries.length + images.length
         }, () => {
@@ -198,28 +186,8 @@ class Gallery extends React.Component {
     const metadata = { rating, tags };
     return Galleries.updateMetadata(this.props.dbId, metadata, (doc) => {
       if (!doc) return danger('Updating metadata failed');
-      if (typeof field === 'string') this.setState({ newTag: '' });
       return success('Metadata updated');
     });
-  }
-
-  changeFilter(event) {
-    event.preventDefault();
-    const filter = {};
-    const key = event.target.filterKey.value;
-    let value = event.target.filterValue.value;
-    if (key === 'rating') {
-      value = Number(value);
-      if (isNaN(value) || value > 5 || value < 0) return danger('Rating must be a number between 0 & 5');
-    }
-    filter[key] = value;
-    success('Filtering');
-    return this.setState({ filter });
-  }
-
-  clearFilter(notQuiet) {
-    if (notQuiet) success('Filter cleared');
-    return this.setState({ filter: { name: '', tag: '', rating: 0 } });
   }
 
   loadMore() {
@@ -238,6 +206,7 @@ class Gallery extends React.Component {
         tags={this.state.tags}
         numSubgalleries={this.state.subgalleries.length}
         numImages={this.state.images.length}
+        showing={this.props.infoBar}
       />
     );
 
@@ -272,6 +241,7 @@ class Gallery extends React.Component {
       // Limit number of items to show
       )).slice(0, this.state.itemsLimit);
     }
+
     return (
       <Row>
         <Col xs={12}>
@@ -283,8 +253,6 @@ class Gallery extends React.Component {
             addAllToGallery={this.addAllToGallery}
             selectAll={this.selectAll}
             removeAll={this.removeAll}
-            changeFilter={this.changeFilter}
-            clearFilter={this.clearFilter}
           />
         </Col>
         <Col xs={4}>
@@ -318,12 +286,24 @@ Gallery.propTypes = {
   onChange: React.PropTypes.func.isRequired,
   simple: React.PropTypes.bool,
   multiSelect: React.PropTypes.bool,
-  onRefresh: React.PropTypes.func
+  infoBar: React.PropTypes.bool,
+  onRefresh: React.PropTypes.func,
+  filter: React.PropTypes.shape({
+    rating: React.PropTypes.number,
+    tag: React.PropTypes.string,
+    name: React.PropTypes.string
+  })
 };
 
 Gallery.defaultProps = {
+  filter: {
+    name: '',
+    rating: 0,
+    tag: ''
+  },
   simple: false,
   multiSelect: false,
+  infoBar: false,
   onRefresh: () => true
 };
 
