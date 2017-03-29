@@ -16,6 +16,8 @@ import { success, danger } from '../helpers/notifier';
 const BASE_GALLERY_ID = 1;
 const BASE_GROUP_ID = '1';
 
+const sync_root_event = new Event('sync_root');
+
 const PrimaryContent = ({ page, parent }) =>
   [
     (<Gallery
@@ -102,6 +104,7 @@ class Main extends React.Component {
     this.joinGroup = this.joinGroup.bind(this);
     this.refuseInvite = this.refuseInvite.bind(this);
     this.inviteRefresh = this.inviteRefresh.bind(this);
+    this.syncImages = this.syncImages.bind(this);
 
     // Events
     document.addEventListener('append_gallery', this.showGallerySelector, false);
@@ -152,6 +155,15 @@ class Main extends React.Component {
 
   getInvitesModal() {
     this.setState({ invitesModal: true });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  syncImages() {
+    if (Host.isAuthed()) {
+      document.dispatchEvent(sync_root_event);
+    } else {
+      danger('Not logged in');
+    }
   }
 
   accountCreated() {
@@ -360,6 +372,7 @@ class Main extends React.Component {
             <Nav onSelect={this.handleSelect}>
               <NavDropdown title="Images" id="images">
                 <MenuItem onClick={_ => ipc.send('open-file-dialog')}>Add</MenuItem>
+                <MenuItem onClick={this.syncImages}>Sync</MenuItem>
               </NavDropdown>
               <NavDropdown title="Galleries" id="galleries">
                 <MenuItem onClick={_ => this.changeGallery(BASE_GALLERY_ID)}>View</MenuItem>
