@@ -22,22 +22,25 @@ const Groups = {
     if (typeof groupname !== 'string' || groupname.trim() === '') {
       return cb(400, `Invalid gallery name ${groupname}`);
     }
-    const options = {
-      uri: server_uri.concat('/group/create'),
-      method: 'POST',
-      jar: cookie_jar,
-      json: { groupname }
-    };
-    return request(options, (err, res, body) => {
-      requestHandler(err, body, (error, msg) => {
-        if (error) return cb(error, msg);
-        Galleries.should_save = false;
-        return Galleries.add(groupname, (doc, err_msg) => {
-          Galleries.should_save = true;
-          if (err_msg) return cb(500, err_msg);
-          return Galleries.convertToGroup(doc.$loki, body.data, (ret) => {
-            if (ret) return cb(error, msg);
-            return cb(500, 'convert To group failed');
+    return Galleries.getName(groupname, (gallery) => {
+      if (gallery) return cb(400, 'You already have a gallery by that name');
+      const options = {
+        uri: server_uri.concat('/group/create'),
+        method: 'POST',
+        jar: cookie_jar,
+        json: { groupname }
+      };
+      return request(options, (err, res, body) => {
+        requestHandler(err, body, (error, msg) => {
+          if (error) return cb(error, msg);
+          Galleries.should_save = false;
+          return Galleries.add(groupname, (doc, err_msg) => {
+            Galleries.should_save = true;
+            if (err_msg) return cb(500, err_msg);
+            return Galleries.convertToGroup(doc.$loki, body.data, (ret) => {
+              if (ret) return cb(error, msg);
+              return cb(500, 'convert To group failed');
+            });
           });
         });
       });

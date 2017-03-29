@@ -114,6 +114,8 @@ const Galleries = {
 
   getMongo: (id, cb) => gallery_db.findOne({ mongoId: id }, cb),
 
+  getName: (name, cb) => gallery_db.findOne({ name }, cb),
+
   // Returns:
   //   - Subgalleries with thumbnail locations
   //   - Images with full details
