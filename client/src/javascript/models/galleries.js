@@ -14,7 +14,7 @@ const gallery_update_event = new Event('gallery_updated');
 const Galleries = {
   should_save: true,
 
-  addBase: (name, remote, cb) => {
+  addBase: (name, remoteId, cb) => {
     gallery_db.findOne({ name }, (found_gallery) => {
       if (found_gallery) {
         console.error(`Gallery ${name} already exists`);
@@ -22,7 +22,7 @@ const Galleries = {
       }
       const doc = {
         name,
-        remote,
+        remoteId,
         tags: [],
         subgalleries: [],
         images: []
@@ -104,9 +104,6 @@ const Galleries = {
       }
       gallery.images.push(image_id);
       return gallery_db.updateOne({ $loki: id }, gallery, (new_gallery) => {
-        // This may be changed later, because for every
-        // image in a multi-add it will be fired... not
-        // great for performance
         if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
         return cb(new_gallery);
       });
@@ -230,36 +227,9 @@ const Galleries = {
     });
   },
 
-  // This function is neccesry to allow it to work with async.each
-  addSyncItem: (gid, imageId, cb) => {
-    Galleries.addItem(gid, imageId, (res, err) => {
-      if (err === 'Cannot find gallery') {
-        // This is the only fatal condition in addItem
-        cb(err, null);
-      } else {
-        cb(null, res);
-      }
-    });
-  },
-
-  addRemoteId: (gid, remote, cb) => {
-    console.log(`adding remote: ${remote}`);
-    gallery_db.updateOne({ $loki: gid }, { remote }, cb);
-  },
-
-  getRemoteId: (gid, cb) => {
-    gallery_db.findOne({ $loki: gid }, (gallery) => {
-      if (!gallery) {
-        console.error(`Couldn't find gallery: ${gid}`);
-        cb(null);
-      } else if (!gallery.remote) {
-        console.log(gallery);
-        console.error(`Couldn't find remote in gallery: ${gid}`);
-        cb(null);
-      } else {
-        cb(gallery.remote);
-      }
-    });
+  addRemoteId: (gid, remoteId, cb) => {
+    console.log(`adding remote: ${remoteId}`);
+    gallery_db.updateOne({ $loki: gid }, { remoteId }, cb);
   },
 
   syncRoot: () => {
@@ -277,7 +247,7 @@ const Galleries = {
       };
       request(options, (err, response, body) => {
         if (response.statusCode !== 200 || !body.data.images) {
-          console.error(`Failure to sync, code: ${response.StatusCode}`);
+          console.error(`Failure to sync, code: ${response.statusCode}`);
           console.error(body.error);
           return;
         } else if (body.data.images.length === 0) {

@@ -14,22 +14,18 @@ module.exports = {
     }
     return userModel.getBaseGallery(uid, baseGalleryId => (
       galleryModel.create(groupname, baseGalleryId, uid, (ret) => {
-        if (ret === 'user already has db of that name') {
+        if (!isNaN(ret)) {
           return next({ status: 400, error: ret });
-        } else if (ret === 'gallery could not be inserted') {
-          return next({ status: 403, error: ret });
-        } else if (isNaN(ret)) {
-          return galleryModel.get(groupname, uid, (cb, doc) => {
-            userModel.get(username, (err, data) => {
-              if (err) return next({ status: 500, message: 'creation failed' });
-              data.groups.push(doc._id);
-              return userModel.update(username, data, () => {
-                next({ status: 200, message: 'group created', gid: doc._id });
-              });
+        }
+        return galleryModel.get(groupname, uid, (cb, doc) => {
+          userModel.get(username, (err, data) => {
+            if (err) return next({ status: 500, message: 'creation failed' });
+            data.groups.push(doc._id);
+            return userModel.update(username, data, () => {
+              next({ status: 200, message: 'group created', gid: doc._id });
             });
           });
-        }
-        return next({ status: 500, message: 'creation failed' });
+        });
       })
     ));
   },
@@ -43,14 +39,10 @@ module.exports = {
     }
     return userModel.getBaseGallery(uid, (baseGalleryId) => {
       galleryModel.create(galleryname, baseGalleryId, uid, (ret) => {
-        if (ret === 'user already has db of that name') {
+        if (!isNaN(ret)) {
           return next({ status: 400, error: ret });
-        } else if (ret === 'gallery could not be inserted') {
-          return next({ status: 403, error: ret });
-        } else if (isNaN(ret)) {
-          return res.status(200).json({ message: 'gallery created', gid: ret });
         }
-        return next({ status: 500, message: 'creation failed' });
+        return res.status(200).json({ message: 'gallery created', gid: ret });
       });
     });
   },

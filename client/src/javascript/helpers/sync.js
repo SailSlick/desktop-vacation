@@ -6,7 +6,7 @@ import mime from 'mime-types';
 import DbConn from './db';
 import Images from '../models/images';
 import Host from '../models/host';
-import { danger, success } from './notifier';
+import { danger, success, warning } from './notifier';
 
 function uriToId(uri) {
   // Forgive the following code, it's actually the "correct" way to do it.
@@ -20,7 +20,7 @@ export default {
   uploadImages: (galleryRemoteId, imageId) => {
     Images.get(imageId, (file) => {
       if (file.uri) {
-        danger('Item is already synced');
+        warning('Item is already synced');
         return;
       }
       const formData = {
@@ -40,7 +40,7 @@ export default {
         } else if (res.statusCode !== 200) {
           danger(`Invalid request: ${body.error}`);
         } else {
-          Images.setRemote(imageId, body['image-ids'][0], (err) => {
+          Images.updateRemote(imageId, body['image-ids'][0], (err) => {
             if (err) danger(err);
             else success('Images uploaded');
           });
@@ -63,9 +63,8 @@ export default {
     .get(options)
     .on('response', (res) => {
       if (res.statusCode === 200) {
-        // XXX: Ask Lucas about how to set proper user data
         newFilePath = path.join(
-          DbConn.getUserData(),
+          DbConn.getUserDataFolder(),
           `${uriToId(imageUrl)}.${mime.extension(res.headers['content-type'])}`
         );
         req.pipe(fs.createWriteStream(newFilePath));

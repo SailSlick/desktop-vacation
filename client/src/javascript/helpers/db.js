@@ -13,7 +13,7 @@ function createConnection(storagePath) {
 
   // Load the database now
   db = new Loki(dbPath);
-  db.userData = storagePath;
+  db.userDataFolder = storagePath;
   db.loadDatabase({}, () => {
     console.log('Database loaded from', dbPath);
     document.dispatchEvent(ready_event);
@@ -25,8 +25,8 @@ class DbConn {
     this.col = db.getCollection(colName);
   }
 
-  static getUserData() {
-    return db.userData;
+  static getUserDataFolder() {
+    return db.userDataFolder;
   }
 
   // eslint-disable-next-line class-methods-use-this

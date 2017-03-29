@@ -32,10 +32,10 @@ const Images = {
     });
   },
 
-  addRemote: (location, remote, cb) => {
+  addRemoteId: (location, remoteId, cb) => {
     const doc = {
       location,
-      remote,
+      remoteId,
       hash: '',
       metadata: { rating: 0, tags: [] }
     };
@@ -54,14 +54,14 @@ const Images = {
     );
   },
 
-  setRemote: (id, remote, cb) => (
-    image_db.updateOne({ $loki: id }, { remote }, () => image_db.save(cb))
+  updateRemote: (id, remoteId, cb) => (
+    image_db.updateOne({ $loki: id }, { remoteId }, () => image_db.save(cb))
   ),
 
   remove: (id, cb) => {
     image_db.findOne({ $loki: id }, (doc) => {
-      if (doc && doc.remote && Host.isAuthed()) {
-        Sync.removeSynced(doc.remote, (err) => {
+      if (doc && doc.remoteId && Host.isAuthed()) {
+        Sync.removeSynced(doc.remoteId, (err) => {
           if (err) console.error(err);
         });
       }
@@ -76,16 +76,16 @@ const Images = {
     });
   },
 
-  download: (remote, cb) => {
-    image_db.findOne({ remote }, (existingDoc) => {
+  download: (remoteId, cb) => {
+    image_db.findOne({ remoteId }, (existingDoc) => {
       if (existingDoc) {
         cb(null, existingDoc.$loki);
       } else {
-        Sync.downloadImage(remote, (err, location) => {
+        Sync.downloadImage(remoteId, (err, location) => {
           if (err) console.error(err);
           else {
             console.log(`Adding image at ${location}`);
-            Images.addRemote(location, remote, (doc) => {
+            Images.addRemoteId(location, remoteId, (doc) => {
               cb(null, doc.$loki);
             });
           }

@@ -15,7 +15,7 @@ chaiShould();
 describe('Image Component', () => {
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
   const removeSpy = spy();
-  const uploadSpy = spy();
+  const uploadSpy = () => {};
   let test_image;
   let test_component;
 

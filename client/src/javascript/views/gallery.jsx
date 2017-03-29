@@ -136,10 +136,14 @@ class Gallery extends React.Component {
 
   uploadItem(id) {
     if (Host.isAuthed()) {
-      Galleries.getRemoteId(this.props.dbId, (remote) => {
-        console.log(`syncing, gallery: ${remote}`);
-        if (remote) {
-          Sync.uploadImages(remote, id);
+      Galleries.get(this.props.dbId, (gallery) => {
+        if (!gallery || !gallery.remoteId) {
+          console.error(`Couldn't find gallery or remote in: ${this.props.dbId}`);
+          return;
+        }
+        console.log(`syncing, gallery: ${gallery.remoteId}`);
+        if (gallery.remoteId) {
+          Sync.uploadImages(gallery.remoteId, id);
         } else {
           danger('Can\'t sync from subgallery.');
         }
@@ -189,7 +193,7 @@ class Gallery extends React.Component {
       <GalleryCard
         key={`g${subgallery.$loki}`}
         dbId={subgallery.$loki}
-        remote={subgallery.remote}
+        remoteId={subgallery.remoteId}
         name={subgallery.name}
         thumbnail={subgallery.thumbnail}
         onClick={_ => this.props.onChange(subgallery.$loki)}

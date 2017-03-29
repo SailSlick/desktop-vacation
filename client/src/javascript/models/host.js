@@ -17,13 +17,13 @@ if (process.env.NODE_ENV !== 'dev') {
 function createClientAccount(username, res, cb) {
   // insert users
   const galname = username.concat('_all');
-  Galleries.addBase(galname, res.gallery, (ret) => {
-    if (!ret) return cb(500, "gallery couldn't be made on client");
+  Galleries.addBase(galname, res['root-remote-id'], (rootLokiId) => {
+    if (!rootLokiId) return cb(500, "gallery couldn't be made on client");
     // insert users
     const userData = {
       username,
-      gallery: ret,
-      remoteGallery: res.gallery,
+      gallery: rootLokiId,
+      remoteGallery: res['root-remote-id'],
       slideshowConfig: {
         onstart: false,
         galleryname: username.concat('_all'),

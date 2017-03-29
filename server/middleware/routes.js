@@ -8,7 +8,7 @@ const storage = require('multer-gridfs-storage')({
   url
 });
 
-const upload = multer({ storage });
+const uploadStorage = multer({ storage });
 const routes = express.Router();
 
 // user functionality
@@ -29,7 +29,7 @@ routes.post('/image/:id/remove', sync.remove);
 // gallery
 routes.use('/gallery/*', user.requireAuth);
 routes.post('/gallery/create', gallery.create);
-routes.use('/gallery/upload', upload.array('images'), sync.upload);
+routes.use('/gallery/upload', uploadStorage.array('images'), sync.upload);
 routes.get('/gallery/:gid', gallery.get);
 
 
