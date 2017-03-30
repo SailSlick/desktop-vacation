@@ -61,5 +61,5 @@ SelectTools.propTypes = {
   multiSelect: React.PropTypes.bool.isRequired,
   addAllToGallery: React.PropTypes.func.isRequired,
   selectAll: React.PropTypes.func.isRequired,
-  removeAll: React.PropTypes.func.isRequired,
+  removeAll: React.PropTypes.func.isRequired
 };
