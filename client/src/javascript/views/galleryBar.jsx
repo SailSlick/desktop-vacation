@@ -10,7 +10,7 @@ export default class GalleryBar extends React.Component {
 
   render() {
     if (!this.props.showing) {
-      return <br />;
+      return <span />;
     }
     return (
       <Grid>
