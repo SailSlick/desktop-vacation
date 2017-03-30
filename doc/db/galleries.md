@@ -27,7 +27,6 @@ Example Document
   "name": "testuser_all",
   "uid": ObjectId("542c2b97bac0595474108b48"),
   "users": [],
-  "tags": ["blam"],
   "subgallaries": [
     ObjectId("hk4c2b97bac0595474108b48"),
     ObjectId("2g6c2b97bac0595474108b48")
@@ -46,24 +45,24 @@ Example Document
   "name": "phone",
   "uid": ObjectId("dfgh2b97bac0595474108b48"),
   "users": [],
-  "tags": ["oohlaala"],
   "subgallaries": [],
   "images": [
     ObjectId("276c2jghbac0595474108b48"),
     ObjectId("fg6c2jghbac0595474108b48")
-  ]
+  ],
+  "metadata" : {"rating": 2, "tags": []}
 },
 {
   "_id": ObjectId("2g6c2b97bac0595474108b48"),
   "name": "favourites",
   "uid": ObjectId("fhkg2b97bac0595474108b48"),
   "users": [],
-  "tags": [],
   "subgallaries": [],
   "images": [
     ObjectId("800c2b97bac0595474108b48"),
     ObjectId("a42c2b97bac0595474138b48"),
     ObjectId("876c2b97bac0595474108b48")
-  ]
+  ],
+  "metadata" : {"rating": 3, "tags": ["winter", "chill"]}
 }
 ```

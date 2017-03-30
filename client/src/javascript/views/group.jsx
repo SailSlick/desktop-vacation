@@ -3,8 +3,10 @@ import Waypoint from 'react-waypoint';
 import { Col, Row } from 'react-bootstrap';
 import Image from './image.jsx';
 import GalleryCard from './gallerycard.jsx';
+import SelectTools from './selectTools.jsx';
+import GalleryBar from './galleryBar.jsx';
 import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
-import { danger } from '../helpers/notifier';
+import { danger, success } from '../helpers/notifier';
 import Groups from '../models/groups';
 import Host from '../models/host';
 
@@ -16,15 +18,17 @@ class Group extends React.Component {
       subgalleries: [],
       images: [],
       loggedIn: false,
+      rating: 0,
+      tags: [],
       itemsLimit: 0,
       itemsTotal: 0
     };
 
     // Bind functions
     this.refresh = this.refresh.bind(this);
+    this.updateMetadata = this.updateMetadata.bind(this);
     this.loadMore = this.loadMore.bind(this);
 
-    // Hook event to catch when an image is added
     document.addEventListener('gallery_updated', this.refresh, false);
   }
 
@@ -33,33 +37,41 @@ class Group extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.dbId !== this.props.dbId) this.refresh(nextProps.dbId);
+    if (nextProps.dbId !== this.props.dbId ||
+    this.props.filter.rating !== nextProps.filter.rating ||
+    this.props.filter.name !== nextProps.filter.name ||
+    this.props.filter.tag !== nextProps.filter.tag) {
+      this.refresh(nextProps.dbId, nextProps.filter);
+    }
+    if (!nextProps.multiSelect) {
+      this.setState({ selection: [] });
+    }
   }
 
   componentWillUnmount() {
     document.removeEventListener('gallery_updated', this.refresh, false);
   }
 
-  refresh(dbId) {
-    console.log("refreshing")
-    const db_update = (typeof dbId !== 'number');
-    dbId = (!db_update) ? dbId : this.props.dbId;
+  refresh(groupId, filter) {
+    const db_update = (typeof groupId !== 'number');
+    groupId = (typeof groupId === 'string') ? groupId : this.props.groupId;
+    filter = filter || this.props.filter;
 
     // Null the group ID if we're looking at the base group
-    if (dbId === '1') dbId = null;
+    if (groupId === '1') groupId = null;
     if (Host.isAuthed()) {
-      Groups.get(dbId, (err, res, gallery) => {
+      Groups.get(groupId, (err, res, gallery) => {
         if (err) danger(`${err}: ${res}`);
-        return Groups.expand(gallery, (subgalleries, images) =>
+        return Groups.expand(gallery, filter, (subgalleries, images) => {
           this.setState({
             subgalleries,
             images,
             itemsLimit: (db_update && this.state.itemsLimit >= 12) ? this.state.itemsLimit : 12,
             itemsTotal: subgalleries.length + images.length
           }, () => {
-            console.log('Group refreshed', dbId);
-          })
-        );
+            console.log('Group refreshed', groupId);
+          });
+        });
       });
     }
   }
@@ -68,8 +80,27 @@ class Group extends React.Component {
     if (fsDelete) {
       Groups.deleteItem(id, () => true);
     } else {
-      Groups.removeItem(this.props.dbId, id, () => true);
+      Groups.removeItem(this.props.groupId, id, () => true);
     }
+  }
+
+  updateMetadata(field, toRemove) {
+    let rating = this.state.rating;
+    let tags = this.state.tags;
+
+    if (typeof field === 'number') rating = field;
+    if (typeof field === 'object') tags = field;
+    if (typeof field === 'string') {
+      if (field.length === 0) return danger('Empty tag');
+      if (toRemove) tags = tags.filter(val => val !== field);
+      else tags.push(field);
+    }
+
+    const metadata = { rating, tags };
+    return Groups.updateMetadata(this.props.groupId, this.props.dbId, metadata, (doc) => {
+      if (!doc) return danger('Updating metadata failed');
+      return success('Metadata updated');
+    });
   }
 
   loadMore() {
@@ -81,6 +112,17 @@ class Group extends React.Component {
   }
 
   render() {
+    const groupDetails = (
+      <GalleryBar
+        updateMetadata={this.updateMetadata}
+        rating={this.state.rating}
+        tags={this.state.tags}
+        numSubgalleries={this.state.subgalleries.length}
+        numImages={this.state.images.length}
+        showing={this.props.infoBar}
+      />
+    );
+
     const items = this.state.subgalleries.map(subgallery =>
       <GalleryCard
         group
@@ -91,8 +133,10 @@ class Group extends React.Component {
         uid={subgallery.uid}
         users={subgallery.users}
         thumbnail={subgallery.thumbnail}
-        onClick={_ => this.props.onChange(subgallery._id)}
+        onClick={_ => this.props.onChange(subgallery._id, subgallery.$loki)}
         onRemove={_ => true}
+        tags={subgallery.metadata.tags}
+        rating={subgallery.metadata.rating}
       />
     ).concat(this.state.images.map(image =>
       <Image
@@ -100,6 +144,8 @@ class Group extends React.Component {
         dbId={image.$loki}
         src={image.location}
         onRemove={this.removeItem}
+        tags={image.metadata.tags}
+        rating={image.metadata.rating}
       />
 
     // Limit number of items to show
@@ -107,6 +153,17 @@ class Group extends React.Component {
 
     return (
       <Row>
+        <Col xs={12}>
+          {this.props.groupId !== '1' ? groupDetails : ' '}
+        </Col>
+        <Col xs={12}>
+          <SelectTools
+            multiSelect={this.props.multiSelect}
+            addAllToGallery={this.addAllToGallery}
+            selectAll={this.selectAll}
+            removeAll={this.removeAll}
+          />
+        </Col>
         <br />
         <Col xs={4}>
           {items.map((item, i) => (i % 3 === 0 && item) || null)}
@@ -133,8 +190,26 @@ class Group extends React.Component {
 }
 
 Group.propTypes = {
-  dbId: React.PropTypes.string.isRequired,
-  onChange: React.PropTypes.func.isRequired
+  groupId: React.PropTypes.string.isRequired,
+  dbId: React.PropTypes.number.isRequired,
+  onChange: React.PropTypes.func.isRequired,
+  infoBar: React.PropTypes.bool,
+  multiSelect: React.PropTypes.bool,
+  filter: React.PropTypes.shape({
+    rating: React.PropTypes.number,
+    tag: React.PropTypes.string,
+    name: React.PropTypes.string
+  })
+};
+
+Group.defaultProps = {
+  filter: {
+    name: '',
+    rating: 0,
+    tag: ''
+  },
+  multiSelect: false,
+  infoBar: false,
 };
 
 export default Group;

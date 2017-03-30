@@ -29,6 +29,7 @@ describe('Main Component', () => {
   let groupCreateStub;
   let dangerStub;
   let successStub;
+  let changeFilterStub;
 
   beforeEach(() => {
     Galleries.should_save = false;
@@ -37,6 +38,7 @@ describe('Main Component', () => {
   before(done =>
     // Create test image
     Images.add(test_image_path, (inserted_image) => {
+      changeFilterStub = stub(Main.prototype, 'changeFilter');
       test_image = inserted_image;
       groupCreateStub = stub(Groups, 'create').returns(true);
 
@@ -284,6 +286,13 @@ describe('Main Component', () => {
     accountCreatedStub = stub(Main.prototype, 'accountCreated');
     test_component = mount(<Main />);
     accountCreatedStub.called.should.be.ok;
+    done();
+  });
+
+  it('can change the filter', (done) => {
+    changeFilterStub.reset();
+    test_component.find('Form').first().simulate('submit');
+    changeFilterStub.called.should.be.ok;
     done();
   });
 });

@@ -15,9 +15,12 @@ module.exports = {
         name: galleryname,
         uid,
         users: [],
-        tags: [],
         subgalleries: [],
-        images: []
+        images: [],
+        metadata: {
+          rating: 0,
+          tags: []
+        }
       };
       return db.insertOne(galleryData, (res) => {
         if (res) return cb(res);

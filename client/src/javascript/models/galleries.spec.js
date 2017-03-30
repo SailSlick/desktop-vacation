@@ -105,7 +105,7 @@ describe('Galleries model', () => {
 
   it('can expand gallery and pick thumbnails', done =>
     Galleries.get(base_gallery_id, base_gallery =>
-      Galleries.expand(base_gallery, (subgalleries) => {
+      Galleries.expand(base_gallery, {}, (subgalleries) => {
         subgalleries.should.include.something.with.property('thumbnail');
         done();
       })
@@ -128,6 +128,49 @@ describe('Galleries model', () => {
       );
     });
   });
+
+  it('can expand gallery with name filter', done =>
+    Galleries.get(base_gallery_id, base_gallery =>
+      Galleries.expand(base_gallery, { name: test_gallery_name }, (subgalleries) => {
+        subgalleries.should.have.lengthOf(1);
+        done();
+      })
+    )
+  );
+
+  it('can expand gallery with rating filter', done =>
+    Galleries.get(base_gallery_id, base_gallery =>
+      Galleries.expand(base_gallery, { rating: 3 }, (subgalleries) => {
+        subgalleries.should.have.lengthOf(0);
+        done();
+      })
+    )
+  );
+
+  it('can update rating metadata for a gallery', (done) => {
+    const metadata = { rating: 4, tags: test_gallery.metadata.tags };
+    Galleries.updateMetadata(test_gallery.$loki, metadata, (updatedGallery) => {
+      updatedGallery.metadata.rating.should.equal(4);
+      done();
+    });
+  });
+
+  it('can update tag metadata for a gallery', (done) => {
+    const metadata = { rating: test_gallery.metadata.rating, tags: ['test'] };
+    Galleries.updateMetadata(test_gallery.$loki, metadata, (updatedGallery) => {
+      updatedGallery.metadata.tags.should.include('test');
+      done();
+    });
+  });
+
+  it('can expand gallery with tag filter', done =>
+    Galleries.get(base_gallery_id, base_gallery =>
+      Galleries.expand(base_gallery, { tag: 'test' }, (subgalleries) => {
+        subgalleries.should.have.lengthOf(1);
+        done();
+      })
+    )
+  );
 
   it('can\'t duplicate subgallery', (done) => {
     Galleries.addSubGallery(
@@ -191,7 +234,7 @@ describe('Galleries model', () => {
   );
 
   it('can expand gallery without thumbnails', done =>
-    Galleries.expand(test_gallery, (subgalleries, images) => {
+    Galleries.expand(test_gallery, {}, (subgalleries, images) => {
       test_gallery.subgalleries.should.not.have.length(0);
       subgalleries.should.not.be.empty;
       subgalleries.should.all.have.property('thumbnail', null);

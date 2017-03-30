@@ -3,6 +3,8 @@ import DbConn from '../helpers/db';
 
 let image_db;
 
+const gallery_update_event = new Event('gallery_updated');
+
 // Exported methods
 const Images = {
   get: (id, cb) => {
@@ -38,6 +40,13 @@ const Images = {
 
   remove: (id, cb) => {
     image_db.removeOne({ $loki: id }, cb);
+  },
+
+  updateMetadata: (id, metadata, cb) => {
+    image_db.updateOne({ $loki: id }, metadata, (doc) => {
+      document.dispatchEvent(gallery_update_event);
+      cb(doc);
+    });
   },
 
   clear: (cb) => {
