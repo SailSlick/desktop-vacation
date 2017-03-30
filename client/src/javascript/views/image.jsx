@@ -1,7 +1,7 @@
 import React from 'react';
 import { clipboard } from 'electron';
 import { Modal, MenuItem, Button, Glyphicon, Image as BsImage, Grid, Col, Row, Table, Form, FormControl, InputGroup } from 'react-bootstrap';
-import { success, danger } from '../helpers/notifier';
+import { success, danger, warning } from '../helpers/notifier';
 import Wallpaper from '../helpers/wallpaper-client';
 import Sync from '../helpers/sync';
 import Images from '../models/images';
@@ -85,7 +85,7 @@ class Image extends React.Component {
 
   share() {
     if (!this.props.remoteId) {
-      return danger('You need to sync an image to share it!');
+      return warning('You need to sync an image to share it!');
     } else if (this.props.url) {
       success('Image link copied to clipboard!');
       return clipboard.writeText(this.props.url);
