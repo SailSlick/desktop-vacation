@@ -22,11 +22,12 @@ module.exports = {
       };
       return db.insertOne(userData, (added) => {
         if (added) {
-          galleryModel.create(username.concat('_all'), null, added.toString(), (g_id) => {
+          galleryModel.create(username.concat('_all'), null, added.toString(), (err, g_id) => {
+            if (err) return cb('failed to create base gallery', null);
             userData.gallery = g_id;
             return db.updateOne({ _id: db.getId(added) }, userData, (res) => {
               if (res) return cb(null, { uid: added, baseGalleryId: g_id });
-              return cb('database communication error', null);
+              return cb('failed to set base gallery id', null);
             });
           });
         }

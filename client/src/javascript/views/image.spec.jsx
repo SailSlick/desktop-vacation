@@ -15,27 +15,52 @@ chaiShould();
 describe('Image Component', () => {
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
   const removeSpy = spy();
-  const uploadSpy = () => {};
   let test_image;
   let test_component;
+  let imageUpdateMetadataStub;
 
-  before(done =>
+  before((done) => {
+    imageUpdateMetadataStub = stub(Images, 'updateMetadata');
     Images.add(test_image_path, (inserted_image) => {
       test_image = inserted_image;
       test_component = mount(<Image
         key={test_image.$loki}
         dbId={test_image.$loki}
+        rating={test_image.metadata.rating}
+        tags={test_image.metadata.tags}
         src={test_image_path}
         onRemove={removeSpy}
-        onUpload={uploadSpy}
+        onUpload={() => true}
       />);
       done();
-    })
-  );
+    });
+  });
 
-  after(() =>
-    Images.remove(test_image.$loki, () => true)
-  );
+  after(() => {
+    Images.remove(test_image.$loki, () => true);
+    imageUpdateMetadataStub.restore();
+  });
+
+  it('can add a tag', (done) => {
+    imageUpdateMetadataStub.reset();
+    test_component.instance().updateMetadata('hula', false);
+    imageUpdateMetadataStub.called.should.be.ok;
+    done();
+  });
+
+  it('can remove a tag', (done) => {
+    imageUpdateMetadataStub.reset();
+    test_component.instance().updateMetadata('hula', true);
+    imageUpdateMetadataStub.called.should.be.ok;
+    done();
+  });
+
+  it('can update the rating', (done) => {
+    imageUpdateMetadataStub.reset();
+    test_component.instance().updateMetadata(3, false);
+    imageUpdateMetadataStub.called.should.be.ok;
+    done();
+  });
 
   it('can render image element', (done) => {
     test_component.find('img').first().should.have.prop('src', test_image_path);
@@ -46,6 +71,12 @@ describe('Image Component', () => {
     test_component.should.have.state('expanded', false);
     test_component.find('Image').simulate('click');
     test_component.should.have.state('expanded', true);
+    done();
+  });
+
+  it('can render star rating', (done) => {
+    test_component.should.have.state('expanded', true);
+    test_component.find('a').at(3).should.exist;
     done();
   });
 

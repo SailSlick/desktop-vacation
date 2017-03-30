@@ -2,7 +2,9 @@ import fs from 'fs';
 import Host from './host';
 import DbConn from '../helpers/db';
 import Sync from '../helpers/sync';
+import Galleries from './galleries';
 
+const gallery_update_event = new Event('gallery_updated');
 let image_db;
 
 // Exported methods
@@ -54,9 +56,10 @@ const Images = {
     );
   },
 
-  update: (id, data, cb) => (
-    image_db.updateOne({ $loki: id }, data, () => image_db.save(cb))
-  ),
+  update: (id, data, cb) => {
+    if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
+    image_db.updateOne({ $loki: id }, data, () => cb());
+  },
 
   remove: (id, cb) => {
     image_db.findOne({ $loki: id }, (doc) => {
@@ -66,6 +69,13 @@ const Images = {
         });
       }
       image_db.removeOne({ $loki: id }, cb);
+    });
+  },
+
+  updateMetadata: (id, metadata, cb) => {
+    image_db.updateOne({ $loki: id }, metadata, (doc) => {
+      document.dispatchEvent(gallery_update_event);
+      cb(doc);
     });
   },
 

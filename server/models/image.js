@@ -47,5 +47,9 @@ module.exports = {
         next(null);
       }
     });
+  },
+
+  purgeUserImages: (uid, cb) => {
+    db.removeMany({ uid }, () => cb());
   }
 };

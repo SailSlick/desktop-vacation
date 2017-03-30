@@ -26,11 +26,11 @@ routes.get('/image/:id/', sync.download);
 routes.use('/image/*', user.requireAuth);
 routes.post('/image/:id/remove', sync.remove);
 routes.post('/image/:id/share', sync.shareImage);
+routes.use('/image/upload', uploadStorage.array('images'), sync.upload);
 
 // gallery
 routes.use('/gallery/*', user.requireAuth);
 routes.post('/gallery/create', gallery.create);
-routes.use('/gallery/upload', uploadStorage.array('images'), sync.upload);
 routes.get('/gallery/:gid', gallery.get);
 
 

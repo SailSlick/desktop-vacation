@@ -10,25 +10,28 @@ module.exports = {
 
   create: (galleryname, baseGalleryId, uid, cb) => {
     db.findOne({ name: galleryname, uid }, (doc) => {
-      if (doc) return cb('user already has db of that name');
+      if (doc) return cb(400, 'user already has db of that name');
       const galleryData = {
         name: galleryname,
         uid,
         users: [],
-        tags: [],
         subgalleries: [],
-        images: []
+        images: [],
+        metadata: {
+          rating: 0,
+          tags: []
+        }
       };
       return db.insertOne(galleryData, (res) => {
         if (!res) {
-          return cb('gallery could not be inserted');
+          return cb(500, 'gallery could not be inserted');
         } else if (baseGalleryId === null || baseGalleryId === res) {
-          return cb(res);
+          return cb(null, res);
         }
-        return db.col.updateOne(
+        return db.updateRaw(
         { _id: baseGalleryId, uid },
         { $addToSet: { subgallaries: res.toString() } },
-        _ => cb(res));
+        _ => cb(null, res));
       });
     });
   },
@@ -63,20 +66,14 @@ module.exports = {
   },
 
   addImages: (gid, baseGalleryId, uid, imageIds, next) => {
-    if (imageIds.length === 0) {
-      next();
-      return;
-    }
-    db.col.updateOne(
+    db.updateRaw(
       { uid, _id: db.getId(gid) },
       { $addToSet: { images: { $each: imageIds } } },
-      (err, updated) => {
-        if (err) {
-          next(err);
-        } else if (updated.matchedCount !== 1) {
-          next('no galleries updated');
-        } else if (gid === baseGalleryId) {
+      (success) => {
+        if (gid === baseGalleryId) {
           next();
+        } else if (!success) {
+          next('invalid update');
         } else {
           module.exports.addImages(baseGalleryId, baseGalleryId, uid, imageIds, next);
         }

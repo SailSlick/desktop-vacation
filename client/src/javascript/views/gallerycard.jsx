@@ -122,6 +122,8 @@ class GalleryCard extends React.Component {
               mongoId={this.props.mongoId}
               uid={this.props.uid}
               users={this.props.users}
+              rating={this.props.rating}
+              tags={this.props.tags}
               onRemove={this.remove}
             />
           </Modal.Body>
@@ -135,6 +137,8 @@ GalleryCard.propTypes = {
   dbId: React.PropTypes.number.isRequired,
   name: React.PropTypes.string.isRequired,
   thumbnail: React.PropTypes.string,
+  rating: React.PropTypes.number.isRequired,
+  tags: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
   onClick: React.PropTypes.func.isRequired,
   onRemove: React.PropTypes.func.isRequired,
   group: React.PropTypes.bool,
