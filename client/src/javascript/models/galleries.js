@@ -20,9 +20,12 @@ const Galleries = {
       }
       const doc = {
         name,
-        tags: [],
         subgalleries: [],
-        images: []
+        images: [],
+        metadata: {
+          rating: 0,
+          tags: []
+        }
       };
       return gallery_db.insert(doc, (inserted_gallery) => {
         BASE_GALLERY_ID = inserted_gallery.$loki;
@@ -42,9 +45,12 @@ const Galleries = {
       const doc = {
         name,
         group: false,
-        tags: [],
         subgalleries: [],
-        images: []
+        images: [],
+        metadata: {
+          rating: 0,
+          tags: []
+        }
       };
       return gallery_db.insert(doc, (inserted_gallery) => {
         const id = inserted_gallery.$loki;
@@ -114,10 +120,34 @@ const Galleries = {
 
   getMongo: (id, cb) => gallery_db.findOne({ mongoId: id }, cb),
 
+  filter: (subgalleries, images, filter, cb) => {
+    if (filter) {
+      if (filter.name) {
+        filter.name = filter.name.toLowerCase();
+        subgalleries = subgalleries.filter(x => x.name.toLowerCase().indexOf(filter.name) !== -1);
+        images = images.filter(x => x.location.toLowerCase().indexOf(filter.name) !== -1);
+      }
+      if (filter.tag) {
+        filter.tag = filter.tag.toLowerCase();
+        subgalleries = subgalleries.filter(x =>
+          x.metadata.tags.join().toLowerCase().indexOf(filter.tag) !== -1
+        );
+        images = images.filter(x =>
+          x.metadata.tags.join().toLowerCase().indexOf(filter.tag) !== -1
+        );
+      }
+      if (filter.rating && filter.rating !== 0) {
+        subgalleries = subgalleries.filter(x => x.metadata.rating === filter.rating);
+        images = images.filter(x => x.metadata.rating === filter.rating);
+      }
+    }
+    cb(subgalleries, images);
+  },
+
   // Returns:
   //   - Subgalleries with thumbnail locations
   //   - Images with full details
-  expand: (gallery, cb) => {
+  expand: (gallery, filter, cb) => {
     // Expand Subgalleries
     map(gallery.subgalleries, (id, next) =>
       Galleries.get(id, (subgallery) => {
@@ -142,7 +172,7 @@ const Galleries = {
           Images.get(image_id, image => next(null, image)),
         (err_img, images) => {
           subgalleries = subgalleries.filter(x => !x.group);
-          cb(subgalleries, images);
+          Galleries.filter(subgalleries, images, filter, cb);
         }
       )
     );
@@ -172,6 +202,15 @@ const Galleries = {
         })
       )
     );
+  },
+
+  updateMetadata: (id, metadata, cb) => {
+    gallery_db.updateOne({ $loki: id }, { metadata }, (doc) => {
+      if (doc && Galleries.should_save) {
+        document.dispatchEvent(gallery_update_event);
+      }
+      return cb(doc);
+    });
   },
 
   removeItem: (id, item_id, cb) => {

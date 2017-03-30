@@ -6,6 +6,7 @@ import { Col, Row } from 'react-bootstrap';
 import Image from './image.jsx';
 import GalleryCard from './gallerycard.jsx';
 import SelectTools from './selectTools.jsx';
+import GalleryBar from './galleryBar.jsx';
 import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
 import { success, danger } from '../helpers/notifier';
 import Galleries from '../models/galleries';
@@ -20,6 +21,8 @@ class Gallery extends React.Component {
       subgalleries: [],
       images: [],
       selection: [],
+      rating: 0,
+      tags: [],
       itemsLimit: 0,
       itemsTotal: 0,
       fixSelectTools: false
@@ -33,6 +36,7 @@ class Gallery extends React.Component {
     this.removeAll = this.removeAll.bind(this);
     this.selectItem = this.selectItem.bind(this);
     this.selectAll = this.selectAll.bind(this);
+    this.updateMetadata = this.updateMetadata.bind(this);
     this.loadMore = this.loadMore.bind(this);
 
     // Hook event to catch when an image is added
@@ -60,7 +64,12 @@ class Gallery extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.dbId !== this.props.dbId) this.refresh(nextProps.dbId);
+    if (nextProps.dbId !== this.props.dbId ||
+    this.props.filter.rating !== nextProps.filter.rating ||
+    this.props.filter.name !== nextProps.filter.name ||
+    this.props.filter.tag !== nextProps.filter.tag) {
+      this.refresh(nextProps.dbId, nextProps.filter);
+    }
     if (!nextProps.multiSelect) {
       this.setState({ selection: [] });
     }
@@ -73,16 +82,19 @@ class Gallery extends React.Component {
     mousetrap.unbind('ctrl+shift+a');
   }
 
-  refresh(dbId) {
+  refresh(dbId, filter) {
     const db_update = (typeof dbId !== 'number');
     dbId = (!db_update) ? dbId : this.props.dbId;
+    filter = filter || this.props.filter;
 
     Galleries.get(dbId, gallery =>
-      Galleries.expand(gallery, (subgalleries, images) =>
+      Galleries.expand(gallery, filter, (subgalleries, images) =>
         this.setState({
           subgalleries,
           images,
           selection: [],
+          rating: gallery.metadata.rating,
+          tags: gallery.metadata.tags,
           itemsLimit: (db_update && this.state.itemsLimit >= 12) ? this.state.itemsLimit : 12,
           itemsTotal: subgalleries.length + images.length
         }, () => {
@@ -157,6 +169,27 @@ class Gallery extends React.Component {
     }, cb);
   }
 
+  updateMetadata(field, toRemove) {
+    let rating = this.state.rating;
+    let tags = this.state.tags;
+
+    if (typeof field === 'number') rating = field;
+    if (typeof field === 'string') {
+      if (field === '') return danger('Empty tag');
+      if (toRemove) tags = tags.filter(val => val !== field);
+      else {
+        if (tags.indexOf(field) !== -1) return danger('Tag exists');
+        tags.push(field);
+      }
+    }
+
+    const metadata = { rating, tags };
+    return Galleries.updateMetadata(this.props.dbId, metadata, (doc) => {
+      if (!doc) return danger('Updating metadata failed');
+      return success('Metadata updated');
+    });
+  }
+
   loadMore() {
     // Don't do anything if we're at the end
     if (this.state.itemsLimit === this.state.itemsTotal) return;
@@ -166,12 +199,25 @@ class Gallery extends React.Component {
   }
 
   render() {
+    const galleryDetails = (
+      <GalleryBar
+        updateMetadata={this.updateMetadata}
+        rating={this.state.rating}
+        tags={this.state.tags}
+        numSubgalleries={this.state.subgalleries.length}
+        numImages={this.state.images.length}
+        showing={this.props.infoBar}
+      />
+    );
+
     let items = this.state.subgalleries.map(subgallery =>
       <GalleryCard
         key={`g${subgallery.$loki}`}
         dbId={subgallery.$loki}
         name={subgallery.name}
         thumbnail={subgallery.thumbnail}
+        tags={subgallery.metadata.tags}
+        rating={subgallery.metadata.rating}
         onClick={_ => this.props.onChange(subgallery.$loki)}
         onRemove={this.removeSubgallery}
         simple={this.props.simple}
@@ -184,6 +230,8 @@ class Gallery extends React.Component {
           key={image.$loki}
           dbId={image.$loki}
           src={image.location}
+          tags={image.metadata.tags}
+          rating={image.metadata.rating}
           onRemove={this.removeItem}
           onSelect={this.selectItem}
           multiSelect={this.props.multiSelect}
@@ -193,8 +241,12 @@ class Gallery extends React.Component {
       // Limit number of items to show
       )).slice(0, this.state.itemsLimit);
     }
+
     return (
       <Row>
+        <Col xs={12}>
+          {this.props.dbId > 1 ? galleryDetails : ' '}
+        </Col>
         <Col xs={12}>
           <SelectTools
             multiSelect={this.props.multiSelect}
@@ -234,12 +286,24 @@ Gallery.propTypes = {
   onChange: React.PropTypes.func.isRequired,
   simple: React.PropTypes.bool,
   multiSelect: React.PropTypes.bool,
-  onRefresh: React.PropTypes.func
+  infoBar: React.PropTypes.bool,
+  onRefresh: React.PropTypes.func,
+  filter: React.PropTypes.shape({
+    rating: React.PropTypes.number,
+    tag: React.PropTypes.string,
+    name: React.PropTypes.string
+  })
 };
 
 Gallery.defaultProps = {
+  filter: {
+    name: '',
+    rating: 0,
+    tag: ''
+  },
   simple: false,
   multiSelect: false,
+  infoBar: false,
   onRefresh: () => true
 };
 

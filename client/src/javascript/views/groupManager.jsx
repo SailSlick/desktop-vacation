@@ -30,7 +30,7 @@ class GroupManager extends React.Component {
   }
 
   leaveGroup() {
-    Groups.leaveGroup(this.props.mongoId, (err, msg) => {
+    Groups.leaveGroup(this.props.mongoId, this.props.dbId, (err, msg) => {
       if (err) danger(msg);
       else success(msg);
     });
