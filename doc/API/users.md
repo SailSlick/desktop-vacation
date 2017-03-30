@@ -25,7 +25,7 @@ Status: 200 OK
 ```json
 {
   "message": "user logged in",
-  "gallery": "58c1639bbc15aa11fcceddf8"
+  "root-remote-id": "58c1639bbc15aa11fcceddf8"
 }
 ```
 
@@ -58,7 +58,7 @@ Status: 200 OK
 ```json
 {
   "message": "user created and logged in",
-  "gallery": "58c1639bbc15aa11fcceddf8"
+  "root-remote-id": "58c1639bbc15aa11fcceddf8"
 }
 ```
 

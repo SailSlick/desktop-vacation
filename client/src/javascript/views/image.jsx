@@ -21,6 +21,7 @@ class Image extends React.Component {
     this.expand = this.expand.bind(this);
     this.hideModals = this.hideModals.bind(this);
     this.remove = this.remove.bind(this);
+    this.upload = this.upload.bind(this);
     this.deleteConfirmation = this.deleteConfirmation.bind(this);
     this.confirmDelete = this.confirmDelete.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
@@ -58,6 +59,10 @@ class Image extends React.Component {
 
   remove() {
     this.props.onRemove(this.props.dbId, false);
+  }
+
+  upload() {
+    this.props.onUpload(this.props.dbId);
   }
 
   deleteConfirmation() {
@@ -175,6 +180,9 @@ class Image extends React.Component {
               <Glyphicon glyph="th" />
               Add to gallery
             </MenuItem>
+            <MenuItem onClick={this.upload}>
+              <Glyphicon glyph="upload" />Sync
+            </MenuItem>
             <MenuItem divider />
             <MenuItem onClick={this.remove}>
               <Glyphicon glyph="remove" />
@@ -227,6 +235,7 @@ class Image extends React.Component {
 Image.propTypes = {
   dbId: React.PropTypes.number.isRequired,
   src: React.PropTypes.string.isRequired,
+  onUpload: React.PropTypes.func.isRequired,
   rating: React.PropTypes.number.isRequired,
   tags: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
   onRemove: React.PropTypes.func.isRequired,

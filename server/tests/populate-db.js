@@ -1,6 +1,5 @@
 const MongoTools = require('../../server/middleware/db');
 
-const dbConnI = new MongoTools('images');
 const dbConnG = new MongoTools('galleries');
 const dbConnU = new MongoTools('users');
 
@@ -62,32 +61,8 @@ function galleries1(imageRefs, userId) {
 }
 
 function insertImages(userId) {
-  // insert Images
-  const imageData = [{
-    hash: '34123187ndf9813fhq9348',
-    uid: userId,
-    metadata: { rating: 3, tags: ['winter', 'chill'] },
-    location: '/home/1.png'
-  }, {
-    hash: '34123187ndf9813fhq9348',
-    uid: userId,
-    metadata: { rating: 1, tags: ['winter', 'chill'] },
-    location: '/home/2.png'
-  }, {
-    hash: '34123187ndf9813fhq9348',
-    uid: userId,
-    metadata: { rating: 3, tags: ['winter', 'chill'] },
-    location: '/home/3.png'
-  }, {
-    hash: '34123187ndf9813fhq9348',
-    uid: userId,
-    metadata: { rating: 4, tags: ['summer', 'chill'] },
-    location: '/home/4.png'
-  }];
-  dbConnI.insertMany(imageData, (cb) => {
-    console.log('Images added, refs:', cb);
-    galleries1(cb, userId);
-  });
+  // insert images... eventually :)
+  galleries1([], userId);
 }
 
 function users(mainGal) {
@@ -107,12 +82,11 @@ function users(mainGal) {
 }
 
 // Wait for all the connections to be ready
-let i = 3;
+let i = 2;
 
 function connReady() {
   i--;
   if (i === 0) {
-    dbConnI.removeMany({}, () => true);
     dbConnG.removeMany({}, () => true);
     dbConnU.removeMany({}, () => true);
     return users();
@@ -120,6 +94,5 @@ function connReady() {
   return false;
 }
 
-dbConnI.onLoad = connReady;
 dbConnG.onLoad = connReady;
 dbConnU.onLoad = connReady;

@@ -4,24 +4,45 @@ const async = require('async');
 
 module.exports = {
 
-  create: (req, res, next) => {
+  createGroup: (req, res, next) => {
     const uid = req.session.uid;
     const username = req.session.username;
     const groupname = req.body.groupname;
 
-    if (!galleryModel.verifyGroupname(groupname)) {
+    if (!galleryModel.verifyGalleryName(groupname)) {
       return next({ status: 400, error: 'invalid groupname' });
     }
-    return galleryModel.create(groupname, uid, (ret) => {
-      if (typeof ret === 'string') return next({ status: 400, error: ret });
-      return galleryModel.get(groupname, uid, (cb, doc) => {
-        userModel.get(username, (err, data) => {
-          if (err) return next({ status: 500, error: 'Failed to add gallery to user' });
-          data.groups.push(doc._id);
-          return userModel.update(username, data, () => {
-            next({ status: 200, message: 'group created', data: doc._id });
+    return userModel.getBaseGallery(uid, baseGalleryId => (
+      galleryModel.create(groupname, baseGalleryId, uid, (errStatus, ret) => {
+        if (errStatus) {
+          return next({ status: errStatus, error: ret });
+        }
+        return galleryModel.get(groupname, uid, (cb, doc) => {
+          userModel.get(username, (err, data) => {
+            if (err) return next({ status: 500, message: 'creation failed' });
+            data.groups.push(doc._id);
+            return userModel.update(username, data, () => {
+              next({ status: 200, message: 'group created', gid: doc._id });
+            });
           });
         });
+      })
+    ));
+  },
+
+  create: (req, res, next) => {
+    const uid = req.session.uid;
+    const galleryname = req.body.galleryname;
+
+    if (!galleryModel.verifyGalleryName(galleryname)) {
+      return next({ status: 400, error: 'invalid groupname' });
+    }
+    return userModel.getBaseGallery(uid, (baseGalleryId) => {
+      galleryModel.create(galleryname, baseGalleryId, uid, (errStatus, ret) => {
+        if (errStatus) {
+          return next({ status: errStatus, error: ret });
+        }
+        return res.status(200).json({ message: 'gallery created', gid: ret });
       });
     });
   },
@@ -225,10 +246,18 @@ module.exports = {
 
   get: (req, res, next) => {
     const uid = req.session.uid;
-    const galleryname = req.body.galleryname;
+    const gid = req.params.gid;
 
-    galleryModel.get(galleryname, uid, (err, doc) => {
+    if (!galleryModel.verifyGid(gid)) {
+      return next({ status: 400, error: 'invalid gid' });
+    }
+    return galleryModel.getGid(gid, (err, doc) => {
       if (err) return next({ status: 404, error: 'gallery doesn\'t exist' });
+
+      if (doc.uid !== uid) {
+        return next({ status: 400, error: 'incorrect permissions' });
+      }
+
       return next({
         status: 200,
         message: 'gallery found',

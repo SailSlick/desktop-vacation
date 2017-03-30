@@ -1,5 +1,7 @@
 import { map, each, eachOf } from 'async';
 import { ipcRenderer as ipc } from 'electron';
+import request from 'request';
+import Host from './host';
 import DbConn from '../helpers/db';
 import Images from './images';
 
@@ -12,7 +14,7 @@ const gallery_update_event = new Event('gallery_updated');
 const Galleries = {
   should_save: true,
 
-  addBase: (name, cb) => {
+  addBase: (name, remoteId, cb) => {
     gallery_db.findOne({ name }, (found_gallery) => {
       if (found_gallery) {
         console.error(`Gallery ${name} already exists`);
@@ -20,6 +22,8 @@ const Galleries = {
       }
       const doc = {
         name,
+        remoteId,
+        tags: [],
         subgalleries: [],
         images: [],
         metadata: {
@@ -107,9 +111,6 @@ const Galleries = {
       }
       gallery.images.push(image_id);
       return gallery_db.updateOne({ $loki: id }, gallery, (new_gallery) => {
-        // This may be changed later, because for every
-        // image in a multi-add it will be fired... not
-        // great for performance
         if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
         return cb(new_gallery);
       });
@@ -264,6 +265,50 @@ const Galleries = {
       if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
       cb();
     });
+  },
+
+  addRemoteId: (gid, remoteId, cb) => {
+    console.log(`adding remote: ${remoteId}`);
+    gallery_db.updateOne({ $loki: gid }, { remoteId }, cb);
+  },
+
+  syncRoot: () => {
+    Host.getIndex(Host.userId, (userData) => {
+      if (!userData) {
+        console.error('User data doesn\'t exist.');
+        return;
+      }
+      const options = {
+        uri: Host.server_uri.concat(`/gallery/${userData.remoteGallery}`),
+        jar: Host.cookie_jar,
+        method: 'GET',
+        json: true
+      };
+      request(options, (err, response, body) => {
+        if (response.statusCode !== 200) {
+          console.error(`Failure to sync, code: ${response.statusCode}`);
+          console.error(body.error);
+          return;
+        } else if (!body.data.images || body.data.images.length === 0) {
+          console.log('No images to sync');
+          return;
+        }
+        map(body.data.images, Images.download, (downloadErr, imageIds) => {
+          if (downloadErr) console.error(downloadErr);
+          each(imageIds,
+            (id, cb) => {
+              Galleries.addItem(BASE_GALLERY_ID, id, (addErr, _res) => {
+                if (addErr) cb(err);
+                else cb();
+              });
+            },
+            (addErr) => {
+              if (addErr) console.error(addErr);
+            }
+          );
+        });
+      });
+    });
   }
 };
 
@@ -275,6 +320,8 @@ document.addEventListener('vacation_loaded', () => {
 document.addEventListener('gallery_updated', () =>
   gallery_db.save(_ => console.log('Database saved')),
 false);
+
+document.addEventListener('sync_root', Galleries.syncRoot, false);
 
 // IPC Calls
 ipc.on('selected-directory', (event, files) => {

@@ -6,7 +6,7 @@ All of the following requests require the user to be authenticated.
 
 ## Uploading
 
-`POST /gallery/upload`
+`POST /image/upload`
 
 Upon successful request, will upload the sent image(s) to the server.
 
@@ -116,3 +116,32 @@ Refer to the [db spec](../galleries.md) for more information on this response.
 |---------------------------|--------|
 | `'invalid gid'`           |   400  |
 | `'gallery doesn't exist'` |   404  |
+
+## Removing Images Globally
+
+`POST /image/<id:string>/remove`
+
+Upon successful request, remove the image from the server and all galleries.
+
+### URL Parameters
+
+| Name       | Type      | Description                                       |
+|------------|-----------|---------------------------------------------------|
+| id         | string    | a string referencing an images's id on the server |
+
+### Response
+
+`Status: 200 OK`
+```
+{
+  "message": "image deleted",
+}
+```
+
+### Expected Errors
+
+| Error Message                                 | Status |
+|-----------------------------------------------|--------|
+| `'invalid image id'`                          |   400  |
+| `'cannot find image, or invalid permissions'` |   400  |
+| `'invalid gallery transaction. please notify admin'` | 500 |

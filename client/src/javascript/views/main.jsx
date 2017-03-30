@@ -6,15 +6,17 @@ import { ipcRenderer as ipc } from 'electron';
 import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup, FormControl, ListGroup, ListGroupItem, InputGroup, Form, Glyphicon } from 'react-bootstrap';
 import Gallery from './gallery.jsx';
 import Galleries from '../models/galleries';
+import Host from '../models/host';
 import Slideshow from '../helpers/slideshow-client';
 import Profile from './profile.jsx';
 import Group from './group.jsx';
 import Groups from '../models/groups';
-import Host from '../models/host';
 import { success, danger } from '../helpers/notifier';
 
 const BASE_GALLERY_ID = 1;
 const BASE_GROUP_ID = '1';
+
+const sync_root_event = new Event('sync_root');
 
 const PrimaryContent = ({ page, parent }) =>
   [
@@ -114,6 +116,7 @@ class Main extends React.Component {
     this.joinGroup = this.joinGroup.bind(this);
     this.refuseInvite = this.refuseInvite.bind(this);
     this.inviteRefresh = this.inviteRefresh.bind(this);
+    this.syncImages = this.syncImages.bind(this);
     this.changeFilter = this.changeFilter.bind(this);
 
     // Events
@@ -166,6 +169,15 @@ class Main extends React.Component {
 
   getInvitesModal() {
     this.setState({ invitesModal: true });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  syncImages() {
+    if (Host.isAuthed()) {
+      document.dispatchEvent(sync_root_event);
+    } else {
+      danger('Not logged in');
+    }
   }
 
   accountCreated() {
@@ -411,6 +423,7 @@ class Main extends React.Component {
             <Nav onSelect={this.handleSelect}>
               <NavDropdown title="Images" id="images">
                 <MenuItem onClick={_ => ipc.send('open-file-dialog')}>Add</MenuItem>
+                <MenuItem onClick={this.syncImages}>Sync</MenuItem>
               </NavDropdown>
               <NavDropdown title="Galleries" id="galleries">
                 <MenuItem onClick={_ => this.changeGallery(BASE_GALLERY_ID)}>View</MenuItem>

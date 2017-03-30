@@ -21,11 +21,11 @@ app.use(session({
 }));
 app.use('/', routes);
 
-app.use((err, req, res, _next) => {
-  if (typeof (err) === 'string') {
-    return res.status(500).send(err);
+app.use((result, req, res, _next) => {
+  if (typeof (result) === 'string') {
+    return res.status(500).send({ error: result });
   }
-  return res.status(err.status).json(err);
+  return res.status(result.status).json(result);
 });
 
 app.listen(process.env.SRVPORT || 3000, () => {
