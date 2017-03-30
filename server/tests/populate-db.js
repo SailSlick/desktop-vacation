@@ -1,6 +1,5 @@
 const MongoTools = require('../../server/middleware/db');
 
-const dbConnI = new MongoTools('images');
 const dbConnG = new MongoTools('galleries');
 const dbConnU = new MongoTools('users');
 
@@ -88,7 +87,6 @@ let i = 3;
 function connReady() {
   i--;
   if (i === 0) {
-    dbConnI.removeMany({}, () => true);
     dbConnG.removeMany({}, () => true);
     dbConnU.removeMany({}, () => true);
     return users();
@@ -96,6 +94,5 @@ function connReady() {
   return false;
 }
 
-dbConnI.onLoad = connReady;
 dbConnG.onLoad = connReady;
 dbConnU.onLoad = connReady;
