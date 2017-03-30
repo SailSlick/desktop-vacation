@@ -82,7 +82,7 @@ function users(mainGal) {
 }
 
 // Wait for all the connections to be ready
-let i = 3;
+let i = 2;
 
 function connReady() {
   i--;
