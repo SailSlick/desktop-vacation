@@ -101,6 +101,20 @@ class DbConn {
     });
   }
 
+  updateRaw(query, data, cb) {
+    return this.col.updateOne(query, data, (err, result) => {
+      errCheck(err, () => {
+        if (result.matchedCount === 1 && result.modifiedCount === 1) {
+          debug('Updated one doc');
+          cb(true);
+        } else {
+          debug('Did not update one document');
+          cb(false);
+        }
+      });
+    });
+  }
+
   // updateMany: add data to all docs that match the query (e.g. add tags to multiple images)
   // query in {x:y} format, data in {x:y} format
   updateMany(query, data, cb) {

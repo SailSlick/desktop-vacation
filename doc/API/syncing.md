@@ -6,7 +6,7 @@ All of the following requests require the user to be authenticated.
 
 ## Uploading
 
-`POST /gallery/upload`
+`POST /image/upload`
 
 Upon successful request, will upload the sent image(s) to the server.
 

@@ -128,8 +128,8 @@ class Gallery extends React.Component {
   uploadItem(id) {
     if (Host.isAuthed()) {
       Galleries.get(this.props.dbId, (gallery) => {
-        if (!gallery || !gallery.remoteId) {
-          console.error(`Couldn't find gallery or remote in: ${this.props.dbId}`);
+        if (!gallery) {
+          console.error(`Couldn't find gallery: ${this.props.dbId}`);
           return;
         }
         console.log(`syncing, gallery: ${gallery.remoteId}`);

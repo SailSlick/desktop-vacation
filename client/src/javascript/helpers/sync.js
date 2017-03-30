@@ -29,7 +29,7 @@ export default {
       };
       const options = {
         formData,
-        uri: Host.server_uri.concat('/gallery/upload'),
+        uri: Host.server_uri.concat('/image/upload'),
         method: 'POST',
         jar: Host.cookie_jar,
         json: true

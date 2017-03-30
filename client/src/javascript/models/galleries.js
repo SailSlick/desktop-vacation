@@ -236,7 +236,6 @@ const Galleries = {
     Host.getIndex(Host.userId, (userData) => {
       if (!userData) {
         console.error('User data doesn\'t exist.');
-        console.error('Kernel panic - not syncing. Attempted to kill init');
         return;
       }
       const options = {
@@ -246,11 +245,11 @@ const Galleries = {
         json: true
       };
       request(options, (err, response, body) => {
-        if (response.statusCode !== 200 || !body.data.images) {
+        if (response.statusCode !== 200) {
           console.error(`Failure to sync, code: ${response.statusCode}`);
           console.error(body.error);
           return;
-        } else if (body.data.images.length === 0) {
+        } else if (!body.data.images || body.data.images.length === 0) {
           console.log('No images to sync');
           return;
         }

@@ -15,7 +15,6 @@ chaiShould();
 describe('Image Component', () => {
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
   const removeSpy = spy();
-  const uploadSpy = () => {};
   let test_image;
   let test_component;
 
@@ -27,7 +26,7 @@ describe('Image Component', () => {
         dbId={test_image.$loki}
         src={test_image_path}
         onRemove={removeSpy}
-        onUpload={uploadSpy}
+        onUpload={() => true}
       />);
       done();
     })

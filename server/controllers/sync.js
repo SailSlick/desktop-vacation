@@ -26,6 +26,10 @@ module.exports = {
           next({ status: 400, error: err });
           return;
         }
+        if (imageIds.length === 0) {
+          next({ status: 200, message: 'no images to upload' });
+          return;
+        }
         user.getBaseGallery(req.session.uid, (baseGalleryId) => {
           galleries.addImages(
             req.body.gid,
@@ -37,7 +41,8 @@ module.exports = {
                 console.error(add_error);
                 next({ error: add_error, status: 400 });
               } else {
-                res.status(200).json({
+                next({
+                  status: 200,
                   'image-ids': imageIds,
                   message: 'images uploaded'
                 });

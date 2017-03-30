@@ -2,7 +2,9 @@ import fs from 'fs';
 import Host from './host';
 import DbConn from '../helpers/db';
 import Sync from '../helpers/sync';
+import Galleries from './galleries';
 
+const gallery_update_event = new Event('gallery_updated');
 let image_db;
 
 // Exported methods
@@ -54,9 +56,10 @@ const Images = {
     );
   },
 
-  updateRemote: (id, remoteId, cb) => (
-    image_db.updateOne({ $loki: id }, { remoteId }, () => image_db.save(cb))
-  ),
+  updateRemote: (id, remoteId, cb) => {
+    if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
+    image_db.updateOne({ $loki: id }, { remoteId }, () => image_db.save(cb));
+  },
 
   remove: (id, cb) => {
     image_db.findOne({ $loki: id }, (doc) => {

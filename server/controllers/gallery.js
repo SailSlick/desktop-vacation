@@ -13,9 +13,9 @@ module.exports = {
       return next({ status: 400, error: 'invalid groupname' });
     }
     return userModel.getBaseGallery(uid, baseGalleryId => (
-      galleryModel.create(groupname, baseGalleryId, uid, (ret) => {
-        if (!isNaN(ret)) {
-          return next({ status: 400, error: ret });
+      galleryModel.create(groupname, baseGalleryId, uid, (errStatus, ret) => {
+        if (errStatus) {
+          return next({ status: errStatus, error: ret });
         }
         return galleryModel.get(groupname, uid, (cb, doc) => {
           userModel.get(username, (err, data) => {
@@ -38,9 +38,9 @@ module.exports = {
       return next({ status: 400, error: 'invalid groupname' });
     }
     return userModel.getBaseGallery(uid, (baseGalleryId) => {
-      galleryModel.create(galleryname, baseGalleryId, uid, (ret) => {
-        if (!isNaN(ret)) {
-          return next({ status: 400, error: ret });
+      galleryModel.create(galleryname, baseGalleryId, uid, (errStatus, ret) => {
+        if (errStatus) {
+          return next({ status: errStatus, error: ret });
         }
         return res.status(200).json({ message: 'gallery created', gid: ret });
       });
