@@ -7,6 +7,8 @@ import Galleries from './galleries';
 const gallery_update_event = new Event('gallery_updated');
 let image_db;
 
+const gallery_update_event = new Event('gallery_updated');
+
 // Exported methods
 const Images = {
   get: (id, cb) => {
@@ -69,6 +71,13 @@ const Images = {
         });
       }
       image_db.removeOne({ $loki: id }, cb);
+    });
+  },
+
+  updateMetadata: (id, metadata, cb) => {
+    image_db.updateOne({ $loki: id }, metadata, (doc) => {
+      document.dispatchEvent(gallery_update_event);
+      cb(doc);
     });
   },
 

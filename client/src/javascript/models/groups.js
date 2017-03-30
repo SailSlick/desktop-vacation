@@ -101,6 +101,12 @@ const Groups = {
     });
   },
 
+  // TODO Waiting on server syncing to complete server update.
+  updateMetadata: (gid, id, metadata, cb) => {
+    if (id === 0) cb(null);
+    else Galleries.updateMetadata(id, metadata, cb);
+  },
+
   inviteUser: (gid, username, cb) => {
     const options = {
       uri: server_uri.concat('/group/user/invite'),
@@ -135,10 +141,13 @@ const Groups = {
     });
   },
 
-  leaveGroup: (gid, cb) => {
+  leaveGroup: (gid, id, cb) => {
     Host.getIndex(1, (doc) => {
       Groups.removeUser(gid, doc.username, (err, msg) => {
-        cb(err, msg);
+        Galleries.remove(id, (ret) => {
+          if (ret) return cb(500, ret);
+          return cb(err, msg);
+        });
       });
     });
   },
@@ -229,17 +238,21 @@ const Groups = {
   // Returns:
   //   - Subgalleries with thumbnail locations
   //   - Images with full details
-  expand: (gallery, cb) => {
+  expand: (gallery, filter, cb) => {
     if (!gallery) {
       cb([], []);
     } else {
-      gallery.subgalleries = gallery.subgalleries.filter(x => x._id);
-      gallery.subgalleries.map(x =>
+      let subgalleries = gallery.subgalleries;
+      const images = gallery.images;
+      subgalleries = subgalleries.filter(x => x._id);
+      subgalleries = subgalleries.map((x) => {
         Galleries.getMongo(x._id, (subgallery) => {
           if (subgallery) x.$loki = subgallery.$loki;
-        })
-      );
-      cb(gallery.subgalleries, gallery.images);
+          x.$loki = 0;
+        });
+        return x;
+      });
+      Galleries.filter(subgalleries, images, filter, cb);
     }
   }
 };

@@ -306,7 +306,8 @@ module.exports = {
             name: gallery.name,
             uid: gallery.uid,
             users: gallery.users,
-            images: []
+            images: [],
+            metadata: gallery.metadata
           });
         });
       }, (map_err, galleries) => {

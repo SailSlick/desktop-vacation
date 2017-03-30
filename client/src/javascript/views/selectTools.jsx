@@ -30,7 +30,7 @@ export default class SelectTools extends React.Component {
         <Navbar className={this.state.fixed ? 'fixed-pos' : ''}>
           <Navbar.Header>
             <Navbar.Brand>
-              Tools
+              MultiSelect
             </Navbar.Brand>
           </Navbar.Header>
           <Nav bsStyle="pills">
