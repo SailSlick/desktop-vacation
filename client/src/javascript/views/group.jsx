@@ -6,7 +6,7 @@ import GalleryCard from './gallerycard.jsx';
 import SelectTools from './selectTools.jsx';
 import GalleryBar from './galleryBar.jsx';
 import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
-import { success, danger } from '../helpers/notifier';
+import { danger, success } from '../helpers/notifier';
 import Groups from '../models/groups';
 import Host from '../models/host';
 

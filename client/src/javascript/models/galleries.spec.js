@@ -59,8 +59,15 @@ describe('Galleries model', () => {
     })
   );
 
-  it('can query gallery', done =>
+  it('can query gallery by id', done =>
     Galleries.get(test_gallery.$loki, (queried_gallery) => {
+      queried_gallery.should.be.equal(test_gallery);
+      done();
+    })
+  );
+
+  it('can query gallery by name', done =>
+    Galleries.getName(test_gallery.name, (queried_gallery) => {
       queried_gallery.should.be.equal(test_gallery);
       done();
     })
@@ -232,6 +239,14 @@ describe('Galleries model', () => {
       subgalleries.should.not.be.empty;
       subgalleries.should.all.have.property('thumbnail', null);
       images.should.all.have.property('location');
+      done();
+    })
+  );
+
+  it('can convert a gallery to a group', done =>
+    Galleries.convertToGroup(test_subgallery.$loki, 'fakeMongoId', (updated_gallery) => {
+      updated_gallery.group.should.be.ok;
+      test_subgallery = updated_gallery;
       done();
     })
   );

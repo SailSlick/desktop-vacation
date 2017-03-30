@@ -121,6 +121,8 @@ const Galleries = {
 
   getMongo: (id, cb) => gallery_db.findOne({ mongoId: id }, cb),
 
+  getName: (name, cb) => gallery_db.findOne({ name }, cb),
+
   filter: (subgalleries, images, filter, cb) => {
     if (filter) {
       if (filter.name) {

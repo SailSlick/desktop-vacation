@@ -1,12 +1,13 @@
 import path from 'path';
 import React from 'react';
-import { spy } from 'sinon';
+import { spy, stub } from 'sinon';
 import { mount } from 'enzyme';
 import { use, should as chaiShould } from 'chai';
 import chaiEnzyme from 'chai-enzyme';
 import GalleryCard from './gallerycard.jsx';
 import Images from '../models/images';
 import Galleries from '../models/galleries';
+import Groups from '../models/groups';
 
 use(chaiEnzyme());
 chaiShould();
@@ -16,6 +17,7 @@ describe('GalleryCard Component', () => {
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
   const removeSpy = spy();
   const clickSpy = spy();
+  let groupConvertStub;
   let test_gallery;
   let test_image;
   let test_component;
@@ -28,6 +30,7 @@ describe('GalleryCard Component', () => {
     // Create test image
     Images.add(test_image_path, (inserted_image) => {
       test_image = inserted_image;
+      groupConvertStub = stub(Groups, 'convert');
 
       // Create test gallery
       Galleries.add(test_gallery_name, (inserted_gallery) => {
@@ -56,6 +59,7 @@ describe('GalleryCard Component', () => {
 
   // Remove test image and gallery
   after((done) => {
+    groupConvertStub.restore();
     Images.remove(test_image.$loki, () => true);
     Galleries.remove(test_gallery.$loki, _ => done());
   });
@@ -77,6 +81,13 @@ describe('GalleryCard Component', () => {
     removeSpy.called.should.not.be.ok;
     test_component.find('.img-menu a').at(1).simulate('click');
     removeSpy.called.should.be.ok;
+    done();
+  });
+
+  it('can request conversion to group of element', (done) => {
+    groupConvertStub.called.should.not.be.ok;
+    test_component.find('.img-menu a').at(2).simulate('click');
+    groupConvertStub.called.should.be.ok;
     done();
   });
 
