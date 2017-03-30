@@ -252,7 +252,6 @@ class Main extends React.Component {
     }
     event.preventDefault();
     const galleryname = event.target.galleryname.value;
-
     Groups.create(galleryname, (err, msg) => {
       if (err) {
         danger(msg);
