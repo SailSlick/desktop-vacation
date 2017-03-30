@@ -32,5 +32,9 @@ module.exports = {
       if (removed) return next();
       return next('cannot find image, or invalid permissions');
     });
+  },
+
+  purgeUserImages: (uid, cb) => {
+    db.removeMany({ uid }, () => cb());
   }
 };

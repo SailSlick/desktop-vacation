@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const userModel = require('../models/user.js');
+const imageModel = require('../models/image.js');
 
 const SALT_N = 8;
 
@@ -93,9 +94,11 @@ module.exports = {
   },
 
   delete: (req, res, next) => {
-    userModel.delete(req.session.username, (err) => {
-      if (err) return next({ status: 500, error: err });
-      return next({ status: 200, message: 'user deleted' });
-    });
+    imageModel.purgeUserImages(req.session.uid, () =>
+      userModel.delete(req.session.username, (err) => {
+        if (err) return next({ status: 500, error: err });
+        return next({ status: 200, message: 'user deleted' });
+      })
+    );
   }
 };

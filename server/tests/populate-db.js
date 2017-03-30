@@ -62,32 +62,8 @@ function galleries1(imageRefs, userId) {
 }
 
 function insertImages(userId) {
-  // insert Images
-  const imageData = [{
-    hash: '34123187ndf9813fhq9348',
-    uid: userId,
-    metadata: { rating: 3, tags: ['winter', 'chill'] },
-    location: '/home/1.png'
-  }, {
-    hash: '34123187ndf9813fhq9348',
-    uid: userId,
-    metadata: { rating: 1, tags: ['winter', 'chill'] },
-    location: '/home/2.png'
-  }, {
-    hash: '34123187ndf9813fhq9348',
-    uid: userId,
-    metadata: { rating: 3, tags: ['winter', 'chill'] },
-    location: '/home/3.png'
-  }, {
-    hash: '34123187ndf9813fhq9348',
-    uid: userId,
-    metadata: { rating: 4, tags: ['summer', 'chill'] },
-    location: '/home/4.png'
-  }];
-  dbConnI.insertMany(imageData, (cb) => {
-    console.log('Images added, refs:', cb);
-    galleries1(cb, userId);
-  });
+  // insert images... eventually :)
+  galleries1([], userId);
 }
 
 function users(mainGal) {

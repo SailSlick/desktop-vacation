@@ -39,6 +39,7 @@ module.exports = {
     }
     return userModel.getBaseGallery(uid, (baseGalleryId) => {
       galleryModel.create(galleryname, baseGalleryId, uid, (errStatus, ret) => {
+        console.log(errStatus, ret);
         if (errStatus) {
           return next({ status: errStatus, error: ret });
         }
