@@ -1,20 +1,11 @@
 import request from 'request';
 import fs from 'fs';
 import path from 'path';
-import url from 'url';
 import mime from 'mime-types';
 import DbConn from './db';
 import Images from '../models/images';
 import Host from '../models/host';
 import { danger, success, warning } from './notifier';
-
-function uriToId(uri) {
-  // Forgive the following code, it's actually the "correct" way to do it.
-  // It may be slower than actually just going left until the first /
-  // and using everything to the right. If you think this is how it should
-  // be done, comment BAZINGA here in the code review.
-  return path.parse(url.parse(uri).pathname).base;
-}
 
 function errorHandler(reqErr, response, body, cb) {
   if (reqErr) {
@@ -72,7 +63,7 @@ export default {
       if (res.statusCode === 200) {
         newFilePath = path.join(
           DbConn.getUserDataFolder(),
-          `${uriToId(imageUrl)}.${mime.extension(res.headers['content-type'])}`
+          `${id}.${mime.extension(res.headers['content-type'])}`
         );
         req.pipe(fs.createWriteStream(newFilePath));
       } else {
@@ -89,8 +80,7 @@ export default {
     .on('end', () => cb(null, newFilePath));
   },
 
-  removeSynced: (uri, cb) => {
-    const remoteId = uriToId(uri);
+  removeSynced: (remoteId, cb) => {
     const options = {
       uri: Host.server_uri.concat(`/image/${remoteId}/remove`),
       jar: Host.cookie_jar,
@@ -106,10 +96,7 @@ export default {
   },
 
   shareImage: (remoteId, cb) => {
-    if (!Host.isAuthed()) {
-      cb('Not logged in', null);
-      return;
-    }
+    if (!Host.isAuthed()) return cb('Not logged in', null);
     const uri = Host.server_uri.concat(`/image/${remoteId}`);
     const options = {
       uri: uri.concat('/share'),
@@ -117,7 +104,7 @@ export default {
       method: 'POST',
       json: true
     };
-    request(options, (reqErr, response, body) => {
+    return request(options, (reqErr, response, body) => {
       errorHandler(reqErr, response, body, (err, _) => {
         if (err) return cb(err, null);
         return cb(null, uri);

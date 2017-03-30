@@ -170,7 +170,7 @@ Upon successful request, will share the image
 
 ### Expected Errors
 
-| Error Message                                        | Status |
-|------------------------------------------------------|--------|
-| `'invalid image id'`                                 |   400  |
-| `'failure to share image'`                           |   400  |
+| Error Message               | Status |
+|-----------------------------|--------|
+| `'invalid image id'`        |   400  |
+| `'failure to share image'`  |   400  |
