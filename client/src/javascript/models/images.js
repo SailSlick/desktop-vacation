@@ -1,14 +1,20 @@
 import fs from 'fs';
+import Host from './host';
 import DbConn from '../helpers/db';
-
-let image_db;
+import Sync from '../helpers/sync';
+import Galleries from './galleries';
 
 const gallery_update_event = new Event('gallery_updated');
+let image_db;
 
 // Exported methods
 const Images = {
   get: (id, cb) => {
     image_db.findOne({ $loki: id }, cb);
+  },
+
+  getByUri: (uri, cb) => {
+    image_db.findOne({ uri }, cb);
   },
 
   add: (path, cb) => {
@@ -28,6 +34,18 @@ const Images = {
     });
   },
 
+  addRemoteId: (location, remoteId, cb) => {
+    const doc = {
+      location,
+      remoteId,
+      hash: '',
+      metadata: { rating: 0, tags: [] }
+    };
+    // since an existance check is already done to prevent duplicate downloads
+    // just add the doc
+    return image_db.insert(doc, cb);
+  },
+
   delete: (id, cb) => {
     Images.get(id, image =>
       // Check file exists & we have write access
@@ -38,8 +56,20 @@ const Images = {
     );
   },
 
+  updateRemote: (id, remoteId, cb) => {
+    if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
+    image_db.updateOne({ $loki: id }, { remoteId }, () => image_db.save(cb));
+  },
+
   remove: (id, cb) => {
-    image_db.removeOne({ $loki: id }, cb);
+    image_db.findOne({ $loki: id }, (doc) => {
+      if (doc && doc.remoteId && Host.isAuthed()) {
+        Sync.removeSynced(doc.remoteId, (err) => {
+          if (err) console.error(err);
+        });
+      }
+      image_db.removeOne({ $loki: id }, cb);
+    });
   },
 
   updateMetadata: (id, metadata, cb) => {
@@ -53,6 +83,24 @@ const Images = {
     image_db.emptyCol(() => {
       image_db.save(_ => console.log('Database saved'));
       cb();
+    });
+  },
+
+  download: (remoteId, cb) => {
+    image_db.findOne({ remoteId }, (existingDoc) => {
+      if (existingDoc) {
+        cb(null, existingDoc.$loki);
+      } else {
+        Sync.downloadImage(remoteId, (err, location) => {
+          if (err) console.error(err);
+          else {
+            console.log(`Adding image at ${location}`);
+            Images.addRemoteId(location, remoteId, (doc) => {
+              cb(null, doc.$loki);
+            });
+          }
+        });
+      }
     });
   }
 };

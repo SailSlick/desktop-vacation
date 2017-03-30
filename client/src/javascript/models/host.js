@@ -14,16 +14,16 @@ if (process.env.NODE_ENV !== 'dev') {
   server_uri = 'http://127.0.0.1:3000';
 }
 
-
-function createClientAccount(username, successMessage, cb) {
+function createClientAccount(username, res, cb) {
   // insert users
   const galname = username.concat('_all');
-  Galleries.addBase(galname, (ret) => {
-    if (!ret) return cb(500, "gallery couldn't be made on client");
+  Galleries.addBase(galname, res['root-remote-id'], (rootLokiId) => {
+    if (!rootLokiId) return cb(500, "gallery couldn't be made on client");
     // insert users
     const userData = {
       username,
-      gallery: ret,
+      gallery: rootLokiId,
+      remoteGallery: res['root-remote-id'],
       slideshowConfig: {
         onstart: false,
         galleryname: username.concat('_all'),
@@ -33,17 +33,18 @@ function createClientAccount(username, successMessage, cb) {
     return host_db.insert(userData, (userDoc) => {
       if (!userDoc) return cb(500, "user couldn't be made on client");
       document.dispatchEvent(host_update_event);
-      return cb(null, successMessage);
+      return cb(null, res.message);
     });
   });
 }
 
 // Exported methods
 const Host = {
-
   server_uri,
 
   cookie_jar: request.jar(),
+
+  userId: 1,
 
   uid: '',
 
@@ -83,10 +84,11 @@ const Host = {
         }
         if (!host_doc) {
           console.log('Create client side account for prev account.');
-          return createClientAccount(username, body.message, (msg_err, msg) => {
+          return createClientAccount(username, body, (msg_err, msg) => {
             cb(msg_err, msg);
           });
         }
+
         Host.uid = body.uid;
         return cb(null, body.message);
       });
@@ -137,11 +139,19 @@ const Host = {
             cb(body.status, body.error);
           });
         }
-        return createClientAccount(username, body.message, (msg_err, msg) => {
+        return createClientAccount(username, body, (msg_err, msg) => {
           Host.uid = body.uid;
           cb(msg_err, msg);
         });
       });
+    });
+  },
+
+  getBaseRemote: (cb) => {
+    host_db.findOne({ $loki: Host.userId }, (doc) => {
+      console.log(`remote gallery: ${doc.remoteGallery}`);
+      if (!doc) return cb('');
+      return cb(doc.remoteGallery);
     });
   },
 

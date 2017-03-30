@@ -12,6 +12,8 @@ All the following commands should be run from the `server` folder
 | debug                  | production  | Provides better logging utilities  |
 | body-parser            | production  | Converts requests to correct format|
 | bcrypt                 | production  | Provides secure password hashing   |
+| multer                 | production  | Handles multipart/form uploads     |
+| multer-gridfs-storage  | production  | Allow gridfs storage with multer   |
 | eslint                 | dev         | Javascript style guide             |
 | chai                   | dev         | Testing library                    |
 | chai-http              | dev         | Module for chai for http requests  |

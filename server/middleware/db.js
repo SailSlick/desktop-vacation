@@ -1,11 +1,10 @@
 const MongoClient = require('mongodb');
+const Grid = require('gridfs-stream');
 const debug = require('debug')('vacation');
 const url = require('../../script/db/mongo-url.js');
 
 function errCheck(error, cb) {
-  if (error) {
-    console.error(error);
-  }
+  if (error) console.error(error);
   return cb(error);
 }
 
@@ -15,6 +14,7 @@ class DbConn {
     MongoClient.connect(url, (err, db) => {
       errCheck(err, () => {
         this.col = db.collection(colName);
+        this.gfs = Grid(db, MongoClient);
         debug('Connected to Mongo');
         this.onLoad();
       });
@@ -101,6 +101,20 @@ class DbConn {
     });
   }
 
+  updateRaw(query, data, cb) {
+    return this.col.updateOne(query, data, (err, result) => {
+      errCheck(err, () => {
+        if (result.matchedCount === 1 && result.modifiedCount === 1) {
+          debug('Updated one doc');
+          cb(true);
+        } else {
+          debug('Did not update one document');
+          cb(false);
+        }
+      });
+    });
+  }
+
   // updateMany: add data to all docs that match the query (e.g. add tags to multiple images)
   // query in {x:y} format, data in {x:y} format
   updateMany(query, data, cb) {
@@ -131,6 +145,10 @@ class DbConn {
         }
       });
     });
+  }
+
+  readFile(_id) {
+    return this.gfs.createReadStream({ _id });
   }
 
   // removeMany: remove all docs matching query from collection (e.g. delete gallery)

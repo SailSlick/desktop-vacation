@@ -9,7 +9,9 @@ import SelectTools from './selectTools.jsx';
 import GalleryBar from './galleryBar.jsx';
 import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
 import { success, danger } from '../helpers/notifier';
+import Sync from '../helpers/sync';
 import Galleries from '../models/galleries';
+import Host from '../models/host';
 
 const append_gallery_event_name = 'append_gallery';
 
@@ -33,6 +35,7 @@ class Gallery extends React.Component {
     this.removeSubgallery = this.removeSubgallery.bind(this);
     this.addAllToGallery = this.addAllToGallery.bind(this);
     this.removeItem = this.removeItem.bind(this);
+    this.uploadItem = this.uploadItem.bind(this);
     this.removeAll = this.removeAll.bind(this);
     this.selectItem = this.selectItem.bind(this);
     this.selectAll = this.selectAll.bind(this);
@@ -134,6 +137,25 @@ class Gallery extends React.Component {
     }
   }
 
+  uploadItem(id) {
+    if (Host.isAuthed()) {
+      Galleries.get(this.props.dbId, (gallery) => {
+        if (!gallery) {
+          console.error(`Couldn't find gallery: ${this.props.dbId}`);
+          return;
+        }
+        console.log(`syncing, gallery: ${gallery.remoteId}`);
+        if (gallery.remoteId) {
+          Sync.uploadImages(gallery.remoteId, id);
+        } else {
+          danger('Can\'t sync from subgallery.');
+        }
+      });
+    } else {
+      danger('Can\'t sync, try signing in!');
+    }
+  }
+
   removeAll(cb) {
     Galleries.should_save = false;
     const num_items = this.state.selection.length;
@@ -214,6 +236,7 @@ class Gallery extends React.Component {
       <GalleryCard
         key={`g${subgallery.$loki}`}
         dbId={subgallery.$loki}
+        remoteId={subgallery.remoteId}
         name={subgallery.name}
         thumbnail={subgallery.thumbnail}
         tags={subgallery.metadata.tags}
@@ -230,6 +253,7 @@ class Gallery extends React.Component {
           key={image.$loki}
           dbId={image.$loki}
           src={image.location}
+          onUpload={this.uploadItem}
           tags={image.metadata.tags}
           rating={image.metadata.rating}
           onRemove={this.removeItem}
