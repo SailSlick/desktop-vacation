@@ -31,7 +31,7 @@ module.exports = {
         return db.updateRaw(
         { _id: baseGalleryId, uid },
         { $addToSet: { subgallaries: res.toString() } },
-        _ => cb(res));
+        _ => cb(null, res));
       });
     });
   },
