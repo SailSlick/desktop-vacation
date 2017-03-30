@@ -184,7 +184,7 @@ describe('Group model', () => {
     Nock(domain)
       .post('/group/user/remove')
       .reply(200, { status: 200, message: 'I see fields of green and screens of white' }, headers);
-    Groups.leaveGroup('fakeButMeantToBeRealGid', (err, msg) => {
+    Groups.leaveGroup('fakeButMeantToBeRealGid', testGroupName, (err, msg) => {
       should.not.exist(err);
       msg.should.be.ok;
       done();
@@ -226,7 +226,59 @@ describe('Group model', () => {
 
   it('can expand a group', (done) => {
     const groups = { subgalleries: [{ _id: 'not gonna be found' }], images: [] };
-    Groups.expand(groups, (subgalleries, images) => {
+    Groups.expand(groups, {}, (subgalleries, images) => {
+      subgalleries.length.should.equal(1);
+      images.length.should.equal(0);
+      done();
+    });
+  });
+
+  it('can expand a group', (done) => {
+    const groups = { subgalleries: [{ _id: 'not gonna be found' }], images: [] };
+    Groups.expand(groups, {}, (subgalleries, images) => {
+      subgalleries.length.should.equal(1);
+      images.length.should.equal(0);
+      done();
+    });
+  });
+
+  it('can expand a group with name filter', (done) => {
+    const groups = { subgalleries: [{ _id: 'not gonna be found', name: 'huh' }], images: [] };
+    Groups.expand(groups, { name: 'huh' }, (subgalleries, images) => {
+      subgalleries.length.should.equal(1);
+      images.length.should.equal(0);
+      done();
+    });
+  });
+
+  it('can expand a group with name filter', (done) => {
+    const groups = { subgalleries: [{ _id: 'not gonna be found', name: 'huh', metadata: { tags: [], rating: 3 } }], images: [] };
+    Groups.expand(groups, { rating: 3 }, (subgalleries, images) => {
+      subgalleries.length.should.equal(1);
+      images.length.should.equal(0);
+      done();
+    });
+  });
+
+  it('can update rating metadata for a group', (done) => {
+    const metadata = { rating: 4, tags: [] };
+    Groups.updateMetadata('fakeMongoId', testGallery.$loki, metadata, (updatedGallery) => {
+      updatedGallery.metadata.rating.should.equal(4);
+      done();
+    });
+  });
+
+  it('can update tag metadata for a group', (done) => {
+    const metadata = { rating: testGallery.metadata.rating, tags: ['test'] };
+    Groups.updateMetadata('fakeMongoId', testGallery.$loki, metadata, (updatedGallery) => {
+      updatedGallery.metadata.tags.should.include('test');
+      done();
+    });
+  });
+
+  it('can expand a group with tag filter', (done) => {
+    const groups = { subgalleries: [{ _id: 'not gonna be found', name: 'huh', metadata: { tags: ['test'], rating: 3 } }], images: [] };
+    Groups.expand(groups, { tag: 'test' }, (subgalleries, images) => {
       subgalleries.length.should.equal(1);
       images.length.should.equal(0);
       done();
