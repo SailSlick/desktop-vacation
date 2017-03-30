@@ -22,9 +22,11 @@ routes.post('/user/delete', user.delete);
 
 // images
 
-routes.use('/image/*', user.requireAuth);
 routes.get('/image/:id/', sync.download);
+routes.use('/image/*', user.requireAuth);
 routes.post('/image/:id/remove', sync.remove);
+routes.post('/image/:id/share', sync.shareImage);
+routes.post('/image/:id/unshare', sync.unshareImage);
 routes.use('/image/upload', uploadStorage.array('images'), sync.upload);
 
 // gallery

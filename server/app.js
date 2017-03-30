@@ -21,9 +21,21 @@ app.use(session({
 }));
 app.use('/', routes);
 
+app.use((req, res, _next) => {
+  res.status(404).json({
+    message: 'resource not found',
+    status: 404 // status is here for backwards compatability
+  });
+});
+
 app.use((result, req, res, _next) => {
   if (typeof (result) === 'string') {
     return res.status(500).send({ error: result });
+  } if (!result.status) {
+    return res.status(500).json({
+      error: result.message,
+      status: 500 // status is here for backwards compatability
+    });
   }
   return res.status(result.status).json(result);
 });

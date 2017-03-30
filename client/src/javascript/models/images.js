@@ -56,9 +56,11 @@ const Images = {
     );
   },
 
-  updateRemote: (id, remoteId, cb) => {
-    if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
-    image_db.updateOne({ $loki: id }, { remoteId }, () => image_db.save(cb));
+  update: (id, data, cb) => {
+    image_db.updateOne({ $loki: id }, data, (doc) => {
+      if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
+      cb(doc);
+    });
   },
 
   remove: (id, cb) => {
@@ -69,13 +71,6 @@ const Images = {
         });
       }
       image_db.removeOne({ $loki: id }, cb);
-    });
-  },
-
-  updateMetadata: (id, metadata, cb) => {
-    image_db.updateOne({ $loki: id }, metadata, (doc) => {
-      document.dispatchEvent(gallery_update_event);
-      cb(doc);
     });
   },
 

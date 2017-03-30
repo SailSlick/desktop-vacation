@@ -1,8 +1,10 @@
 import React from 'react';
+import { clipboard } from 'electron';
 import { Modal, MenuItem, Button, Glyphicon, Image as BsImage, Grid, Col, Row, Table, Form, FormControl, InputGroup } from 'react-bootstrap';
+import { success, danger, warning } from '../helpers/notifier';
 import Wallpaper from '../helpers/wallpaper-client';
+import Sync from '../helpers/sync';
 import Images from '../models/images';
-import { success, danger } from '../helpers/notifier';
 
 const append_gallery_event_name = 'append_gallery';
 
@@ -24,6 +26,8 @@ class Image extends React.Component {
     this.upload = this.upload.bind(this);
     this.deleteConfirmation = this.deleteConfirmation.bind(this);
     this.confirmDelete = this.confirmDelete.bind(this);
+    this.share = this.share.bind(this);
+    this.unshare = this.unshare.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
   }
 
@@ -65,6 +69,37 @@ class Image extends React.Component {
     this.props.onUpload(this.props.dbId);
   }
 
+  unshare() {
+    return Sync.unshareImage(this.props.remoteId, (err) => {
+      if (err) return danger(err);
+      return Images.update(
+        this.props.dbId,
+        { sharedUrl: null },
+        () => success('Image no longer available')
+      );
+    });
+  }
+
+  share() {
+    if (!this.props.remoteId) {
+      return warning('You need to sync an image to share it!');
+    } else if (this.props.url) {
+      success('Image link copied to clipboard!');
+      return clipboard.writeText(this.props.url);
+    }
+    return Sync.shareImage(this.props.remoteId, (err, url) => {
+      if (err) return danger(err);
+      return Images.update(
+        this.props.dbId,
+        { sharedUrl: url },
+        () => {
+          success('Image link copied to clipboard!');
+          clipboard.writeText(url);
+        }
+      );
+    });
+  }
+
   deleteConfirmation() {
     this.setState({ deleteConfirmation: true });
   }
@@ -89,7 +124,7 @@ class Image extends React.Component {
     }
 
     const metadata = { metadata: { rating, tags } };
-    return Images.updateMetadata(this.props.dbId, metadata, (doc) => {
+    return Images.update(this.props.dbId, metadata, (doc) => {
       if (!doc) return danger('Updating metadata failed');
       return success('Metadata updated');
     });
@@ -166,6 +201,25 @@ class Image extends React.Component {
       </row>
     );
 
+    let shareButtons = (
+      <MenuItem onClick={this.share}>
+        <Glyphicon glyph="share" />
+        Share
+      </MenuItem>
+    );
+    if (this.props.url) {
+      shareButtons = ([
+        <MenuItem key="copyurlButton" onClick={this.share}>
+          <Glyphicon glyph="copy" />
+          Copy URL
+        </MenuItem>,
+        <MenuItem key="unshareButton" onClick={this.unshare}>
+          <Glyphicon glyph="lock" />
+            Unshare
+        </MenuItem>
+      ]);
+    }
+
     return (
       <figure className={classes}>
         <BsImage responsive src={this.props.src} alt="MISSING" onClick={this.onClick} />
@@ -181,8 +235,10 @@ class Image extends React.Component {
               Add to gallery
             </MenuItem>
             <MenuItem onClick={this.upload}>
-              <Glyphicon glyph="upload" />Sync
+              <Glyphicon glyph="upload" />
+              Sync
             </MenuItem>
+            {shareButtons}
             <MenuItem divider />
             <MenuItem onClick={this.remove}>
               <Glyphicon glyph="remove" />
@@ -240,6 +296,8 @@ Image.propTypes = {
   tags: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
   onRemove: React.PropTypes.func.isRequired,
   onSelect: React.PropTypes.func,
+  url: React.PropTypes.string,
+  remoteId: React.PropTypes.string,
   multiSelect: React.PropTypes.bool,
   selected: React.PropTypes.bool
 };
@@ -247,7 +305,9 @@ Image.propTypes = {
 Image.defaultProps = {
   onSelect: _ => true,
   multiSelect: false,
-  selected: false
+  selected: false,
+  url: null,
+  remoteId: null
 };
 
 export default Image;

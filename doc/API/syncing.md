@@ -89,7 +89,7 @@ Returns the associated gallery information from the server database.
 Refer to the [db spec](../galleries.md) for more information on this response.
 
 `Status: 200 OK`
-```
+```json
 {
   "status": 200,
   "message": "gallery found",
@@ -132,16 +132,45 @@ Upon successful request, remove the image from the server and all galleries.
 ### Response
 
 `Status: 200 OK`
-```
+```json
 {
-  "message": "image deleted",
+  "message": "image deleted"
 }
 ```
 
 ### Expected Errors
 
-| Error Message                                 | Status |
-|-----------------------------------------------|--------|
-| `'invalid image id'`                          |   400  |
-| `'cannot find image, or invalid permissions'` |   400  |
-| `'invalid gallery transaction. please notify admin'` | 500 |
+| Error Message                                        | Status |
+|------------------------------------------------------|--------|
+| `'invalid image id'`                                 |   400  |
+| `'cannot find image'`                                |   400  |
+| `'invalid permissions'`                              |   401  |
+| `'invalid gallery transaction'`                      |   500  |
+
+## Sharing images
+
+`POST /image/<id:string>/share`
+
+Upon successful request, will share the image
+
+### URL Parameters
+
+| Name       | Type      | Description                                       |
+|------------|-----------|---------------------------------------------------|
+| id         | string    | a string referencing an images's id on the server |
+
+### Response
+
+`Status: 200 OK`
+```json
+{
+  "message": "image shared"
+}
+```
+
+### Expected Errors
+
+| Error Message               | Status |
+|-----------------------------|--------|
+| `'invalid image id'`        |   400  |
+| `'failure to share image'`  |   400  |

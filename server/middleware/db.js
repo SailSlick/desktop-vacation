@@ -24,7 +24,12 @@ class DbConn {
   // eslint-disable-next-line class-methods-use-this
   getId(id) {
     if (typeof id === 'string') {
-      return new MongoClient.ObjectID(id);
+      try {
+        return new MongoClient.ObjectID(id);
+      } catch (e) {
+        console.error(`invalid id passed to getId: ${id}`);
+        return id;
+      }
     }
     return id;
   }
@@ -95,7 +100,7 @@ class DbConn {
           cb(true);
         } else {
           debug('Did not update one document');
-          cb(false);
+          cb(false, result.matchedCount, result.modifiedCount);
         }
       });
     });

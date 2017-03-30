@@ -253,6 +253,8 @@ class Gallery extends React.Component {
           key={image.$loki}
           dbId={image.$loki}
           src={image.location}
+          url={image.sharedUrl}
+          remoteId={image.remoteId}
           onUpload={this.uploadItem}
           tags={image.metadata.tags}
           rating={image.metadata.rating}

@@ -33,7 +33,7 @@ describe('Images model', () => {
 
   it('can update rating metadata for an image', (done) => {
     const metadata = { rating: 4, tags: test_image.metadata.tags };
-    Images.updateMetadata(test_image.$loki, { metadata }, (updatedImage) => {
+    Images.update(test_image.$loki, { metadata }, (updatedImage) => {
       updatedImage.metadata.rating.should.equal(4);
       done();
     });
@@ -41,7 +41,7 @@ describe('Images model', () => {
 
   it('can update tags metadata for an image', (done) => {
     const metadata = { rating: test_image.metadata.rating, tags: ['test'] };
-    Images.updateMetadata(test_image.$loki, { metadata }, (updatedImage) => {
+    Images.update(test_image.$loki, { metadata }, (updatedImage) => {
       updatedImage.metadata.tags.should.include('test');
       done();
     });
