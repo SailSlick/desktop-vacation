@@ -1,5 +1,6 @@
 import path from 'path';
 import React from 'react';
+import Nock from 'nock';
 import { spy, stub } from 'sinon';
 import { mount } from 'enzyme';
 import { use, should as chaiShould } from 'chai';
@@ -8,6 +9,8 @@ import chaiEnzyme from 'chai-enzyme';
 import Main from './main.jsx';
 import Images from '../models/images';
 import Galleries from '../models/galleries';
+import Groups from '../models/groups';
+import Host from '../models/host';
 
 use(chaiEnzyme());
 chaiShould();
@@ -15,12 +18,17 @@ chaiShould();
 describe('Main Component', () => {
   const base_gallery_id = 1;
   const test_gallery_name = 'Land Rovers';
+  const test_group_name = 'BLand Slowvers';
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
+  const domain = Host.server_uri;
   let test_gallery;
   let test_image;
   let test_component;
   let accountCreatedStub;
+  let groupCreateStub;
   let changeFilterStub;
+  let inviteRefreshStub;
+  let eventSpy;
 
   beforeEach(() => {
     Galleries.should_save = false;
@@ -31,6 +39,8 @@ describe('Main Component', () => {
     Images.add(test_image_path, (inserted_image) => {
       changeFilterStub = stub(Main.prototype, 'changeFilter');
       test_image = inserted_image;
+      groupCreateStub = stub(Groups, 'create').returns(true);
+      inviteRefreshStub = stub(Main.prototype, 'inviteRefresh');
 
       // Create test gallery
       Galleries.add(test_gallery_name, (inserted_gallery) => {
@@ -52,7 +62,10 @@ describe('Main Component', () => {
   // Remove test image and gallery
   after((done) => {
     test_component.unmount();
+    inviteRefreshStub.restore();
     accountCreatedStub.restore();
+    groupCreateStub.restore();
+    eventSpy.restore();
     Galleries.should_save = true;
     Images.remove(test_image.$loki, () => true);
     Galleries.remove(test_gallery.$loki, _ => done());
@@ -95,6 +108,32 @@ describe('Main Component', () => {
         done();
       }, 750);
     });
+  });
+
+  it('can open group name modal', (done) => {
+    test_component.should.have.state('newGroupModal', false);
+    test_component.instance().getNewGroupName();
+    test_component.should.have.state('newGroupModal', true);
+    done();
+  });
+
+  it('can add new group and close modal', (done) => {
+    test_component.should.have.state('newGroupModal', true);
+
+    // Attempt to add a duplicate, so nothing actually happens
+    const event = {
+      preventDefault: () => true,
+      target: {
+        galleryname: {
+          value: test_group_name
+        }
+      }
+    };
+    test_component.instance().addNewGroup(event);
+    test_component.instance().hideModals();
+    test_component.should.have.state('newGroupModal', false);
+    groupCreateStub.called.should.be.ok;
+    done();
   });
 
   it('can open gallery selector modal', (done) => {
@@ -141,6 +180,37 @@ describe('Main Component', () => {
     done();
   });
 
+  it('can change group', (done) => {
+    test_component.should.have.state('groupId', '1');
+    test_component.instance().changeGroup('1');
+    test_component.should.have.state('page', 1);
+    done();
+  });
+
+  it('can check gallerynameValidationState', (done) => {
+    test_component.should.have.state('galleryname', '');
+    test_component.instance().gallerynameValidationState().should.equal('error');
+    test_component.setState({ galleryname: 'hg' });
+    test_component.instance().gallerynameValidationState().should.equal('warning');
+    test_component.setState({ galleryname: 'good gallery name' });
+    test_component.instance().gallerynameValidationState().should.equal('success');
+    done();
+  });
+
+  it('can\'t change to null group', (done) => {
+    test_component.should.have.state('groupId', '1');
+    test_component.instance().changeGroup(null);
+    test_component.should.have.state('groupId', '1');
+    done();
+  });
+
+  it('can change to profile page', (done) => {
+    test_component.should.have.state('page', 1);
+    test_component.instance().profileView();
+    test_component.should.have.state('page', 2);
+    done();
+  });
+
   it('can show an alert', (done) => {
     test_component.instance().showAlert({ detail: {
       type: 'info',
@@ -165,6 +235,55 @@ describe('Main Component', () => {
     test_component.instance().toggleSelectMode();
     test_component.should.have.state('multiSelect', false);
     done();
+  });
+
+  it('can handle bad join invite', (done) => {
+    eventSpy = spy(document, 'dispatchEvent');
+    Nock(domain)
+      .post('/group/user/join')
+      .reply(400, { status: 400, error: 'gdasgd' }, {});
+    test_component.instance().joinGroup('FakeGid', 'FakeGroupname');
+    setTimeout(() => {
+      eventSpy.called.should.be.ok;
+      done();
+    }, 150);
+  });
+
+  it('can handle good join invite', (done) => {
+    eventSpy.reset();
+    Nock(domain)
+      .post('/group/user/join')
+      .reply(200, { status: 200, message: 'gdasgd' }, {});
+    test_component.instance().joinGroup('FakeGid', 'FakeGroupname');
+    setTimeout(() => {
+      eventSpy.called.should.be.ok;
+      done();
+    }, 50);
+  });
+
+  it('can handle bad refuse invite', (done) => {
+    eventSpy.reset();
+    Nock(domain)
+      .post('/group/user/refuse')
+      .reply(400, { status: 400, error: 'gdasgd' }, {});
+    test_component.instance().refuseInvite('FakeGid', 'FakeGroupname');
+    setTimeout(() => {
+      eventSpy.called.should.be.ok;
+      done();
+    }, 50);
+  });
+
+  it('can handle a good refuse invite', (done) => {
+    eventSpy.reset();
+    Nock(domain)
+      .post('/group/user/refuse')
+      .reply(200, { status: 200, message: 'gdasgd' }, {});
+    test_component.instance().refuseInvite('FakeGid', 'FakeGroupname');
+    setTimeout(() => {
+      eventSpy.called.should.be.ok;
+      eventSpy.restore();
+      done();
+    }, 50);
   });
 
   it('can unmount safely', (done) => {
