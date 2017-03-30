@@ -10,7 +10,6 @@ import Main from './main.jsx';
 import Images from '../models/images';
 import Galleries from '../models/galleries';
 import Groups from '../models/groups';
-import Notifier from '../helpers/notifier';
 import Host from '../models/host';
 
 use(chaiEnzyme());
@@ -27,9 +26,9 @@ describe('Main Component', () => {
   let test_component;
   let accountCreatedStub;
   let groupCreateStub;
-  let dangerStub;
-  let successStub;
   let changeFilterStub;
+  let inviteRefreshStub;
+  let eventSpy;
 
   beforeEach(() => {
     Galleries.should_save = false;
@@ -41,6 +40,7 @@ describe('Main Component', () => {
       changeFilterStub = stub(Main.prototype, 'changeFilter');
       test_image = inserted_image;
       groupCreateStub = stub(Groups, 'create').returns(true);
+      inviteRefreshStub = stub(Main.prototype, 'inviteRefresh');
 
       // Create test gallery
       Galleries.add(test_gallery_name, (inserted_gallery) => {
@@ -62,10 +62,10 @@ describe('Main Component', () => {
   // Remove test image and gallery
   after((done) => {
     test_component.unmount();
+    inviteRefreshStub.restore();
     accountCreatedStub.restore();
     groupCreateStub.restore();
-    dangerStub.restore();
-    successStub.restore();
+    eventSpy.restore();
     Galleries.should_save = true;
     Images.remove(test_image.$loki, () => true);
     Galleries.remove(test_gallery.$loki, _ => done());
@@ -238,43 +238,52 @@ describe('Main Component', () => {
   });
 
   it('can handle bad join invite', (done) => {
-    dangerStub = stub(Notifier, 'danger').returns(true);
+    eventSpy = spy(document, 'dispatchEvent');
     Nock(domain)
       .post('/group/user/join')
       .reply(400, { status: 400, error: 'gdasgd' }, {});
     test_component.instance().joinGroup('FakeGid', 'FakeGroupname');
-    dangerStub.restore();
-    done();
+    setTimeout(() => {
+      eventSpy.called.should.be.ok;
+      done();
+    }, 150);
   });
 
   it('can handle good join invite', (done) => {
-    successStub = stub(Notifier, 'success').returns(true);
+    eventSpy.reset();
     Nock(domain)
       .post('/group/user/join')
       .reply(200, { status: 200, message: 'gdasgd' }, {});
     test_component.instance().joinGroup('FakeGid', 'FakeGroupname');
-    successStub.restore();
-    done();
+    setTimeout(() => {
+      eventSpy.called.should.be.ok;
+      done();
+    }, 50);
   });
 
-  it('can hadle bad refuse invite', (done) => {
-    dangerStub = stub(Notifier, 'danger').returns(true);
+  it('can handle bad refuse invite', (done) => {
+    eventSpy.reset();
     Nock(domain)
       .post('/group/user/refuse')
       .reply(400, { status: 400, error: 'gdasgd' }, {});
     test_component.instance().refuseInvite('FakeGid', 'FakeGroupname');
-    dangerStub.restore();
-    done();
+    setTimeout(() => {
+      eventSpy.called.should.be.ok;
+      done();
+    }, 50);
   });
 
   it('can handle a good refuse invite', (done) => {
-    successStub = stub(Notifier, 'success').returns(true);
+    eventSpy.reset();
     Nock(domain)
       .post('/group/user/refuse')
       .reply(200, { status: 200, message: 'gdasgd' }, {});
     test_component.instance().refuseInvite('FakeGid', 'FakeGroupname');
-    successStub.restore();
-    done();
+    setTimeout(() => {
+      eventSpy.called.should.be.ok;
+      eventSpy.restore();
+      done();
+    }, 50);
   });
 
   it('can unmount safely', (done) => {
