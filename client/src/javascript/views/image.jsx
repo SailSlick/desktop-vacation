@@ -71,7 +71,7 @@ class Image extends React.Component {
 
   unshare() {
     if (!this.props.url) {
-      return danger('This image isn\'t synced. Thats not right?!');
+      return danger('This image isn\'t synced.');
     }
     return Sync.unshareImage(this.props.remoteId, (err) => {
       if (err) return danger(err);
