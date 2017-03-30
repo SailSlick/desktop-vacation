@@ -19,7 +19,7 @@ function uriToId(uri) {
 export default {
   uploadImages: (galleryRemoteId, imageId) => {
     Images.get(imageId, (file) => {
-      if (file.uri) {
+      if (file.remoteId) {
         warning('Item is already synced');
         return;
       }

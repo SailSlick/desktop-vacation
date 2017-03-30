@@ -22,7 +22,7 @@ routes.post('/user/delete', user.delete);
 
 // images
 
-routes.use('/images/*', user.requireAuth);
+routes.use('/image/*', user.requireAuth);
 routes.get('/image/:id/', sync.download);
 routes.post('/image/:id/remove', sync.remove);
 
