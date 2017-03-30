@@ -7,8 +7,6 @@ import Galleries from './galleries';
 const gallery_update_event = new Event('gallery_updated');
 let image_db;
 
-const gallery_update_event = new Event('gallery_updated');
-
 // Exported methods
 const Images = {
   get: (id, cb) => {
