@@ -207,6 +207,8 @@ class Gallery extends React.Component {
           key={image.$loki}
           dbId={image.$loki}
           src={image.location}
+          url={image.sharedUrl}
+          remoteId={image.remoteId}
           onUpload={this.uploadItem}
           onRemove={this.removeItem}
           onSelect={this.selectItem}

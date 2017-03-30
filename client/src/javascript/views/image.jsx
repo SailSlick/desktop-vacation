@@ -1,6 +1,10 @@
 import React from 'react';
+import { clipboard } from 'electron';
 import { Modal, MenuItem, Button, Glyphicon, Image as BsImage } from 'react-bootstrap';
+import Images from '../models/images';
 import Wallpaper from '../helpers/wallpaper-client';
+import Sync from '../helpers/sync';
+import { success, danger } from '../helpers/notifier';
 
 const append_gallery_event_name = 'append_gallery';
 
@@ -22,6 +26,7 @@ class Image extends React.Component {
     this.upload = this.upload.bind(this);
     this.deleteConfirmation = this.deleteConfirmation.bind(this);
     this.confirmDelete = this.confirmDelete.bind(this);
+    this.share = this.share.bind(this);
   }
 
   onClick() {
@@ -62,6 +67,26 @@ class Image extends React.Component {
     this.props.onUpload(this.props.dbId);
   }
 
+  share() {
+    if (!this.props.remoteId) {
+      return danger('You need to sync an image to share it!');
+    } else if (this.props.url) {
+      success('Image link copied to clipboard!');
+      return clipboard.writeText(this.props.url);
+    }
+    return Sync.shareImage(this.props.remoteId, (err, url) => {
+      if (err) return danger(err);
+      return Images.update(
+        this.props.dbId,
+        { sharedUrl: url },
+        () => {
+          success('Image link copied to clipboard!');
+          clipboard.writeText(url);
+        }
+      );
+    });
+  }
+
   deleteConfirmation() {
     this.setState({ deleteConfirmation: true });
   }
@@ -89,7 +114,12 @@ class Image extends React.Component {
               Add to gallery
             </MenuItem>
             <MenuItem onClick={this.upload}>
-              <Glyphicon glyph="upload" />Sync
+              <Glyphicon glyph="upload" />
+              Sync
+            </MenuItem>
+            <MenuItem onClick={this.share}>
+              <Glyphicon glyph="share" />
+              Share
             </MenuItem>
             <MenuItem divider />
             <MenuItem onClick={this.remove}>
@@ -137,6 +167,8 @@ Image.propTypes = {
   onUpload: React.PropTypes.func.isRequired,
   onRemove: React.PropTypes.func.isRequired,
   onSelect: React.PropTypes.func,
+  url: React.PropTypes.string,
+  remoteId: React.PropTypes.string,
   multiSelect: React.PropTypes.bool,
   selected: React.PropTypes.bool
 };
@@ -144,7 +176,9 @@ Image.propTypes = {
 Image.defaultProps = {
   onSelect: _ => true,
   multiSelect: false,
-  selected: false
+  selected: false,
+  url: null,
+  remoteId: null
 };
 
 export default Image;

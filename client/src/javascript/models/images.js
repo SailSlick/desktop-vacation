@@ -54,8 +54,8 @@ const Images = {
     );
   },
 
-  updateRemote: (id, remoteId, cb) => (
-    image_db.updateOne({ $loki: id }, { remoteId }, () => image_db.save(cb))
+  update: (id, data, cb) => (
+    image_db.updateOne({ $loki: id }, data, () => image_db.save(cb))
   ),
 
   remove: (id, cb) => {

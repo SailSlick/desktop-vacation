@@ -16,10 +16,20 @@ function uriToId(uri) {
   return path.parse(url.parse(uri).pathname).base;
 }
 
+function errorHandler(reqErr, response, body, cb) {
+  if (reqErr) {
+    cb(reqErr, null);
+  } else if (response.statusCode !== 200) {
+    cb(body.error, null);
+  } else {
+    cb(null, body);
+  }
+}
+
 export default {
   uploadImages: (galleryRemoteId, imageId) => {
     Images.get(imageId, (file) => {
-      if (file.uri) {
+      if (file.remoteId) {
         warning('Item is already synced');
         return;
       }
@@ -35,16 +45,13 @@ export default {
         json: true
       };
       request(options, (reqErr, res, body) => {
-        if (reqErr) {
-          danger(`Could not sync image: ${reqErr}`);
-        } else if (res.statusCode !== 200) {
-          danger(`Invalid request: ${body.error}`);
-        } else {
-          Images.updateRemote(imageId, body['image-ids'][0], (err) => {
-            if (err) danger(err);
+        errorHandler(reqErr, res, body, (err, result) => {
+          if (err) return danger(err);
+          return Images.update(imageId, { remoteId: result['image-ids'][0] }, (updateErr) => {
+            if (err) danger(updateErr);
             else success('Images uploaded');
           });
-        }
+        });
       });
     });
   },
@@ -87,16 +94,34 @@ export default {
     const options = {
       uri: Host.server_uri.concat(`/image/${remoteId}/remove`),
       jar: Host.cookie_jar,
-      method: 'POST'
+      method: 'POST',
+      json: true
     };
     request(options, (reqErr, response, body) => {
-      if (reqErr) {
-        cb(reqErr);
-      } else if (response.statusCode !== 200) {
-        cb(body.error);
-      } else {
-        cb(null);
-      }
+      errorHandler(reqErr, response, body, (err, _) => {
+        if (err) return cb(err);
+        return cb(null);
+      });
+    });
+  },
+
+  shareImage: (remoteId, cb) => {
+    if (!Host.isAuthed()) {
+      cb('Not logged in', null);
+      return;
+    }
+    const uri = Host.server_uri.concat(`/image/${remoteId}`);
+    const options = {
+      uri: uri.concat('/share'),
+      jar: Host.cookie_jar,
+      method: 'POST',
+      json: true
+    };
+    request(options, (reqErr, response, body) => {
+      errorHandler(reqErr, response, body, (err, _) => {
+        if (err) return cb(err, null);
+        return cb(null, uri);
+      });
     });
   }
 };
