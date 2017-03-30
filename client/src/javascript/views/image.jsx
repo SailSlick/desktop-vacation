@@ -27,6 +27,7 @@ class Image extends React.Component {
     this.deleteConfirmation = this.deleteConfirmation.bind(this);
     this.confirmDelete = this.confirmDelete.bind(this);
     this.share = this.share.bind(this);
+    this.unshare = this.unshare.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
   }
 
@@ -66,6 +67,20 @@ class Image extends React.Component {
 
   upload() {
     this.props.onUpload(this.props.dbId);
+  }
+
+  unshare() {
+    if (!this.props.url) {
+      return danger('This image isn\'t synced. Thats not right?!');
+    }
+    return Sync.unshareImage(this.props.remoteId, (err) => {
+      if (err) return danger(err);
+      return Images.update(
+        this.props.dbId,
+        { sharedUrl: null },
+        () => success('Image no longer available')
+      );
+    });
   }
 
   share() {
@@ -189,6 +204,23 @@ class Image extends React.Component {
       </row>
     );
 
+    let shareItem;
+    if (this.props.url) {
+      shareItem = (
+        <MenuItem onClick={this.unshare}>
+          <Glyphicon glyph="lock" />
+          Unshare
+        </MenuItem>
+      );
+    } else {
+      shareItem = (
+        <MenuItem onClick={this.share}>
+          <Glyphicon glyph="share" />
+          Share
+        </MenuItem>
+      );
+    }
+
     return (
       <figure className={classes}>
         <BsImage responsive src={this.props.src} alt="MISSING" onClick={this.onClick} />
@@ -207,10 +239,7 @@ class Image extends React.Component {
               <Glyphicon glyph="upload" />
               Sync
             </MenuItem>
-            <MenuItem onClick={this.share}>
-              <Glyphicon glyph="share" />
-              Share
-            </MenuItem>
+            {shareItem}
             <MenuItem divider />
             <MenuItem onClick={this.remove}>
               <Glyphicon glyph="remove" />

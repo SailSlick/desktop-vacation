@@ -110,5 +110,21 @@ export default {
         return cb(null, uri);
       });
     });
+  },
+
+  unshareImage: (remoteId, cb) => {
+    if (!Host.isAuthed()) return cb('Not logged in', null);
+    const options = {
+      uri: Host.server_uri.concat(`/image/${remoteId}/unshare`),
+      jar: Host.cookie_jar,
+      method: 'POST',
+      json: true
+    };
+    return request(options, (reqErr, response, body) => {
+      errorHandler(reqErr, response, body, (err, _) => {
+        if (err) return cb(err);
+        return cb(null);
+      });
+    });
   }
 };

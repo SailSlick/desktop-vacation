@@ -97,10 +97,10 @@ class DbConn {
       errCheck(err, () => {
         if (result.matchedCount === 1 && result.modifiedCount === 1) {
           debug('Updated one doc');
-          cb(true);
+          cb(true, result.matchedCount, result.modifiedCount);
         } else {
           debug('Did not update one document');
-          cb(false);
+          cb(false, result.matchedCount, result.modifiedCount);
         }
       });
     });

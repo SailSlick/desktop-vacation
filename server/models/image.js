@@ -37,12 +37,22 @@ module.exports = {
   },
 
   share(uid, imageId, next) {
-    db.updateOne({ _id: db.getId(imageId), uid }, { shared: true }, (success) => {
+    db.updateOne(
+      { _id: db.getId(imageId), uid },
+      { shared: true },
+      (success, matchedCount) => {
+        if (!success && matchedCount < 1) {
+          next('failure to share image');
+        } else {
+          next(null);
+        }
+      });
+  },
+
+  unshare(uid, imageId, next) {
+    db.updateOne({ _id: db.getId(imageId), uid }, { shared: false }, (success) => {
       if (!success) {
-        // NOTE: we should eventually change updateOne to provide the circumstances
-        // of the failure, so we can let them know if it was a permission issue, or
-        // an id issue
-        next('failure to share image');
+        next('failure to unshare image');
       } else {
         next(null);
       }
