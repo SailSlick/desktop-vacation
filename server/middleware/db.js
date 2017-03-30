@@ -97,7 +97,7 @@ class DbConn {
       errCheck(err, () => {
         if (result.matchedCount === 1 && result.modifiedCount === 1) {
           debug('Updated one doc');
-          cb(true, result.matchedCount, result.modifiedCount);
+          cb(true);
         } else {
           debug('Did not update one document');
           cb(false, result.matchedCount, result.modifiedCount);

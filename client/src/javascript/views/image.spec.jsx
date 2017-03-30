@@ -20,7 +20,7 @@ describe('Image Component', () => {
   let imageUpdateMetadataStub;
 
   before((done) => {
-    imageUpdateMetadataStub = stub(Images, 'updateMetadata');
+    imageUpdateMetadataStub = stub(Images, 'update');
     Images.add(test_image_path, (inserted_image) => {
       test_image = inserted_image;
       test_component = mount(<Image

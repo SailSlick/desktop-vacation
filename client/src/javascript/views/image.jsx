@@ -127,7 +127,7 @@ class Image extends React.Component {
     }
 
     const metadata = { metadata: { rating, tags } };
-    return Images.updateMetadata(this.props.dbId, metadata, (doc) => {
+    return Images.update(this.props.dbId, metadata, (doc) => {
       if (!doc) return danger('Updating metadata failed');
       return success('Metadata updated');
     });
@@ -204,21 +204,23 @@ class Image extends React.Component {
       </row>
     );
 
-    let shareItem;
+    let shareButtons = (
+      <MenuItem onClick={this.share}>
+        <Glyphicon glyph="share" />
+        Share
+      </MenuItem>
+    );
     if (this.props.url) {
-      shareItem = (
-        <MenuItem onClick={this.unshare}>
+      shareButtons = ([
+        <MenuItem key="copyurlButton" onClick={this.share}>
+          <Glyphicon glyph="copy" />
+          Copy URL
+        </MenuItem>,
+        <MenuItem key="unshareButton" onClick={this.unshare}>
           <Glyphicon glyph="lock" />
-          Unshare
+            Unshare
         </MenuItem>
-      );
-    } else {
-      shareItem = (
-        <MenuItem onClick={this.share}>
-          <Glyphicon glyph="share" />
-          Share
-        </MenuItem>
-      );
+      ]);
     }
 
     return (
@@ -239,7 +241,7 @@ class Image extends React.Component {
               <Glyphicon glyph="upload" />
               Sync
             </MenuItem>
-            {shareItem}
+            {shareButtons}
             <MenuItem divider />
             <MenuItem onClick={this.remove}>
               <Glyphicon glyph="remove" />
