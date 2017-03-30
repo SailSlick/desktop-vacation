@@ -4,7 +4,7 @@ import { Col, Row } from 'react-bootstrap';
 import Image from './image.jsx';
 import GalleryCard from './gallerycard.jsx';
 import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
-import { success, danger } from '../helpers/notifier';
+import { danger } from '../helpers/notifier';
 import Groups from '../models/groups';
 import Host from '../models/host';
 
@@ -22,7 +22,6 @@ class Group extends React.Component {
 
     // Bind functions
     this.refresh = this.refresh.bind(this);
-    this.deleteGroup = this.deleteGroup.bind(this);
     this.loadMore = this.loadMore.bind(this);
 
     // Hook event to catch when an image is added
@@ -42,6 +41,7 @@ class Group extends React.Component {
   }
 
   refresh(dbId) {
+    console.log("refreshing")
     const db_update = (typeof dbId !== 'number');
     dbId = (!db_update) ? dbId : this.props.dbId;
 
@@ -62,16 +62,6 @@ class Group extends React.Component {
         );
       });
     }
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  deleteGroup(mongoId, id) {
-    Groups.delete(mongoId, id, (err, msg) => {
-      if (err) danger(msg);
-      else {
-        success(msg);
-      }
-    });
   }
 
   removeItem(id, fsDelete) {
