@@ -82,7 +82,7 @@ Update metadata of an image
 | `'gallery doesn't exist'` |   404  |
 
 
-## GET /image/<id:string>
+## GET /image/(id:string)
 
 Return the image with `<id>`
 
@@ -114,7 +114,7 @@ Return the image with `<id>`
 | `'upload failed'`         |   500  |
 
 
-## POST /image/<id:string>/remove/<gid:string>
+## POST /image/(id:string)/remove/(gid:string)
 
 Remove the image with `<id>` from the gallery `<gid>`
 
@@ -151,7 +151,7 @@ Remove the image with `<id>` from the gallery `<gid>`
 | `'invalid gallery transaction'`           |   500  |
 
 
-## POST /image/<id:string>/share
+## POST /image/(id:string)/share
 
 Publicise the image with `<id>`
 
@@ -219,7 +219,7 @@ Upload/update a gallery on the server
 | `'invalid gallery'`         |   400  |
 | `'failed to add gallery'`   |   500  |
 
-## GET /gallery/<gid:string>
+## GET /gallery/(gid:string)
 
 Returns the associated gallery document from the database.
 
@@ -269,7 +269,7 @@ Refer to the [db spec](../galleries.md) for more information on this response.
 | `'invalid gid'`           |   400  |
 | `'gallery doesn't exist'` |   404  |
 
-## POST /gallery/<gid:string>/remove
+## POST /gallery/(gid:string)/remove
 
 Remove the associated gallery document from the database.
 
