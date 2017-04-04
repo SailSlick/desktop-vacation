@@ -15,11 +15,13 @@ instead of `ObjectId`s
 | uid          | Both    | ObjectId | Unique ID of the user that owns the image                        |
 | fid          | Server  | ObjectId | Unique ID of file in GridFS Filesystem collection                |
 | remoteId     | Client  | String   | Unique ID of the image serverside                                |
-| hash         | Both    | String   | Generated hash for this image, provided by client                |
+| hash         | Both    | String   | Generated sha1 hash for this image, provided by client           |
 | location     | Client  | String   | Path to the image on the client                                  |
 | url          | Client  | String   | Relative URL used when sharing the image                         |
 | shared       | Server  | Boolean  | Whether or not the image is publically visible                   |
 | metadata     | Both    | Object   | See below for structure                                          |
+| size         | Client  | Number   | Size of file in bytes                                            |
+| modified     | Client  | Date     | JS Date object of the modified time                              |
 
 ### Metadata Structure
 
@@ -36,6 +38,8 @@ instead of `ObjectId`s
   "uid" : ObjectId("f067342bb93572ed90f69d50"),
   "remoteId" : ObjectId("0571a46bf77c03a2c9a7cd03"),
   "hash" : "379a10345c7f04de5d55c6d6",
+  "size" : 3241578143,
+  "modified" : [Date Object],
   "location" : "/home/here.png",
   "url" : "0571a46bf77c03a2c9a7cd03.png",
   "metadata" : {"rating": 3, "tags": ["winter", "chill"]}
