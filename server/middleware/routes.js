@@ -30,10 +30,13 @@ routes.post('/image/:id/unshare', sync.unshareImage);
 routes.use('/image/upload', uploadStorage.array('images'), sync.upload);
 
 // gallery
-routes.use('/gallery/*', user.requireAuth);
-routes.post('/gallery/create', gallery.create);
-routes.get('/gallery/:gid', gallery.get);
+const galleryRouter = express.Router();
+routes.use('/gallery', galleryRouter);
 
+galleryRouter.use(user.requireAuth);
+galleryRouter.post('/upload', gallery.upload);
+galleryRouter.get('/:gid', gallery.get);
+galleryRouter.post('/:gid/remove', gallery.remove);
 
 // group management functionality
 routes.use('/group/*', user.requireAuth);

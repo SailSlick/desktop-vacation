@@ -4,12 +4,118 @@ const async = require('async');
 
 module.exports = {
 
+  // Create/Update
+  upload: (req, res, next) => {
+    const uid = req.session.uid;
+    const gallery = req.body.gallery;
+
+    const validation = galleryModel.validateGalleryObject(gallery);
+
+    if (validation.error) {
+      console.log(validation.error);
+      return next({ status: 400, error: 'invalid gallery object' });
+    }
+
+    if (uid !== gallery.uid) {
+      return next({ status: 401, error: 'uid of gallery does not match user' });
+    }
+
+    // Strip remoteId
+    const gid = gallery.remoteId;
+    delete gallery.remoteId;
+
+    // Update if remoteId was defined
+    if (gid) {
+      // Check owner first
+      return galleryModel.getGid(gid, (err, existingGallery) => {
+        if (err) {
+          next({ status: 404, error: 'gallery doesn\'t exist' });
+        } else if (existingGallery.uid !== uid) {
+          next({ status: 403, error: 'incorrect permissions' });
+        } else {
+          galleryModel.updateGid(gid, gallery, (error) => {
+            // Gallery won't update if nothing has changed
+            // this shouldn't be a fatal error
+            if (error === 'gallery not updated') {
+              return next({
+                status: 302,
+                message: error,
+                gid
+              });
+            }
+            return res.status(200).json({ message: 'gallery uploaded', gid });
+          });
+        }
+      });
+    }
+
+    // Insert otherwise
+    return userModel.getBaseGallery(uid, baseGalleryId =>
+      galleryModel.insert(gallery, baseGalleryId, (error, newId) => {
+        if (error) next({ status: 500, error });
+        else res.status(200).json({ message: 'gallery uploaded', gid: newId });
+      })
+    );
+  },
+
+  // Read
+  get: (req, res, next) => {
+    const uid = req.session.uid;
+    const gid = req.params.gid;
+
+    const validation = galleryModel.validateGid(gid);
+
+    if (validation.error) {
+      return next({ status: 400, error: 'invalid gid' });
+    }
+    return galleryModel.getGid(gid, (err, gallery) => {
+      if (err) return next({ status: 404, error: 'gallery doesn\'t exist' });
+
+      if (gallery.uid !== uid) {
+        return next({ status: 403, error: 'incorrect permissions' });
+      }
+
+      // Rename _id to remoteId
+      gallery.remoteId = gallery._id;
+      delete gallery._id;
+
+      return next({
+        status: 200,
+        message: 'gallery found',
+        data: gallery
+      });
+    });
+  },
+
+  // Delete
+  remove: (req, res, next) => {
+    const uid = req.session.uid;
+    const gid = req.params.gid;
+
+    const validation = galleryModel.validateGid(gid);
+
+    if (validation.error) {
+      return next({ status: 400, error: 'invalid gid' });
+    }
+
+    // Check owner of gallery
+    return galleryModel.getGid(gid, (err, gallery) => {
+      if (err) return next({ status: 404, error: 'gallery doesn\'t exist' });
+      if (uid !== gallery.uid) return next({ status: 403, error: 'incorrect permissions' });
+
+      return galleryModel.remove(gid, (error) => {
+        if (error) return next({ status: 500, error });
+        return res.status(200).json({ message: 'gallery removed' });
+      });
+    });
+  },
+
   createGroup: (req, res, next) => {
     const uid = req.session.uid;
     const username = req.session.username;
     const groupname = req.body.groupname;
 
-    if (!galleryModel.verifyGalleryName(groupname)) {
+    if (!galleryModel.validateGalleryName(groupname)) {
       return next({ status: 400, error: 'invalid groupname' });
     }
     return userModel.getBaseGallery(uid, baseGalleryId => (
@@ -28,23 +134,6 @@ module.exports = {
         });
       })
     ));
-  },
-
-  create: (req, res, next) => {
-    const uid = req.session.uid;
-    const galleryname = req.body.galleryname;
-
-    if (!galleryModel.verifyGalleryName(galleryname)) {
-      return next({ status: 400, error: 'invalid groupname' });
-    }
-    return userModel.getBaseGallery(uid, (baseGalleryId) => {
-      galleryModel.create(galleryname, baseGalleryId, uid, (errStatus, ret) => {
-        if (errStatus) {
-          return next({ status: errStatus, error: ret });
-        }
-        return res.status(200).json({ message: 'gallery created', gid: ret });
-      });
-    });
   },
 
   convert: (req, res, next) => {
@@ -70,7 +159,7 @@ module.exports = {
     const uid = req.session.uid;
     const gid = req.body.gid;
 
-    if (!galleryModel.verifyGid(gid)) {
+    if (!galleryModel.validateGid(gid)) {
       return next({ status: 400, error: 'invalid gid' });
     }
 
@@ -240,28 +329,6 @@ module.exports = {
       return userModel.update(username, result, (cb) => {
         if (cb) return next({ status: 500, error: cb });
         return next({ status: 200, message: 'user has refused invitation' });
-      });
-    });
-  },
-
-  get: (req, res, next) => {
-    const uid = req.session.uid;
-    const gid = req.params.gid;
-
-    if (!galleryModel.verifyGid(gid)) {
-      return next({ status: 400, error: 'invalid gid' });
-    }
-    return galleryModel.getGid(gid, (err, doc) => {
-      if (err) return next({ status: 404, error: 'gallery doesn\'t exist' });
-
-      if (doc.uid !== uid) {
-        return next({ status: 400, error: 'incorrect permissions' });
-      }
-
-      return next({
-        status: 200,
-        message: 'gallery found',
-        data: doc
       });
     });
   },
