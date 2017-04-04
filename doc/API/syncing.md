@@ -43,7 +43,7 @@ they were uploaded.
 | Error Message             | Status |
 |---------------------------|--------|
 | `bad image(s)`            |   400  |
-| `not authorised`          |   401  |
+| `not logged in`           |   401  |
 | `upload failed`           |   500  |
 
 
@@ -78,7 +78,7 @@ Update metadata of an image
 
 | Error Message             | Status |
 |---------------------------|--------|
-| `not authorised`          |   401  |
+| `not logged in`           |   401  |
 | `image doesn't exist`     |   404  |
 | `update failed`           |   500  |
 
@@ -111,7 +111,7 @@ Return the image with `<id>`
 
 | Error Message             | Status |
 |---------------------------|--------|
-| `not authorised`          |   401  |
+| `not logged in`           |   401  |
 | `image doesn't exist`     |   404  |
 
 
@@ -146,7 +146,7 @@ Return the metadata of the image with `<id>`
 
 | Error Message             | Status |
 |---------------------------|--------|
-| `not authorised`          |   401  |
+| `not logged in`           |   401  |
 | `image doesn't exist`     |   404  |
 
 
@@ -181,7 +181,7 @@ Remove the image with `<id>` from the gallery `<gid>`
 
 | Error Message                             | Status |
 |-------------------------------------------|--------|
-| `not authorised`                          |   401  |
+| `not logged in`                           |   401  |
 | `image doesn't exist`                     |   404  |
 | `gallery doesn't exist`                   |   404  |
 | `failed to delete image`                  |   500  |
@@ -217,7 +217,7 @@ Publicise the image with `<id>`
 
 | Error Message               | Status |
 |-----------------------------|--------|
-| `not authorised`            |   401  |
+| `not logged in`             |   401  |
 | `image doesn't exist`       |   404  |
 | `failed to share image`     |   500  |
 
@@ -251,11 +251,14 @@ Upload/update a gallery on the server
 
 #### Expected Errors
 
-| Error Message               | Status |
-|-----------------------------|--------|
-| `invalid gallery object`    |   400  |
-| `not authorised`            |   401  |
-| `upload failed`             |   500  |
+| Error Message                        | Status |
+|--------------------------------------|--------|
+| `gallery not updated`                |   302  |
+| `invalid gallery object`             |   400  |
+| `uid of gallery does not match user` |   401  |
+| `incorrect permissions`              |   403  |
+| `gallery doesn't exist`              |   404  |
+| `gallery could not be inserted`      |   500  |
 
 ## GET /gallery/(gid:string)
 
@@ -304,7 +307,9 @@ Refer to the [db spec](../db/galleries.md) for more information on this response
 
 | Error Message             | Status |
 |---------------------------|--------|
-| `not authorised`          |   401  |
+| `invalid gid`             |   400  |
+| `not logged in`           |   401  |
+| `incorrect permissions`   |   403  |
 | `gallery doesn't exist`   |   404  |
 
 ## POST /gallery/(gid:string)/remove
@@ -337,6 +342,8 @@ Remove the associated gallery document from the database.
 
 | Error Message              | Status |
 |----------------------------|--------|
-| `not authorised`           |   401  |
+| `invalid gid`              |   400  |
+| `not logged in`            |   401  |
+| `incorrect permissions`    |   403  |
 | `gallery doesn't exist`    |   404  |
-| `failed to delete gallery` |   500  |
+| `failed to remove gallery` |   500  |

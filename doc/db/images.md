@@ -32,12 +32,12 @@ instead of `ObjectId`s
 
 ```js
 {
-  "_id" : ObjectId("542c2b97bac0595474108b48"),
-  "uid" : ObjectId("5fgh2b97bac0595474108b48"),
-  "remoteId" : ObjectId("5fgh2b97bac05954742b97ba"),
-  "hash" : "34123187ndf9813fhq9348",
+  "_id" : ObjectId("10ad0c7ca2377f3ee4cd9231"),
+  "uid" : ObjectId("f067342bb93572ed90f69d50"),
+  "remoteId" : ObjectId("0571a46bf77c03a2c9a7cd03"),
+  "hash" : "379a10345c7f04de5d55c6d6",
   "location" : "/home/here.png",
-  "url" : "5fgh2b97bac05954742b97ba.png",
+  "url" : "0571a46bf77c03a2c9a7cd03.png",
   "metadata" : {"rating": 3, "tags": ["winter", "chill"]}
 }
 ```
@@ -46,10 +46,10 @@ instead of `ObjectId`s
 
 ```js
 {
-  "_id" : ObjectId("542c2b97bac0595474108b48"),
-  "uid" : ObjectId("5fgh2b97bac0595474108b48"),
-  "fid" : ObjectId("5fgh2b97bac059547fgh2b97"),
-  "hash" : "34123187ndf9813fhq9348",
+  "_id" : ObjectId("10ad0c7ca2377f3ee4cd9231"),
+  "uid" : ObjectId("f067342bb93572ed90f69d50"),
+  "fid" : ObjectId("c2de715b953b243a405f702e"),
+  "hash" : "379a10345c7f04de5d55c6d6",
   "location" : "/somewhere/in/gridfs/here.png",
   "shared": false,
   "metadata" : {"rating": 3, "tags": ["winter", "chill"]}
