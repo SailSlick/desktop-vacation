@@ -47,6 +47,6 @@ instead of `ObjectId`s
     ObjectId("276c2jghbac0595474108b48"),
     ObjectId("fg6c2jghbac0595474108b48")
   ],
-  "metadata" : {"rating": 4, "tags": ["winter", "chill"]}
+  "metadata" : {"rating": 3, "tags": ["winter", "chill"]}
 }
 ```

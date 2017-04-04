@@ -28,14 +28,13 @@ Upload an array of images to the server
 
 *Response Code*: `200 OK`
 
-The `image-ids` key refers to the reference the server has for the image. The
-response array imitates the original file order: the first image uploaded is
-the first image_id in the array and so on.
+`image-ids` is a list of the serverside IDs for each image, in the order
+they were uploaded.
 
 ```json
 {
   "message": "images uploaded",
-  "image-ids": [image_id_0, ..., image_id_n]
+  "image-ids": ["58c163e4bc15aa11fcceddfd", "...", "58c163e4bc15aa11fe4bc1ad"]
 }
 ```
 
@@ -43,8 +42,9 @@ the first image_id in the array and so on.
 
 | Error Message             | Status |
 |---------------------------|--------|
-| `'upload failed'`         |   403  |
-| `'gallery doesn't exist'` |   404  |
+| `bad image(s)`            |   400  |
+| `not authorised`          |   401  |
+| `upload failed`           |   500  |
 
 
 ## POST /image/update
@@ -78,8 +78,9 @@ Update metadata of an image
 
 | Error Message             | Status |
 |---------------------------|--------|
-| `'update failed'`         |   403  |
-| `'gallery doesn't exist'` |   404  |
+| `not authorised`          |   401  |
+| `image doesn't exist`     |   404  |
+| `update failed`           |   500  |
 
 
 ## GET /image/(id:string)
@@ -98,7 +99,7 @@ Return the image with `<id>`
 
 ### Response
 
-*MIME Type*: `image/*` (`*` will be some image type)
+*MIME Type*: `image/[some_image_type]`
 
 *Response Code*: `200 OK`
 
@@ -110,8 +111,43 @@ Return the image with `<id>`
 
 | Error Message             | Status |
 |---------------------------|--------|
-| `'image doesn't exist'`   |   404  |
-| `'upload failed'`         |   500  |
+| `not authorised`          |   401  |
+| `image doesn't exist`     |   404  |
+
+
+## GET /image/(id:string)/metadata
+
+Return the metadata of the image with `<id>`
+
+### Request
+
+*MIME Type*: `text/plain`
+
+#### URL Parameters
+
+| Name       | Type      | Description                |
+|------------|-----------|----------------------------|
+| id         | String    | Serverside ID of the image |
+
+### Response
+
+*MIME Type*: `application/json`
+
+*Response Code*: `200 OK`
+
+```
+{
+  "rating": 3,
+  "tags": ["winter", "chill"]
+}
+```
+
+#### Expected Errors
+
+| Error Message             | Status |
+|---------------------------|--------|
+| `not authorised`          |   401  |
+| `image doesn't exist`     |   404  |
 
 
 ## POST /image/(id:string)/remove/(gid:string)
@@ -145,10 +181,10 @@ Remove the image with `<id>` from the gallery `<gid>`
 
 | Error Message                             | Status |
 |-------------------------------------------|--------|
-| `'invalid image id'`                      |   400  |
-| `'cannot find image'`                     |   400  |
-| `'invalid permissions'`                   |   401  |
-| `'invalid gallery transaction'`           |   500  |
+| `not authorised`                          |   401  |
+| `image doesn't exist`                     |   404  |
+| `gallery doesn't exist`                   |   404  |
+| `failed to delete image`                  |   500  |
 
 
 ## POST /image/(id:string)/share
@@ -181,8 +217,9 @@ Publicise the image with `<id>`
 
 | Error Message               | Status |
 |-----------------------------|--------|
-| `'invalid image id'`        |   400  |
-| `'failure to share image'`  |   400  |
+| `not authorised`            |   401  |
+| `image doesn't exist`       |   404  |
+| `failed to share image`     |   500  |
 
 
 ## POST /gallery/upload
@@ -207,7 +244,7 @@ Upload/update a gallery on the server
 
 ```json
 {
-  "message": "gallery added",
+  "message": "gallery uploaded",
   "gid": "2g6c2b97bac0595474108b48"
 }
 ```
@@ -216,8 +253,9 @@ Upload/update a gallery on the server
 
 | Error Message               | Status |
 |-----------------------------|--------|
-| `'invalid gallery'`         |   400  |
-| `'failed to add gallery'`   |   500  |
+| `invalid gallery object`    |   400  |
+| `not authorised`            |   401  |
+| `upload failed`             |   500  |
 
 ## GET /gallery/(gid:string)
 
@@ -239,7 +277,7 @@ Returns the associated gallery document from the database.
 
 *Response Code*: `200 OK`
 
-Refer to the [db spec](../galleries.md) for more information on this response.
+Refer to the [db spec](../db/galleries.md) for more information on this response.
 
 ```json
 {
@@ -266,8 +304,8 @@ Refer to the [db spec](../galleries.md) for more information on this response.
 
 | Error Message             | Status |
 |---------------------------|--------|
-| `'invalid gid'`           |   400  |
-| `'gallery doesn't exist'` |   404  |
+| `not authorised`          |   401  |
+| `gallery doesn't exist`   |   404  |
 
 ## POST /gallery/(gid:string)/remove
 
@@ -291,13 +329,14 @@ Remove the associated gallery document from the database.
 
 ```json
 {
-  "message": "image removed"
+  "message": "gallery removed"
 }
 ```
 
 #### Expected Errors
 
-| Error Message             | Status |
-|---------------------------|--------|
-| `'invalid gid'`           |   400  |
-| `'gallery doesn't exist'` |   404  |
+| Error Message              | Status |
+|----------------------------|--------|
+| `not authorised`           |   401  |
+| `gallery doesn't exist`    |   404  |
+| `failed to delete gallery` |   500  |
