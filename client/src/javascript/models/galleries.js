@@ -342,7 +342,7 @@ ipc.on('selected-directory', (event, files) => {
   () => {
     Galleries.should_save = true;
     document.dispatchEvent(gallery_update_event);
-    if (files.length - dups > 0) success(`Added ${files.length - dups} images`);
+    success(`Added ${files.length - dups} images`);
     if (dups > 0) warning(`${dups} duplicated images in add`);
     console.log('Finished opening images');
   });
