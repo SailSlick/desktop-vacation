@@ -12,7 +12,6 @@ module.exports = {
     const validation = galleryModel.validateGalleryObject(gallery);
 
     if (validation.error) {
-      console.log(validation.error);
       return next({ status: 400, error: 'invalid gallery object' });
     }
 
