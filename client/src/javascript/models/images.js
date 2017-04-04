@@ -20,23 +20,23 @@ const Images = {
 
   add: (path, cb) => {
     // make the hash
-    const fileDetails = jetpack.inspect(path, { checksum: 'sha1', times: true });
+    jetpack.inspectAsync(path, { checksum: 'sha1', times: true }).then((fileDetails) => {
+      const doc = {
+        hash: fileDetails.sha1,
+        size: fileDetails.size,
+        modified: fileDetails.modifyTime,
+        metadata: { rating: 0, tags: [] },
+        location: path
+      };
 
-    const doc = {
-      hash: fileDetails.sha1,
-      size: fileDetails.size,
-      modified: fileDetails.modifyTime,
-      metadata: { rating: 0, tags: [] },
-      location: path
-    };
+      // Check if it already exists
+      image_db.findOne({ hash: doc.hash }, (ex_doc) => {
+        // If it already existed, return the existing doc
+        if (ex_doc) return cb(ex_doc, true);
 
-    // Check if it already exists
-    image_db.findOne({ hash: doc.hash }, (ex_doc) => {
-      // If it already existed, return the existing doc
-      if (ex_doc) return cb(ex_doc, true);
-
-      // Otherwise insert and return the new doc
-      return image_db.insert(doc, cb);
+        // Otherwise insert and return the new doc
+        return image_db.insert(doc, cb);
+      });
     });
   },
 
