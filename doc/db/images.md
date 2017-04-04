@@ -16,7 +16,7 @@ instead of `ObjectId`s
 | fid          | Server  | ObjectId | Unique ID of file in GridFS Filesystem collection                |
 | remoteId     | Client  | String   | Unique ID of the image serverside                                |
 | hash         | Both    | String   | Generated hash for this image, provided by client                |
-| location     | Both    | String   | Path to the image on the client/server                           |
+| location     | Client  | String   | Path to the image on the client                                  |
 | url          | Client  | String   | Relative URL used when sharing the image                         |
 | shared       | Server  | Boolean  | Whether or not the image is publically visible                   |
 | metadata     | Both    | Object   | See below for structure                                          |
@@ -50,7 +50,6 @@ instead of `ObjectId`s
   "uid" : ObjectId("f067342bb93572ed90f69d50"),
   "fid" : ObjectId("c2de715b953b243a405f702e"),
   "hash" : "379a10345c7f04de5d55c6d6",
-  "location" : "/somewhere/in/gridfs/here.png",
   "shared": false,
   "metadata" : {"rating": 3, "tags": ["winter", "chill"]}
 }
