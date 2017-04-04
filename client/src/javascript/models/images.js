@@ -33,7 +33,7 @@ const Images = {
     // Check if it already exists
     image_db.findOne({ hash: doc.hash }, (ex_doc) => {
       // If it already existed, return the existing doc
-      if (ex_doc) return cb(ex_doc);
+      if (ex_doc) return cb(ex_doc, true);
 
       // Otherwise insert and return the new doc
       return image_db.insert(doc, cb);

@@ -4,6 +4,7 @@ import request from 'request';
 import Host from './host';
 import DbConn from '../helpers/db';
 import Images from './images';
+import { success, warning } from '../helpers/notifier';
 
 let gallery_db;
 
@@ -328,18 +329,22 @@ document.addEventListener('sync_root', Galleries.syncRoot, false);
 // IPC Calls
 ipc.on('selected-directory', (event, files) => {
   Galleries.should_save = false;
+  let dups = 0;
   eachOf(files, (file, index, next) => {
     if (index === files.length - 1) Galleries.should_save = true;
-    Images.add(file, image =>
+    Images.add(file, (image, dup) => {
+      if (dup) dups += 1;
       Galleries.addItem(BASE_GALLERY_ID, image.$loki, () => {
         console.log(`Opened image ${file}`);
         next();
-      })
-    );
+      });
+    });
   },
-  () =>
-    console.log('Finished opening images')
-  );
+  () => {
+    success(`Added ${files.length - dups} images`);
+    if (dups > 0) warning(`${dups} duplicated images`);
+    console.log('Finished opening images');
+  });
 });
 
 export default Galleries;
