@@ -1,4 +1,5 @@
 import fs from 'fs';
+import jetpack from 'fs-jetpack';
 import Host from './host';
 import DbConn from '../helpers/db';
 import Sync from '../helpers/sync';
@@ -18,19 +19,24 @@ const Images = {
   },
 
   add: (path, cb) => {
-    const doc = {
-      hash: '',
-      metadata: { rating: 0, tags: [] },
-      location: path
-    };
+    // make the hash
+    jetpack.inspectAsync(path, { checksum: 'sha1', times: true }).then((fileDetails) => {
+      const doc = {
+        hash: fileDetails.sha1,
+        size: fileDetails.size,
+        modified: fileDetails.modifyTime,
+        metadata: { rating: 0, tags: [] },
+        location: path
+      };
 
-    // Check if it already exists
-    image_db.findOne({ location: path }, (ex_doc) => {
-      // If it already existed, return the existing doc
-      if (ex_doc) return cb(ex_doc);
+      // Check if it already exists
+      image_db.findOne({ hash: doc.hash }, (ex_doc) => {
+        // If it already existed, return the existing doc
+        if (ex_doc) return cb(ex_doc, true);
 
-      // Otherwise insert and return the new doc
-      return image_db.insert(doc, cb);
+        // Otherwise insert and return the new doc
+        return image_db.insert(doc, cb);
+      });
     });
   },
 
