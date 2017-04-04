@@ -148,7 +148,7 @@ describe('Group API', () => {
             res.should.have.status(200);
             res.body.should.be.a('object');
             res.body.should.have.property('message');
-            res.body.message.should.equal('gallery deleted');
+            res.body.message.should.equal('gallery removed');
             done();
           });
       });

@@ -115,9 +115,12 @@ module.exports = {
     const username = req.session.username;
     const groupname = req.body.groupname;
 
-    if (!galleryModel.validateGalleryName(groupname)) {
+    const validation = galleryModel.validateGalleryName(groupname);
+
+    if (validation.error) {
       return next({ status: 400, error: 'invalid groupname' });
     }
+
     return userModel.getBaseGallery(uid, baseGalleryId => (
       galleryModel.create(groupname, baseGalleryId, uid, (errStatus, ret) => {
         if (errStatus) {
@@ -159,7 +162,9 @@ module.exports = {
     const uid = req.session.uid;
     const gid = req.body.gid;
 
-    if (!galleryModel.validateGid(gid)) {
+    const validation = galleryModel.validateGid(gid);
+
+    if (validation.error) {
       return next({ status: 400, error: 'invalid gid' });
     }
 
@@ -171,14 +176,14 @@ module.exports = {
       if (doc.uid !== uid) {
         return next({ status: 401, error: 'incorrect permissions for group' });
       }
-      return galleryModel.remove(doc.name, uid, (ret) => {
-        if (ret === 'gallery deleted') {
-          // remove from all users.
-          return userModel.updateMany({ groups: gid }, { $pull: { groups: gid } }, () => {
-            next({ status: 200, message: ret });
-          });
+      return galleryModel.remove(gid, (error) => {
+        if (error) {
+          return next({ status: 500, error });
         }
-        return next({ status: 500, error: ret });
+        // remove from all users.
+        return userModel.updateMany({ groups: gid }, { $pull: { groups: gid } }, () => {
+          next({ status: 200, message: 'gallery removed' });
+        });
       });
     });
   },
