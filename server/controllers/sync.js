@@ -9,15 +9,23 @@ module.exports = {
       next({ status: 400, error: 'no files sent' });
       return;
     }
+    if (!req.body.hashes) {
+      next({ status: 400, error: 'no hashes sent' });
+      return;
+    }
+    if (req.body.hashes.length - 1 !== req.files.length) {
+      next({ status: 400, error: 'inequal number of hashes to images' });
+      return;
+    }
     if (!galleries.verifyGid(req.body.gid)) {
       next({ status: 400, error: 'invalid gallery id' });
       return;
     }
-    async.map(req.files,
-      (f, cb) => {
-        images.add(req.session.uid, f.id, (err) => {
+    async.map(Object.keys(req.files),
+      (key, cb) => {
+        images.add(req.session.uid, req.files[key].id, req.body.hashes[key], (err) => {
           if (err) cb(err, null);
-          else cb(null, f.id.toString());
+          else cb(null, req.files[key].id.toString());
         });
       },
       (err, imageIds) => {

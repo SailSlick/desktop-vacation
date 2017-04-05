@@ -26,6 +26,7 @@ export default {
       }
       const formData = {
         gid: galleryRemoteId,
+        hashes: [file.hash, 1],
         images: [fs.createReadStream(file.location)]
       };
       const options = {
@@ -57,10 +58,13 @@ export default {
     // Because the path of the file depends on the type of response, I had to
     // do some janky things here and use this promise syntax
     let newFilePath = null;
+    let newFileHash = null;
     const req = request
     .get(options)
     .on('response', (res) => {
+      // console.log("in download", res.body)
       if (res.statusCode === 200) {
+        // newFileHash = res.body.hash;
         newFilePath = path.join(
           DbConn.getUserDataFolder(),
           `${id}.${mime.extension(res.headers['content-type'])}`
@@ -77,7 +81,7 @@ export default {
         cb(err, null);
       }
     })
-    .on('end', () => cb(null, newFilePath));
+    .on('end', () => cb(null, newFilePath, newFileHash));
   },
 
   removeSynced: (remoteId, cb) => {

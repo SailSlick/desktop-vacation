@@ -18,10 +18,11 @@ Since images are being sent to the database, the request can't simply be
 `application/json`. We settled on `multipart/form-data` as it's the standard
 in these types of image uploading scenarios.
 
-| Name       | Type                 | Description                         |
-|------------|----------------------|-------------------------------------|
-| images     | array of form images | a set of the uploaded images        |
-| gid        | string               | a reference to the mongo gallery id |
+| Name       | Type                 | Description                          |
+|------------|----------------------|--------------------------------------|
+| images     | array of form images | a set of the uploaded images         |
+| hashes     | array of strings     | a set of the uploaded images' hashes |
+| gid        | string               | a reference to the mongo gallery id  |
 
 ### Response
 
@@ -63,6 +64,9 @@ Downloads an image given the image id.
 `Status: 200 OK`
 ```
 <image_data>
+{
+  "hash": <sha1 hash>,
+}
 ```
 
 ### Expected Errors

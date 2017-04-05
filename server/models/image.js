@@ -3,9 +3,9 @@ const DBTools = require('../middleware/db');
 const db = new DBTools('fs.files');
 
 module.exports = {
-  add(uid, imageId, next) {
+  add(uid, imageId, hash, next) {
     // The file should already exist thanks to multer
-    db.updateOne({ _id: db.getId(imageId) }, { uid, shared: false }, (success) => {
+    db.updateOne({ _id: db.getId(imageId) }, { uid, hash, shared: false }, (success) => {
       if (!success) {
         next('Failure adding user id to image');
       } else {
