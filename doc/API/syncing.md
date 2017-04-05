@@ -347,3 +347,91 @@ Remove the associated gallery document from the database.
 | `incorrect permissions`    |   403  |
 | `gallery doesn't exist`    |   404  |
 | `failed to remove gallery` |   500  |
+
+
+# Clientside Syncing Protocol
+
+It's important to note that the handling of ref counters transparently
+to the client.
+
+## Image Syncing
+
+- Select as many images as possibles to sync
+  - Only those without a remoteId
+- Upload and map the response ids to remoteId in db
+
+## Gallery Syncing
+
+- Download gallery data from server
+  - If it doesn't 404 **and the user isn't making an explicit**
+    **add/remove operation**:
+    - Remove images/subgalleries as appropriate from client
+  - Otherwise:
+    - Get list of unsynced images
+      - Follow protocol to sync these
+    - Get list of unsynced subgalleries
+      - Follow this procedure (recurse)
+    - If user removed something explicitly:
+      - Make sure the changed data is sent to the server
+    - Upload gallery data to server
+      - Server will handle removing images/subgalleries itself
+
+## Image Unsyncing
+
+- Send remove request to server
+- If it's successful:
+  - Delete cached thumbnails
+  - Perform other tasks (did user want to delete from disk?)
+- Inform user of the outcome
+  - If doing > 1 delete, wait until they are all done
+
+## Gallery Unsyncing
+
+- Send remove request to server
+  - Server will handle removing images
+- If it's successful:
+  - Remove from client & remove subgallery ties
+- Inform user of the outcome
+
+
+# Serverside Syncing Protocol
+
+## Image Syncing
+
+- For each image uploaded:
+  - Add image to GridFS
+    - Grab ID of existing images (with the same hash)
+    - Increment/set ref counter
+  - Add image to our collection
+    - Save metadata, owner, hash, etc here
+    - Set ref counter to 1
+  - Add id to the response id array
+- Return array of serverside ids to the client
+
+## Gallery Syncing
+
+- Add gallery to our collection
+- Increment ref counter
+- For each image added/removed:
+  - Increase/decrease its ref counter
+- For each subgallery added/removed:
+  - Increase/decrease its ref counter
+
+## Image Unsyncing
+
+- Decrement ref counter
+- If ref counter is 0:
+  - Remove from collection
+  - Decrement ref counter in GridFS
+  - If GridFS ref counter is 0:
+    - Remove from GridFS too
+
+## Gallery Unsyncing
+
+- For each image:
+  - Follow above protocol to unsync
+- For each subgallery:
+  - Follow this procedure (recurse)
+- Decrement ref counter
+- If ref counter is 0:
+  - Remove from collection

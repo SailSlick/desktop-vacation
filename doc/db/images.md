@@ -21,6 +21,7 @@ instead of `ObjectId`s
 | shared       | Server  | Boolean  | Whether or not the image is publically visible                   |
 | metadata     | Both    | Object   | See below for structure                                          |
 | size         | Client  | Number   | Size of file in bytes                                            |
+| refs         | Server  | Number   | Number of galleries/syncs referencing this image                 |
 | modified     | Client  | Date     | JS Date object of the modified time                              |
 
 ### Metadata Structure
