@@ -50,13 +50,17 @@ module.exports = {
   },
 
   unshare(uid, imageId, next) {
-    db.updateOne({ _id: db.getId(imageId), uid }, { shared: false }, (success) => {
-      if (!success) {
-        next('failure to unshare image');
-      } else {
-        next(null);
+    db.updateOne(
+      { _id: db.getId(imageId), uid },
+      { shared: false },
+      (success, matchedCount) => {
+        if (!success && matchedCount < 1) {
+          next('failure to unshare image');
+        } else {
+          next(null);
+        }
       }
-    });
+    );
   },
 
   purgeUserImages: (uid, cb) => {

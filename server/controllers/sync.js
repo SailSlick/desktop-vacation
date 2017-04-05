@@ -54,14 +54,10 @@ module.exports = {
   },
 
   download: (req, res, next) => {
-    if (!req.params.id) {
-      next({ status: 400, error: 'Invalid image id' });
-    }
     images.get(req.session.uid, req.params.id, (err, image) => {
       if (err === 401) {
         next({ status: 401, error: 'invalid permissions' });
       } else if (err) {
-        console.error(err);
         next({ status: 400, error: err });
       } else {
         res.set('Content-Type', image.contentType);
@@ -75,13 +71,9 @@ module.exports = {
   },
 
   remove: (req, res, next) => {
-    if (!req.params.id) {
-      next({ status: 400, error: 'Invalid image id' });
-    }
     galleries.removeImageGlobal(req.params.id, req.session.uid, (galleryErr) => {
       if (galleryErr) {
-        console.error(galleryErr);
-        next({ status: 500, error: galleryErr });
+        next({ status: 400, error: galleryErr });
       }
       images.remove(req.session.uid, req.params.id, (imageErr) => {
         if (imageErr) {
@@ -94,12 +86,8 @@ module.exports = {
   },
 
   shareImage: (req, res, next) => {
-    if (!req.params.id) {
-      next({ status: 400, error: 'Invalid image id' });
-    }
     images.share(req.session.uid, req.params.id, (err) => {
       if (err) {
-        console.error(err);
         next({ status: 400, error: err });
       } else {
         next({ status: 200, message: 'image shared' });
@@ -108,12 +96,8 @@ module.exports = {
   },
 
   unshareImage: (req, res, next) => {
-    if (!req.params.id) {
-      next({ status: 400, error: 'Invalid image id' });
-    }
     images.unshare(req.session.uid, req.params.id, (err) => {
       if (err) {
-        console.error(err);
         next({ status: 400, error: err });
       } else {
         next({ status: 200, message: 'image unshared' });
