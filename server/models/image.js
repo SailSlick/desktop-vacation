@@ -1,4 +1,5 @@
 const fs = require('fs');
+const mkdirp = require('mkdirp');
 const async = require('async');
 const multer = require('multer');
 const DBTools = require('../middleware/db');
@@ -17,7 +18,7 @@ const IMAGE_TYPES = [
 const IMAGE_FOLDER = 'private/images';
 
 if (!fs.existsSync(IMAGE_FOLDER)) {
-  fs.mkdirSync(IMAGE_FOLDER);
+  mkdirp.sync(IMAGE_FOLDER);
 }
 
 const storage = multer.diskStorage({
@@ -27,7 +28,7 @@ const storage = multer.diskStorage({
     if (!fs.existsSync(path)) {
       fs.mkdirSync(path);
     }
-    cb(null, req.session.uid);
+    cb(null, path);
   }
 });
 
@@ -64,7 +65,7 @@ module.exports = {
           if (!removed) {
             return next('failed to remove image');
           }
-          fs.unlinkSync(file.path);
+          fs.unlinkSync(file.location);
           return next();
         });
       }

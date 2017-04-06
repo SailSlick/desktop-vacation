@@ -15,11 +15,11 @@ Upload an array of images to the server
 
 #### JSON Parameters
 
-| Name       | Type   | Description                                             |
-|------------|--------|---------------------------------------------------------|
-| images     | Array  | Image files to be uploaded                              |
-| metadatas  | Array  | Image's respective [metadata (object)](../db/images.md) |
-| hashes     | Array  | Image's respective hashes (string)                      |
+| Name       | Type   | Description                                                                   |
+|------------|--------|-------------------------------------------------------------------------------|
+| images     | Array  | Image files to be uploaded                                                    |
+| metadatas  | String | JSON encoded array of image's respective [metadata (object)](../db/images.md) |
+| hashes     | Array  | Image's respective hashes (string)                                            |
 
 ### Response
 

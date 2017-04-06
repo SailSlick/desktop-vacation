@@ -13,22 +13,21 @@ module.exports = {
   },
 
   upload: (req, res, next) => {
-    if (!galleries.verifyGid(req.body.gid)) {
-      return next({ status: 400, error: 'invalid gallery id' });
-    }
-
     if (!req.files) {
       return next({ status: 400, error: 'no files sent' });
     }
+
+    // Decode the metadatas
+    const metadatas = JSON.parse(req.body.metadatas);
 
     // Combine the form data, file path and uid to form
     // actual database documents
     const newImages = req.files.map((file, id) => ({
       uid: req.session.uid,
       location: file.path,
-      metadata: req.body.metadatas[id],
+      mimeType: file.mimetype,
+      metadata: metadatas[id],
       shared: false,
-      // TODO work out when this needs to be incremented
       refs: 1
     }));
 
@@ -58,7 +57,10 @@ module.exports = {
       } else if (err === 404) {
         next({ status: 404, error: 'image not found' });
       } else {
-        res.sendFile(image.location);
+        res.sendFile(`${process.cwd()}/${image.location}`, {
+          headers: { 'Content-Type': image.mimeType },
+          dotfiles: 'deny'
+        });
       }
     });
   },
