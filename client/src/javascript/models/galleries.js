@@ -284,11 +284,12 @@ const Galleries = {
     gallery_db.updateOne({ $loki: gid }, { remoteId }, cb);
   },
 
-  syncRoot: () => {
+  syncRoot: (cb) => {
+    const next = cb || (() => {});
     Host.getIndex(Host.userId, (userData) => {
       if (!userData) {
         console.error('User data doesn\'t exist.');
-        return;
+        return next();
       }
       const options = {
         uri: Host.server_uri.concat(`/gallery/${userData.remoteGallery}`),
@@ -296,26 +297,27 @@ const Galleries = {
         method: 'GET',
         json: true
       };
-      request(options, (err, response, body) => {
+      return request(options, (err, response, body) => {
         if (response.statusCode !== 200) {
           console.error(`Failure to sync, code: ${response.statusCode}`);
           console.error(body.error);
-          return;
+          return next();
         } else if (!body.data.images || body.data.images.length === 0) {
           console.log('No images to sync');
-          return;
+          return next();
         }
-        map(body.data.images, Images.download, (downloadErr, imageIds) => {
+        return map(body.data.images, Images.download, (downloadErr, imageIds) => {
           if (downloadErr) console.error(downloadErr);
           each(imageIds,
-            (id, cb) => {
+            (id, mapcb) => {
               Galleries.addItem(BASE_GALLERY_ID, id, (addErr, _res) => {
-                if (addErr) cb(err);
-                else cb();
+                if (addErr) mapcb(err);
+                else mapcb();
               });
             },
             (addErr) => {
               if (addErr) console.error(addErr);
+              next();
             }
           );
         });

@@ -192,6 +192,4 @@ describe('Gallery Component', () => {
       done();
     });
   });
-
-  // TODO test subgalleries
 });
