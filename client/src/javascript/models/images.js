@@ -65,12 +65,14 @@ const Images = {
 
   remove: (id, cb) => {
     image_db.findOne({ $loki: id }, (doc) => {
-      if (doc && doc.remoteId && Host.isAuthed()) {
-        Sync.removeSynced(doc.remoteId, (err) => {
-          if (err) console.error(err);
-        });
-      }
-      image_db.removeOne({ $loki: id }, cb);
+      image_db.removeOne({ $loki: id }, (res) => {
+        if (doc && doc.remoteId && Host.isAuthed()) {
+          Sync.removeSynced(doc.remoteId, (err) => {
+            if (err) console.error(err);
+            cb(res);
+          });
+        } else cb(res);
+      });
     });
   },
 
