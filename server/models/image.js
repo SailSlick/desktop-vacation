@@ -14,11 +14,18 @@ const IMAGE_TYPES = [
   'image/tiff'
 ];
 
+const IMAGE_FOLDER = 'private/images';
+
+if (!fs.existsSync(IMAGE_FOLDER)) {
+  fs.mkdirSync(IMAGE_FOLDER);
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Multer is lazy...
-    if (!fs.existsSync(req.session.uid)) {
-      fs.mkdirSync(req.session.uid);
+    const path = `${IMAGE_FOLDER}/${req.session.uid}`;
+    if (!fs.existsSync(path)) {
+      fs.mkdirSync(path);
     }
     cb(null, req.session.uid);
   }

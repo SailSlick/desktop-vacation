@@ -4,91 +4,283 @@ All of the following requests require the user to be authenticated.
 
 ### [General Information](./README.md)
 
-## Uploading
 
-`POST /image/upload`
+## POST /image/upload
 
-Upon successful request, will upload the sent image(s) to the server.
+Upload an array of images to the server
 
-### Parameters
+### Request
 
-#### MIME Type
+*MIME Type*: `multipart/form-data`
 
-Since images are being sent to the database, the request can't simply be
-`application/json`. We settled on `multipart/form-data` as it's the standard
-in these types of image uploading scenarios.
+#### JSON Parameters
 
-| Name       | Type                 | Description                         |
-|------------|----------------------|-------------------------------------|
-| images     | array of form images | a set of the uploaded images        |
-| gid        | string               | a reference to the mongo gallery id |
+| Name       | Type   | Description                                             |
+|------------|--------|---------------------------------------------------------|
+| images     | Array  | Image files to be uploaded                              |
+| metadatas  | Array  | Image's respective [metadata (object)](../db/images.md) |
+| hashes     | Array  | Image's respective hashes (string)                      |
 
 ### Response
 
-The `image-ids` key refers to the reference the server has for the image. The
-response array imitates the original file order: the first image uploaded is
-the first image_id in the array and so on.
+*MIME Type*: `application/json`
 
-`Status: 200 OK`
-```
+*Response Code*: `200 OK`
+
+`image-ids` is a list of the serverside IDs for each image, in the order
+they were uploaded.
+
+```json
 {
   "message": "images uploaded",
-  "image-ids": [<image_id_0>, ..., <image_id_n>]
+  "image-ids": ["58c163e4bc15aa11fcceddfd", "...", "58c163e4bc15aa11fe4bc1ad"]
 }
 ```
 
-### Expected Errors
+#### Expected Errors
 
 | Error Message             | Status |
 |---------------------------|--------|
-| `'upload failed'`         |   403  |
-| `'gallery doesn't exist'` |   404  |
+| `bad image(s)`            |   400  |
+| `not logged in`           |   401  |
+| `upload failed`           |   500  |
 
-## Downloading images
 
-`GET /image/<image-id:string>/`
+## POST /image/update
 
-Downloads an image given the image id.
+Update metadata of an image
 
-### URL Parameters
+### Request
 
-| Name       | Type        | Description                                   |
-|------------|-------------|-----------------------------------------------|
-| image-id   | string      | a string referencing image's id on the server |
+*MIME Type*: `application/json`
+
+#### JSON Parameters
+
+| Name       | Type   | Description                                |
+|------------|--------|--------------------------------------------|
+| id         | String | Serverside ID of the image                 |
+| metadata   | Object | Image's [metadata](../db/images.md)        |
 
 ### Response
 
-#### Note: this will be an image file, see Content-Type header for exact type.
+*MIME Type*: `application/json`
 
-`Status: 200 OK`
+*Response Code*: `200 OK`
+
+```json
+{
+  "message": "image updated"
+}
+```
+
+#### Expected Errors
+
+| Error Message             | Status |
+|---------------------------|--------|
+| `not logged in`           |   401  |
+| `image doesn't exist`     |   404  |
+| `update failed`           |   500  |
+
+
+## GET /image/(id:string)
+
+Return the image with `<id>`
+
+### Request
+
+*MIME Type*: `text/plain`
+
+#### URL Parameters
+
+| Name       | Type      | Description                |
+|------------|-----------|----------------------------|
+| id         | String    | Serverside ID of the image |
+
+### Response
+
+*MIME Type*: `image/[some_image_type]`
+
+*Response Code*: `200 OK`
+
 ```
 <image_data>
 ```
 
-### Expected Errors
+#### Expected Errors
 
 | Error Message             | Status |
 |---------------------------|--------|
-| `'upload failed'`         |   500  |
-| `'image doesn't exist'`   |   404  |
+| `not logged in`           |   401  |
+| `image doesn't exist`     |   404  |
 
-## Downloading galleries
 
-`GET /gallery/<gid:string>/`
+## GET /image/(id:string)/metadata
 
-Returns the associated gallery information from the server database.
+Return the metadata of the image with `<id>`
 
-### URL Parameters
+### Request
 
-| Name       | Type      | Description                                       |
-|------------|-----------|---------------------------------------------------|
-| gid        | string    | a string referencing a gallery's id on the server |
+*MIME Type*: `text/plain`
+
+#### URL Parameters
+
+| Name       | Type      | Description                |
+|------------|-----------|----------------------------|
+| id         | String    | Serverside ID of the image |
 
 ### Response
 
-Refer to the [db spec](../galleries.md) for more information on this response.
+*MIME Type*: `application/json`
 
-`Status: 200 OK`
+*Response Code*: `200 OK`
+
+```
+{
+  "rating": 3,
+  "tags": ["winter", "chill"]
+}
+```
+
+#### Expected Errors
+
+| Error Message             | Status |
+|---------------------------|--------|
+| `not logged in`           |   401  |
+| `image doesn't exist`     |   404  |
+
+
+## POST /image/(id:string)/remove/(gid:string)
+
+Remove the image with `<id>` from the gallery `<gid>`
+
+### Request
+
+*MIME Type*: `text/plain`
+
+#### URL Parameters
+
+| Name       | Type      | Description                     |
+|------------|-----------|---------------------------------|
+| id         | String    | Serverside ID of the image      |
+| gid        | String    | Serverside ID of target gallery |
+
+### Response
+
+*MIME Type*: `application/json`
+
+*Response Code*: `200 OK`
+
+```json
+{
+  "message": "image deleted"
+}
+```
+
+#### Expected Errors
+
+| Error Message                             | Status |
+|-------------------------------------------|--------|
+| `not logged in`                           |   401  |
+| `image doesn't exist`                     |   404  |
+| `gallery doesn't exist`                   |   404  |
+| `failed to delete image`                  |   500  |
+
+
+## POST /image/(id:string)/share
+
+Publicise the image with `<id>`
+
+### Request
+
+*MIME Type*: `text/plain`
+
+#### URL Parameters
+
+| Name       | Type      | Description                |
+|------------|-----------|----------------------------|
+| id         | String    | Serverside ID of the image |
+
+### Response
+
+*MIME Type*: `application/json`
+
+*Response Code*: `200 OK`
+
+```json
+{
+  "message": "image shared"
+}
+```
+
+#### Expected Errors
+
+| Error Message               | Status |
+|-----------------------------|--------|
+| `not logged in`             |   401  |
+| `image doesn't exist`       |   404  |
+| `failed to share image`     |   500  |
+
+
+## POST /gallery/upload
+
+Upload/update a gallery on the server
+
+### Request
+
+*MIME Type*: `application/json`
+
+#### JSON Parameters
+
+| Name       | Type      | Description                            |
+|------------|-----------|----------------------------------------|
+| gallery    | Object    | [Gallery document](../db/galleries.md) |
+
+### Response
+
+*MIME Type*: `application/json`
+
+*Response Code*: `200 OK`
+
+```json
+{
+  "message": "gallery uploaded",
+  "gid": "2g6c2b97bac0595474108b48"
+}
+```
+
+#### Expected Errors
+
+| Error Message                        | Status |
+|--------------------------------------|--------|
+| `gallery not updated`                |   302  |
+| `invalid gallery object`             |   400  |
+| `uid of gallery does not match user` |   401  |
+| `incorrect permissions`              |   403  |
+| `gallery doesn't exist`              |   404  |
+| `gallery could not be inserted`      |   500  |
+
+## GET /gallery/(gid:string)
+
+Returns the associated gallery document from the database.
+
+### Request
+
+*MIME Type*: `text/plain`
+
+#### URL Parameters
+
+| Name       | Type      | Description                  |
+|------------|-----------|------------------------------|
+| gid        | String    | Serverside ID of the gallery |
+
+### Response
+
+*MIME Type*: `application/json`
+
+*Response Code*: `200 OK`
+
+Refer to the [db spec](../db/galleries.md) for more information on this response.
+
 ```json
 {
   "status": 200,
@@ -110,67 +302,128 @@ Refer to the [db spec](../galleries.md) for more information on this response.
 }
 ```
 
-### Expected Errors
+#### Expected Errors
 
 | Error Message             | Status |
 |---------------------------|--------|
-| `'invalid gid'`           |   400  |
-| `'gallery doesn't exist'` |   404  |
+| `invalid gid`             |   400  |
+| `not logged in`           |   401  |
+| `incorrect permissions`   |   403  |
+| `gallery doesn't exist`   |   404  |
 
-## Removing Images Globally
+## POST /gallery/(gid:string)/remove
 
-`POST /image/<id:string>/remove`
+Remove the associated gallery document from the database.
 
-Upon successful request, remove the image from the server and all galleries.
+### Request
 
-### URL Parameters
+*MIME Type*: `text/plain`
 
-| Name       | Type      | Description                                       |
-|------------|-----------|---------------------------------------------------|
-| id         | string    | a string referencing an images's id on the server |
+#### URL Parameters
 
-### Response
-
-`Status: 200 OK`
-```json
-{
-  "message": "image deleted"
-}
-```
-
-### Expected Errors
-
-| Error Message                                        | Status |
-|------------------------------------------------------|--------|
-| `'invalid image id'`                                 |   400  |
-| `'cannot find image'`                                |   400  |
-| `'invalid permissions'`                              |   401  |
-| `'invalid gallery transaction'`                      |   500  |
-
-## Sharing images
-
-`POST /image/<id:string>/share`
-
-Upon successful request, will share the image
-
-### URL Parameters
-
-| Name       | Type      | Description                                       |
-|------------|-----------|---------------------------------------------------|
-| id         | string    | a string referencing an images's id on the server |
+| Name       | Type      | Description                  |
+|------------|-----------|------------------------------|
+| gid        | String    | Serverside ID of the gallery |
 
 ### Response
 
-`Status: 200 OK`
+*MIME Type*: `application/json`
+
+*Response Code*: `200 OK`
+
 ```json
 {
-  "message": "image shared"
+  "message": "gallery removed"
 }
 ```
 
-### Expected Errors
+#### Expected Errors
 
-| Error Message               | Status |
-|-----------------------------|--------|
-| `'invalid image id'`        |   400  |
-| `'failure to share image'`  |   400  |
+| Error Message              | Status |
+|----------------------------|--------|
+| `invalid gid`              |   400  |
+| `not logged in`            |   401  |
+| `incorrect permissions`    |   403  |
+| `gallery doesn't exist`    |   404  |
+| `failed to remove gallery` |   500  |
+
+
+# Clientside Syncing Protocol
+
+It's important to note that the handling of ref counters
+is invisible to the client.
+
+## Image Syncing
+
+- Select as many images as possibles to sync
+  - Only those without a remoteId are synced
+- Upload and map the response id to remoteId for each image
+
+## Gallery Syncing
+
+- Download gallery data from server
+  - If it doesn't 404:
+    - Remove images/subgalleries as appropriate from client
+- Get list of unsynced images
+  - Follow protocol to sync these
+- Get list of unsynced subgalleries
+  - Follow this procedure (recurse)
+- If user removed something explicitly:
+  - Make sure the changed data is sent to the server
+- Upload gallery data to server
+  - Server will handle removing images/subgalleries itself
+
+## Image Unsyncing
+
+- Send remove request to server
+- If it's successful:
+  - Delete cached thumbnails
+  - Perform other tasks (did user want to delete from disk?)
+- Inform user of the outcome
+  - If doing > 1 delete, wait until they are all done
+
+## Gallery Unsyncing
+
+- Send remove request to server
+  - Server will handle removing images
+- If it's successful:
+  - Remove from client & remove subgallery ties
+- Inform user of the outcome
+
+
+# Serverside Syncing Protocol
+
+## Image Syncing
+
+- For each image uploaded:
+  - Add image to FS
+    - Grab ID of existing images (with the same hash)
+    - Increment/set ref counter of image-fs doc
+  - Add image to our collection
+    - Save metadata, owner, hash, etc here
+    - Set ref counter to 1 in image doc
+  - Add id to the response id array
+- Return array of serverside ids to the client
+
+## Gallery Syncing
+
+- Add gallery to our collection
+- For each image added/removed:
+  - Increase/decrease its ref counter
+
+## Image Unsyncing
+
+- Decrement ref counter in image collection
+  - If ref counter is 0:
+    - Decrement ref counter in FS
+    - If FS ref counter is 0:
+      - Remove from FS too
+    - Remove from collection
+
+## Gallery Unsyncing
+
+- For each image:
+  - Follow above protocol to unsync
+- For each subgallery:
+  - Follow this procedure (recurse)
+- Remove from collection
