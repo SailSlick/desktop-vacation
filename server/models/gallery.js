@@ -65,18 +65,13 @@ module.exports = {
     });
   },
 
-  addImages: (gid, baseGalleryId, uid, imageIds, next) => {
+  addImages: (gid, imageIds, cb) => {
     db.updateRaw(
-      { uid, _id: db.getId(gid) },
+      { _id: db.getId(gid) },
       { $addToSet: { images: { $each: imageIds } } },
       (success) => {
-        if (gid === baseGalleryId) {
-          next();
-        } else if (!success) {
-          next('invalid update');
-        } else {
-          module.exports.addImages(baseGalleryId, baseGalleryId, uid, imageIds, next);
-        }
+        if (!success) cb('invalid update');
+        else cb();
       }
     );
   },

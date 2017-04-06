@@ -1,14 +1,8 @@
 const express = require('express');
-const multer = require('multer');
 const user = require('../controllers/user');
 const gallery = require('../controllers/gallery');
-const sync = require('../controllers/sync');
-const url = require('../../script/db/mongo-url.js');
-const storage = require('multer-gridfs-storage')({
-  url
-});
+const image = require('../controllers/image');
 
-const uploadStorage = multer({ storage });
 const routes = express.Router();
 
 // user functionality
@@ -21,13 +15,15 @@ routes.post('/user/update', user.update);
 routes.post('/user/delete', user.delete);
 
 // images
-
-routes.get('/image/:id/', sync.download);
-routes.use('/image/*', user.requireAuth);
-routes.post('/image/:id/remove', sync.remove);
-routes.post('/image/:id/share', sync.shareImage);
-routes.post('/image/:id/unshare', sync.unshareImage);
-routes.use('/image/upload', uploadStorage.array('images'), sync.upload);
+const imageRouter = express.Router();
+routes.use('/image', imageRouter);
+imageRouter.use(user.requireAuth);
+imageRouter.use('/upload', image.uploadMiddleware, image.upload);
+imageRouter.use('/:id/', image.checkId);
+imageRouter.get('/:id/', image.download);
+imageRouter.post('/:id/remove', image.remove);
+imageRouter.post('/:id/share', image.shareImage);
+imageRouter.post('/:id/unshare', image.unshareImage);
 
 // gallery
 routes.use('/gallery/*', user.requireAuth);
