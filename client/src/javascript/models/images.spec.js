@@ -16,7 +16,7 @@ describe('Images model', () => {
 
   before((done) => {
     syncDownloadStub = stub(Sync, 'downloadImage')
-                            .callsArgWith(1, null, fakeLocation);
+      .callsArgWith(1, null, fakeLocation);
     done();
   });
 

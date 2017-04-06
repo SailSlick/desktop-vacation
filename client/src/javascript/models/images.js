@@ -74,8 +74,10 @@ const Images = {
       image_db.removeOne({ $loki: id }, (res) => {
         if (doc && doc.remoteId && Host.isAuthed()) {
           Sync.removeSynced(doc.remoteId, (err) => {
-            if (err) console.error(err);
-            cb(res);
+            if (err) {
+              console.error(err);
+              cb(err);
+            } else cb(res);
           });
         } else cb(res);
       });

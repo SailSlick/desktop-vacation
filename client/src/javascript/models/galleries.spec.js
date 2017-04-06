@@ -43,7 +43,6 @@ describe('Galleries model', () => {
   // Remove test image
   after(() => {
     imageDownloadStub.restore();
-    Images.remove(test_image.$loki, () => true);
   });
 
   it('can add gallery', done =>
