@@ -7,6 +7,8 @@ import chaiEnzyme from 'chai-enzyme';
 import Gallery from './gallery.jsx';
 import Images from '../models/images';
 import Galleries from '../models/galleries';
+import Host from '../models/host';
+import Sync from '../helpers/sync';
 
 use(chaiEnzyme());
 chaiShould();
@@ -28,16 +30,18 @@ describe('Gallery Component', () => {
 
       // Create test gallery
       Galleries.add(test_gallery_name, (inserted_gallery) => {
-        test_gallery = inserted_gallery;
-        // Add test image to test gallery
-        Galleries.addItem(inserted_gallery.$loki, test_image.$loki, (updated_gallery) => {
-          test_gallery = updated_gallery;
-          test_component = mount(<Gallery
-            key={test_gallery.$loki}
-            dbId={test_gallery.$loki}
-            onClick={changeSpy}
-            onRefresh={done}
-          />);
+        Galleries.addRemoteId(inserted_gallery.$loki, 'totallyfakeRemote', () => {
+          test_gallery = inserted_gallery;
+          // Add test image to test gallery
+          Galleries.addItem(inserted_gallery.$loki, test_image.$loki, (updated_gallery) => {
+            test_gallery = updated_gallery;
+            test_component = mount(<Gallery
+              key={test_gallery.$loki}
+              dbId={test_gallery.$loki}
+              onClick={changeSpy}
+              onRefresh={done}
+            />);
+          });
         });
       });
     });
@@ -135,6 +139,18 @@ describe('Gallery Component', () => {
       done();
     });
   });
+
+  it('can upload item', (done) => {
+    const uploadStub = stub(Sync, 'uploadImages');
+    const hostAuthStub = stub(Host, 'isAuthed').returns(true);
+    test_component.instance().uploadItem(test_image.$loki);
+    uploadStub.called.should.be.ok;
+    hostAuthStub.called.should.be.ok;
+    uploadStub.restore();
+    hostAuthStub.restore();
+    done();
+  });
+
 
   it('can delete item from gallery and filesystem', (done) => {
     const deleteStub = stub(Galleries, 'deleteItem');
