@@ -217,6 +217,15 @@ const Galleries = {
     });
   },
 
+  update: (id, data, cb) => {
+    gallery_db.updateOne({ $loki: id }, data, (doc) => {
+      if (doc && Galleries.should_save) {
+        document.dispatchEvent(gallery_update_event);
+      }
+      return cb(doc);
+    });
+  },
+
   removeItem: (id, item_id, cb) => {
     console.log(`Attempting to remove ${item_id} from ${id}`);
     if (id === BASE_GALLERY_ID) {

@@ -6,7 +6,7 @@ const user = require('../models/user');
 module.exports = {
   upload: (req, res, next) => {
     if (!req.files) {
-      next({ status: 400, error: 'no files sent' });
+      next({ status: 400, error: 'invalid request' });
       return;
     }
     if (!galleries.verifyGid(req.body.gid)) {

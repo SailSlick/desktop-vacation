@@ -11,7 +11,7 @@ import Host from '../models/host';
 import Sync from '../helpers/sync';
 
 use(chaiEnzyme());
-chaiShould();
+const should = chaiShould();
 
 describe('Gallery Component', () => {
   const test_gallery_name = 'Land Rovers';
@@ -21,8 +21,12 @@ describe('Gallery Component', () => {
   let test_image;
   let test_component;
   let galleriesUpdateMetadataStub;
+  let hostAuthStub;
+  let uploadStub;
 
   before((done) => {
+    hostAuthStub = stub(Host, 'isAuthed').returns(true);
+    uploadStub = stub(Sync, 'uploadImages');
     galleriesUpdateMetadataStub = stub(Galleries, 'updateMetadata');
     // Create test image
     Images.add(test_image_path, (inserted_image) => {
@@ -31,7 +35,6 @@ describe('Gallery Component', () => {
       // Create test gallery
       Galleries.add(test_gallery_name, (inserted_gallery) => {
         Galleries.addRemoteId(inserted_gallery.$loki, 'totallyfakeRemote', () => {
-          test_gallery = inserted_gallery;
           // Add test image to test gallery
           Galleries.addItem(inserted_gallery.$loki, test_image.$loki, (updated_gallery) => {
             test_gallery = updated_gallery;
@@ -50,6 +53,8 @@ describe('Gallery Component', () => {
   // Remove test image and gallery
   after((done) => {
     galleriesUpdateMetadataStub.restore();
+    hostAuthStub.restore();
+    uploadStub.restore();
     test_component.unmount();
     Images.remove(test_image.$loki, () => true);
     Galleries.remove(test_gallery.$loki, () => done());
@@ -141,16 +146,13 @@ describe('Gallery Component', () => {
   });
 
   it('can upload item', (done) => {
-    const uploadStub = stub(Sync, 'uploadImages');
-    const hostAuthStub = stub(Host, 'isAuthed').returns(true);
+    hostAuthStub.reset();
+    uploadStub.reset();
     test_component.instance().uploadItem(test_image.$loki);
     uploadStub.called.should.be.ok;
     hostAuthStub.called.should.be.ok;
-    uploadStub.restore();
-    hostAuthStub.restore();
     done();
   });
-
 
   it('can delete item from gallery and filesystem', (done) => {
     const deleteStub = stub(Galleries, 'deleteItem');
@@ -178,5 +180,18 @@ describe('Gallery Component', () => {
     document.addEventListener('gallery_updated', update_props, false);
     test_component.find('.img-menu a').at(4).simulate('click');
   });
+
+  it('can\'t upload item when theres no remote id', (done) => {
+    Galleries.update(test_gallery.$loki, { remoteId: null }, (doc) => {
+      should.not.exist(doc.remoteId);
+      hostAuthStub.reset();
+      uploadStub.reset();
+      test_component.instance().uploadItem(test_image.$loki);
+      hostAuthStub.called.should.be.ok;
+      uploadStub.called.should.not.be.ok;
+      done();
+    });
+  });
+
   // TODO test subgalleries
 });

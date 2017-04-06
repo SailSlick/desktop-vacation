@@ -9,6 +9,8 @@ const should = chaiShould();
 
 describe('Images model', () => {
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
+  const fakeLocation = 'this is just a drill';
+  const fakeRemote = 'cest ne pas une pipe';
   let test_image;
 
   it('can add image', done =>
@@ -50,8 +52,6 @@ describe('Images model', () => {
   });
 
   it('can download image', (done) => {
-    const fakeLocation = 'this is just a drill';
-    const fakeRemote = 'cest ne pas une pipe';
     const syncDownloadStub = stub(Sync, 'downloadImage')
                             .callsArgWith(1, null, fakeLocation);
     Images.download(fakeRemote, (err, id) => {
@@ -59,8 +59,17 @@ describe('Images model', () => {
       Images.get(id, (image) => {
         image.remoteId.should.equal(fakeRemote);
         image.location.should.equal(fakeLocation);
-        // next line is cleanup
-        Images.remove(id, () => done());
+        done();
+      });
+    });
+  });
+
+  it('won\'t redownload an image thats already there', (done) => {
+    Images.download(fakeRemote, (err, id) => {
+      Images.get(id, (image) => {
+        image.remoteId.should.equal(fakeRemote);
+        image.location.should.equal(fakeLocation);
+        done();
       });
     });
   });

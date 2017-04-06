@@ -37,7 +37,7 @@ describe('Sync API', () => {
       .send({})
       .end((err, res) => {
         res.should.have.status(400);
-        res.body.error.should.equal('no files sent');
+        res.body.error.should.equal('invalid request');
         done();
       });
     });
@@ -99,6 +99,15 @@ describe('Sync API', () => {
       .get(`/image/${imageId}`)
       .end((err, res) => {
         res.should.have.status(200);
+        done();
+      });
+    });
+
+    it('should download a valid image id', (done) => {
+      chai.request(app)
+      .get(`/image/${imageId}`)
+      .end((err, res) => {
+        res.should.have.status(401);
         done();
       });
     });

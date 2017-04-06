@@ -45,7 +45,7 @@ describe('Sync helper', () => {
   });
 
   beforeEach(() => {
-    Galleries.should_save = true;
+    Galleries.should_save = false;
   });
 
   describe('uploading images', () => {
@@ -62,7 +62,7 @@ describe('Sync helper', () => {
       });
     });
 
-    it('should not be able to sync a duplicate image', (done) => {
+    it('should not be able to sync an already synced image', (done) => {
       Sync.uploadImages(remoteGalleryId, testImage.$loki, (res) => {
         should.not.exist(res);
         done();
@@ -75,7 +75,7 @@ describe('Sync helper', () => {
       Nock(Host.server_uri)
         .log(console.log)
         .get(`/image/${fakeRemote}`)
-        .reply(200, 'im an image I swearz', { 'content-type': 'text/plain' });
+        .replyWithFile(200, testImagePath, { 'content-type': 'image/png' });
       Sync.downloadImage(fakeRemote, (err, filePath) => {
         should.not.exist(err);
         filePath.should.exist;
@@ -110,7 +110,7 @@ describe('Sync helper', () => {
   });
 
   describe('unsharing images', () => {
-    it('should fail to share an invalid remote', (done) => {
+    it('should fail to unshare an invalid remote', (done) => {
       Nock(Host.server_uri)
         .post(`/image/${badRemote}/unshare`)
         .reply(400, { error: 'invalid something or other !?' }, headers);
@@ -121,7 +121,7 @@ describe('Sync helper', () => {
       });
     });
 
-    it('should share an image with a vaild remote', (done) => {
+    it('should unshare an image with a vaild remote', (done) => {
       Nock(Host.server_uri)
         .post(`/image/${fakeRemote}/unshare`)
         .reply(200, { message: 'id like to have an argument please' });
