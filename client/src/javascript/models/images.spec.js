@@ -1,6 +1,8 @@
 import path from 'path';
+import { stub } from 'sinon';
 import { should as chaiShould } from 'chai';
 import Images from './images';
+import Sync from '../helpers/sync';
 
 // Use 'should' style chai testing
 const should = chaiShould();
@@ -44,6 +46,22 @@ describe('Images model', () => {
     Images.update(test_image.$loki, { metadata }, (updatedImage) => {
       updatedImage.metadata.tags.should.include('test');
       done();
+    });
+  });
+
+  it('can download image', (done) => {
+    const fakeLocation = 'this is just a drill';
+    const fakeRemote = 'cest ne pas une pipe';
+    const syncDownloadStub = stub(Sync, 'downloadImage')
+                            .callsArgWith(1, null, fakeLocation);
+    Images.download(fakeRemote, (err, id) => {
+      syncDownloadStub.called.should.be.ok;
+      Images.get(id, (image) => {
+        image.remoteId.should.equal(fakeRemote);
+        image.location.should.equal(fakeLocation);
+        // next line is cleanup
+        Images.remove(id, () => done());
+      });
     });
   });
 

@@ -13,6 +13,7 @@ describe('Galleries model', () => {
   const base_gallery_id = 1;
   const test_gallery_name = 'Land Rovers';
   const test_subgallery_name = 'Series III';
+  const fakeRemote = 'landluver23*3';
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
   let test_gallery;
   let test_image;
@@ -216,6 +217,13 @@ describe('Galleries model', () => {
       }
     );
   });
+
+  it('can set gallery remote id', done =>
+    Galleries.addRemoteId(base_gallery_id, fakeRemote, (updatedGallery) => {
+      updatedGallery.remoteId.should.equal(fakeRemote);
+      done();
+    })
+  );
 
   it('can add item to subgallery', done =>
     Galleries.addItem(test_subgallery.$loki, test_image.$loki, (updated_gallery) => {
