@@ -1,13 +1,29 @@
 import path from 'path';
+import { stub } from 'sinon';
 import { should as chaiShould } from 'chai';
 import Images from './images';
+import Sync from '../helpers/sync';
 
 // Use 'should' style chai testing
 const should = chaiShould();
 
 describe('Images model', () => {
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
+  const fakeLocation = 'this is just a drill';
+  const fakeRemote = 'cest ne pas une pipe';
+  let syncDownloadStub;
   let test_image;
+
+  before((done) => {
+    syncDownloadStub = stub(Sync, 'downloadImage')
+      .callsArgWith(1, null, fakeLocation);
+    done();
+  });
+
+  after((done) => {
+    syncDownloadStub.restore();
+    done();
+  });
 
   it('can add image', done =>
     Images.add(test_image_path, (inserted_image) => {
@@ -44,6 +60,30 @@ describe('Images model', () => {
     Images.update(test_image.$loki, { metadata }, (updatedImage) => {
       updatedImage.metadata.tags.should.include('test');
       done();
+    });
+  });
+
+  it('can download image', (done) => {
+    syncDownloadStub.reset();
+    Images.download(fakeRemote, (err, id) => {
+      syncDownloadStub.called.should.be.ok;
+      Images.get(id, (image) => {
+        image.remoteId.should.equal(fakeRemote);
+        image.location.should.equal(fakeLocation);
+        done();
+      });
+    });
+  });
+
+  it('won\'t redownload an image thats already there', (done) => {
+    syncDownloadStub.reset();
+    Images.download(fakeRemote, (err, id) => {
+      Images.get(id, (image) => {
+        syncDownloadStub.called.should.not.be.ok;
+        image.remoteId.should.equal(fakeRemote);
+        image.location.should.equal(fakeLocation);
+        done();
+      });
     });
   });
 

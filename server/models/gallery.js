@@ -86,7 +86,7 @@ module.exports = {
       { uid, images: imageId },
       { $pull: { images: imageId } },
       (success) => {
-        if (!success) return next('invalid gallery, or invalid permissions');
+        if (!success) return next('invalid request, or invalid permissions');
         return next();
       }
     );
