@@ -103,7 +103,7 @@ describe('Sync API', () => {
       });
     });
 
-    it('should download a valid image id', (done) => {
+    it('should not be able to download an unshared image', (done) => {
       chai.request(app)
       .get(`/image/${imageId}`)
       .end((err, res) => {
