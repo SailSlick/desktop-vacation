@@ -2,6 +2,9 @@ const MongoTools = require('../../server/middleware/db');
 
 const dbConnG = new MongoTools('galleries');
 const dbConnU = new MongoTools('users');
+const dbConnC = new MongoTools('fs.chunks');
+const dbConnF = new MongoTools('fs.files');
+const dbConnS = new MongoTools('session');
 
 function updateUsers(mainGal, userId) {
   const userQuery = { _id: userId };
@@ -82,13 +85,16 @@ function users(mainGal) {
 }
 
 // Wait for all the connections to be ready
-let i = 2;
+let i = 5;
 
 function connReady() {
   i--;
   if (i === 0) {
     dbConnG.removeMany({}, () => true);
     dbConnU.removeMany({}, () => true);
+    dbConnC.removeMany({}, () => true);
+    dbConnF.removeMany({}, () => true);
+    dbConnS.removeMany({}, () => true);
     return users();
   }
   return false;
@@ -96,3 +102,6 @@ function connReady() {
 
 dbConnG.onLoad = connReady;
 dbConnU.onLoad = connReady;
+dbConnC.onLoad = connReady;
+dbConnF.onLoad = connReady;
+dbConnS.onLoad = connReady;

@@ -62,7 +62,8 @@ export default {
     const req = request
     .get(options)
     .on('response', (res) => {
-      // console.log("in download", res.body)
+      console.log("in download", res.body)
+      console.log("in download res", res)
       if (res.statusCode === 200) {
         // newFileHash = res.body.hash;
         newFilePath = path.join(
