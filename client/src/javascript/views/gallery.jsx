@@ -279,6 +279,7 @@ class Gallery extends React.Component {
             addAllToGallery={this.addAllToGallery}
             selectAll={this.selectAll}
             removeAll={this.removeAll}
+            tagAll={() => console.log('this will eventually tag things')}
           />
         </Col>
         <Col xs={4}>

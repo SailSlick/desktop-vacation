@@ -50,6 +50,10 @@ export default class SelectTools extends React.Component {
               <Glyphicon glyph="remove" />
               Remove
             </NavItem>
+            <NavItem onClick={this.props.tagAll}>
+              <Glyphicon glyph="tag" />
+              Tag
+            </NavItem>
           </Nav>
         </Navbar>
       </div>
@@ -61,5 +65,6 @@ SelectTools.propTypes = {
   multiSelect: React.PropTypes.bool.isRequired,
   addAllToGallery: React.PropTypes.func.isRequired,
   selectAll: React.PropTypes.func.isRequired,
-  removeAll: React.PropTypes.func.isRequired
+  removeAll: React.PropTypes.func.isRequired,
+  tagAll: React.PropTypes.func.isRequired
 };
