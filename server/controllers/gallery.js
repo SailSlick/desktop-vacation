@@ -12,13 +12,15 @@ function unsync(uid, gid, cb) {
     return async.map(gallery.images,
       (imageId, next) => imageModel.remove(uid, imageId, next),
       (errImg) => {
+        // TODO maybe make this more error tolerant
+        // ATM if any image/gallery fails to remove the whole process is deemed failed
+        // That's fine because you can try again - but we could probably do better
         if (errImg) return cb(errImg);
 
         return async.map(gallery.subgalleries,
           (galleryId, next) => unsync(uid, galleryId, next),
           (errGal) => {
-            if (errGal) return cb(errImg);
-
+            if (errGal) return cb(errGal);
             return galleryModel.remove(gid, cb);
           }
         );
