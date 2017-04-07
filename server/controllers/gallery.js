@@ -1,6 +1,31 @@
 const galleryModel = require('../models/gallery');
+const imageModel = require('../models/gallery');
 const userModel = require('../models/user');
 const async = require('async');
+
+// Used by upload and remove to recursively unsync [sub]galleries
+function unsync(uid, gid, cb) {
+  galleryModel.getGid(gid, (err, gallery) => {
+    if (err) return cb(err);
+    if (gallery.uid !== uid) return cb('incorrect permissions');
+
+    return async.map(gallery.images,
+      (imageId, next) => imageModel.remove(uid, imageId, next),
+      (errImg) => {
+        if (errImg) return cb(errImg);
+
+        return async.map(gallery.subgalleries,
+          (galleryId, next) => unsync(uid, galleryId, next),
+          (errGal) => {
+            if (errGal) return cb(errImg);
+
+            return galleryModel.remove(gid, cb);
+          }
+        );
+      }
+    );
+  });
+}
 
 module.exports = {
 
@@ -32,18 +57,41 @@ module.exports = {
         } else if (existingGallery.uid !== uid) {
           next({ status: 403, error: 'incorrect permissions' });
         } else {
-          galleryModel.updateGid(gid, gallery, (error) => {
-            // Gallery won't update if nothing has changed
-            // this shouldn't be a fatal error
-            if (error === 'gallery not updated') {
-              return next({
-                status: 302,
-                message: error,
-                gid
-              });
+          // Remove the unsynced images and galleries
+          const removedImages = existingGallery.images.filter(oldImage =>
+            gallery.images.some(newImage => oldImage === newImage)
+          );
+          const removedSubgalleries = existingGallery.subgalleries.filter(oldGallery =>
+            gallery.galleries.some(newGallery => oldGallery === newGallery)
+          );
+          async.each(removedImages,
+            (id, nextId) => imageModel.remove(uid, id, nextId),
+            (errImg) => {
+              if (errImg) {
+                return next({ status: 500, error: errImg });
+              }
+
+              return async.each(removedSubgalleries,
+                (id, nextId) => unsync(uid, id, nextId),
+                (errGal) => {
+                  if (errGal) {
+                    return next({ status: 500, error: errGal });
+                  }
+                  return galleryModel.updateGid(gid, gallery, (error) => {
+                    // Gallery won't update if nothing has changed
+                    // this shouldn't be a fatal error
+                    if (error === 'gallery not updated') {
+                      return next({
+                        status: 302,
+                        message: error,
+                        gid
+                      });
+                    }
+                    return res.status(200).json({ message: 'gallery uploaded', gid });
+                  });
+                });
             }
-            return res.status(200).json({ message: 'gallery uploaded', gid });
-          });
+          );
         }
       });
     }
@@ -97,15 +145,10 @@ module.exports = {
       return next({ status: 400, error: 'invalid gid' });
     }
 
-    // Check owner of gallery
-    return galleryModel.getGid(gid, (err, gallery) => {
-      if (err) return next({ status: 404, error: 'gallery doesn\'t exist' });
-      if (uid !== gallery.uid) return next({ status: 403, error: 'incorrect permissions' });
-
-      return galleryModel.remove(gid, (error) => {
-        if (error) return next({ status: 500, error });
-        return res.status(200).json({ message: 'gallery removed' });
-      });
+    return unsync(uid, gid, (error) => {
+      if (error === 'incorrect permissions') return next({ status: 403, error });
+      if (error) return next({ status: 500, error });
+      return res.status(200).json({ message: 'gallery removed' });
     });
   },
 
