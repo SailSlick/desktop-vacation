@@ -40,11 +40,11 @@ const Images = {
     });
   },
 
-  addRemoteId: (location, remoteId, hash, cb) => {
+  addRemoteId: (location, remoteId, cb) => {
     const doc = {
       location,
       remoteId,
-      hash,
+      hash: '',
       metadata: { rating: 0, tags: [] }
     };
     // since an existance check is already done to prevent duplicate downloads
@@ -92,11 +92,11 @@ const Images = {
       if (existingDoc) {
         cb(null, existingDoc.$loki);
       } else {
-        Sync.downloadImage(remoteId, (err, location, hash) => {
+        Sync.downloadImage(remoteId, (err, location) => {
           if (err) console.error(err);
           else {
             console.log(`Adding image at ${location}`);
-            Images.addRemoteId(location, remoteId, hash, (doc) => {
+            Images.addRemoteId(location, remoteId, (doc) => {
               cb(null, doc.$loki);
             });
           }

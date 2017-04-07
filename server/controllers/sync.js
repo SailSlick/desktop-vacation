@@ -13,7 +13,7 @@ module.exports = {
       next({ status: 400, error: 'no hashes sent' });
       return;
     }
-    if (req.body.hashes.length - 1 !== req.files.length) {
+    if (req.body.hashes.length !== req.files.length) {
       next({ status: 400, error: 'inequal number of hashes to images' });
       return;
     }
@@ -77,11 +77,7 @@ module.exports = {
         image.file.on('error', () => {
           next({ status: 500, error: 'failed to retreive file' });
         });
-        res.body = { hash: image.hash };
-        console.log("wheere", res.body)
         image.file.pipe(res);
-        // console.log("here", image.hash)
-        // res.send({ hash: image.hash });
       }
     });
   },
@@ -99,13 +95,7 @@ module.exports = {
         if (imageErr) {
           next({ status: 400, error: imageErr });
         } else {
-          images.removeChunks(req.params.id, (chunkErr) => {
-            if (chunkErr) {
-              next({ status: 400, error: chunkErr });
-            } else {
-              next({ status: 200, message: 'image deleted' });
-            }
-          });
+          next({ status: 200, message: 'image deleted' });
         }
       });
     });
