@@ -9,6 +9,7 @@ use(chaiThings);
 
 describe('Host model', () => {
   let username;
+  let remoteGallery;
   const username2 = 'Rully';
   const password = 'password';
   const password2 = 'wrongpw';
@@ -24,7 +25,7 @@ describe('Host model', () => {
   after((done) => {
     Nock(domain)
       .post('/user/create')
-      .reply(200, { status: 200, message, uid, domain }, headers);
+      .reply(200, { status: 200, message, uid, domain, 'root-remote-id': remoteGallery }, headers);
     Host.createAccount(username, password, () => done());
   });
 
@@ -32,6 +33,7 @@ describe('Host model', () => {
     Host.getIndex(1, (doc) => {
       should.exist(doc);
       username = doc.username;
+      remoteGallery = doc.remoteGallery;
       done();
     });
   });

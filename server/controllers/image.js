@@ -2,6 +2,15 @@ const images = require('../models/image');
 const galleries = require('../models/gallery');
 const user = require('../models/user');
 
+function basicErrorHandler(error, next, message) {
+  if (error) {
+    console.error(error);
+    next({ status: 400, error });
+  } else {
+    next({ status: 200, message });
+  }
+}
+
 module.exports = {
   uploadMiddleware: images.uploadMiddleware,
 
@@ -66,34 +75,33 @@ module.exports = {
   },
 
   remove: (req, res, next) => {
-    images.remove(req.session.uid, req.params.id, (error) => {
-      if (error) {
-        next({ status: 400, error });
-      } else {
-        next({ status: 200, message: 'image deleted' });
+    galleries.removeImageGlobal(
+      req.params.id,
+      req.session.uid,
+      (err) => {
+        if (err) return next({ status: 400, error: err });
+        return images.remove(
+          req.session.uid,
+          req.params.id,
+          error => basicErrorHandler(error, next, 'image deleted')
+        );
       }
-    });
+    );
   },
 
   shareImage: (req, res, next) => {
-    images.share(req.session.uid, req.params.id, (err) => {
-      if (err) {
-        console.error(err);
-        next({ status: 400, error: err });
-      } else {
-        next({ status: 200, message: 'image shared' });
-      }
-    });
+    images.share(
+      req.session.uid,
+      req.params.id,
+      error => basicErrorHandler(error, next, 'image shared')
+    );
   },
 
   unshareImage: (req, res, next) => {
-    images.unshare(req.session.uid, req.params.id, (err) => {
-      if (err) {
-        console.error(err);
-        next({ status: 400, error: err });
-      } else {
-        next({ status: 200, message: 'image unshared' });
-      }
-    });
+    images.unshare(
+      req.session.uid,
+      req.params.id,
+      error => basicErrorHandler(error, next, 'image unshared')
+    );
   }
 };

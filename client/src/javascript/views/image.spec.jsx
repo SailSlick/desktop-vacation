@@ -8,6 +8,7 @@ import { Simulate } from 'react-addons-test-utils';
 import Image from './image.jsx';
 import Images from '../models/images';
 import Wallpaper from '../helpers/wallpaper-client';
+import Sync from '../helpers/sync';
 
 use(chaiEnzyme());
 chaiShould();
@@ -15,22 +16,29 @@ chaiShould();
 describe('Image Component', () => {
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
   const removeSpy = spy();
+  const uploadSpy = spy();
+  const fakeUrl = 'psst. im not a real url';
   let test_image;
   let test_component;
-  let imageUpdateMetadataStub;
+  let imageUpdateStub;
+  let syncShareStub;
+  let syncUnshareStub;
 
   before((done) => {
-    imageUpdateMetadataStub = stub(Images, 'update');
+    imageUpdateStub = stub(Images, 'update');
+    syncShareStub = stub(Sync, 'shareImage').returns(fakeUrl);
+    syncUnshareStub = stub(Sync, 'unshareImage');
     Images.add(test_image_path, (inserted_image) => {
       test_image = inserted_image;
       test_component = mount(<Image
         key={test_image.$loki}
         dbId={test_image.$loki}
+        remoteId={'thisisatestyo'}
         rating={test_image.metadata.rating}
         tags={test_image.metadata.tags}
         src={test_image_path}
         onRemove={removeSpy}
-        onUpload={() => true}
+        onUpload={uploadSpy}
       />);
       done();
     });
@@ -38,27 +46,29 @@ describe('Image Component', () => {
 
   after(() => {
     Images.remove(test_image.$loki, () => true);
-    imageUpdateMetadataStub.restore();
+    imageUpdateStub.restore();
+    syncShareStub.restore();
+    syncUnshareStub.restore();
   });
 
   it('can add a tag', (done) => {
-    imageUpdateMetadataStub.reset();
+    imageUpdateStub.reset();
     test_component.instance().updateMetadata('hula', false);
-    imageUpdateMetadataStub.called.should.be.ok;
+    imageUpdateStub.called.should.be.ok;
     done();
   });
 
   it('can remove a tag', (done) => {
-    imageUpdateMetadataStub.reset();
+    imageUpdateStub.reset();
     test_component.instance().updateMetadata('hula', true);
-    imageUpdateMetadataStub.called.should.be.ok;
+    imageUpdateStub.called.should.be.ok;
     done();
   });
 
   it('can update the rating', (done) => {
-    imageUpdateMetadataStub.reset();
+    imageUpdateStub.reset();
     test_component.instance().updateMetadata(3, false);
-    imageUpdateMetadataStub.called.should.be.ok;
+    imageUpdateStub.called.should.be.ok;
     done();
   });
 
@@ -130,6 +140,33 @@ describe('Image Component', () => {
     removeSpy.called.should.not.be.ok;
     test_component.find('.img-menu a').at(4).simulate('click');
     removeSpy.called.should.be.ok;
+    done();
+  });
+
+  it('can request upload of element', (done) => {
+    uploadSpy.reset();
+    uploadSpy.called.should.not.be.ok;
+    test_component.find('.img-menu a').at(2).simulate('click');
+    uploadSpy.called.should.be.ok;
+    done();
+  });
+
+  it('can request share an image', (done) => {
+    syncShareStub.reset();
+    test_component.find('.img-menu a').at(3).simulate('click');
+    syncShareStub.called.should.be.ok;
+    done();
+  });
+
+  it('can request unshare an image', (done) => {
+    syncUnshareStub.reset();
+    /*
+     * NOTE can't use .at(4) because the button is only rendered if url is set
+     * I cant figure out a way to update state and force rerender.
+     * I tried test_component.setState and test_component.update()
+     */
+    test_component.instance().unshare();
+    syncUnshareStub.called.should.be.ok;
     done();
   });
 });

@@ -36,7 +36,7 @@ client/app/userData
 
 # Server
 server/test_image_thumb.*
-server/private/images
+server/private
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

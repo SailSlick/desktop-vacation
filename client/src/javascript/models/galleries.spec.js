@@ -1,9 +1,12 @@
 import jetpack from 'fs-jetpack';
 import path from 'path';
+import Nock from 'nock';
 import { use, should as chaiShould } from 'chai';
+import { stub } from 'sinon';
 import chaiThings from 'chai-things';
 import Galleries from './galleries';
 import Images from './images';
+import Host from './host';
 
 // Use 'should' style chai testing
 const should = chaiShould();
@@ -13,27 +16,34 @@ describe('Galleries model', () => {
   const base_gallery_id = 1;
   const test_gallery_name = 'Land Rovers';
   const test_subgallery_name = 'Series III';
+  let fakeRemote;
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
+  const fakeImageId = '1233123';
   let test_gallery;
   let test_image;
   let test_subgallery;
+  let imageDownloadStub;
 
   beforeEach(() => {
     Galleries.should_save = false;
   });
 
   // Create a test image
-  before(done =>
+  before((done) => {
+    imageDownloadStub = stub(Images, 'download').callsArgWith(1, null, fakeImageId);
     Images.add(test_image_path, (inserted_image) => {
       test_image = inserted_image;
-      done();
-    })
-  );
+      Host.getBaseRemote((remoteId) => {
+        fakeRemote = remoteId;
+        done();
+      });
+    });
+  });
 
   // Remove test image
-  after(() =>
-    Images.remove(test_image.$loki, () => true)
-  );
+  after(() => {
+    imageDownloadStub.restore();
+  });
 
   it('can add gallery', done =>
     Galleries.add(test_gallery_name, (inserted_gallery) => {
@@ -215,6 +225,31 @@ describe('Galleries model', () => {
         done();
       }
     );
+  });
+
+  it('can set gallery remote id', done =>
+    Galleries.addRemoteId(base_gallery_id, fakeRemote, (updatedGallery) => {
+      updatedGallery.remoteId.should.equal(fakeRemote);
+      done();
+    })
+  );
+
+  it('can sync root', (done) => {
+    imageDownloadStub.reset();
+    const req = Nock(Host.server_uri)
+      .get(`/gallery/${fakeRemote}`)
+      .reply(200, {
+        data: { images: ['APERATUREscience'] },
+        message: 'Hoo-Wee! I\'m Mr Poopy Butthole'
+      });
+    Galleries.syncRoot(() => {
+      req.isDone().should.be.ok;
+      imageDownloadStub.called.should.be.ok;
+      Galleries.get(base_gallery_id, (gallery) => {
+        gallery.images.should.contain(fakeImageId);
+        done();
+      });
+    });
   });
 
   it('can add item to subgallery', done =>

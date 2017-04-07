@@ -18,11 +18,15 @@ function errorHandler(reqErr, response, body, cb) {
 }
 
 export default {
-  uploadImages: (galleryRemoteId, imageId) => {
+  uploadImages: (galleryRemoteId, imageId, cb) => {
     Images.get(imageId, (file) => {
+      if (!file) {
+        danger('Invalid image ID');
+        return cb();
+      }
       if (file.remoteId) {
         warning('Item is already synced');
-        return;
+        return cb();
       }
       const formData = {
         metadatas: JSON.stringify([file.metadata]),
@@ -35,12 +39,20 @@ export default {
         jar: Host.cookie_jar,
         json: true
       };
-      request(options, (reqErr, res, body) => {
+      return request(options, (reqErr, res, body) => {
         errorHandler(reqErr, res, body, (err, result) => {
-          if (err) return danger(err);
+          if (err) {
+            danger(err);
+            return cb();
+          }
           return Images.update(imageId, { remoteId: result['image-ids'][0] }, (updateErr) => {
-            if (err) danger(updateErr);
-            else success('Images uploaded');
+            if (err) {
+              danger(updateErr);
+              cb();
+            } else {
+              success('Images uploaded');
+              cb(result);
+            }
           });
         });
       });
