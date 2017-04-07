@@ -42,36 +42,25 @@ describe('Sync API', () => {
       });
     });
 
-    it('should not allow an invalid id', (done) => {
-      agent
-      .post('/image/upload')
-      .type('form')
-      .field('gid', 'notvalid_id')
-      .end((err, res) => {
-        res.should.have.status(400);
-        res.body.error.should.equal('invalid gallery id');
-        done();
-      });
-    });
-
-    it('should correctly respond to an request with no images', (done) => {
+    it('should not allow more images than metadatas', (done) => {
       agent
         .post('/image/upload')
         .type('form')
-        .field('gid', baseGalleryId)
+        .attach('images', testImagePath)
+        .field('metadatas', '[]')
         .end((err, res) => {
-          res.should.have.status(200);
-          res.body.message.should.equal('no images to upload');
+          res.should.have.status(400);
+          res.body.error.should.equal('invalid request');
           done();
         });
     });
 
-    it('should correctly respond to an request with an image', (done) => {
+    it('should correctly respond to a request with an image', (done) => {
       agent
         .post('/image/upload')
         .type('form')
-        .field('gid', baseGalleryId)
         .attach('images', testImagePath)
+        .field('metadatas', '[{"rating":4,"tags":[]}]')
         .end((err, res) => {
           res.should.have.status(200);
           res.body.should.have.property('image-ids');
@@ -88,8 +77,8 @@ describe('Sync API', () => {
       agent
       .get('/image/1337')
       .end((err, res) => {
-        res.should.have.status(400);
-        res.body.error.should.equal('cannot find image');
+        res.should.have.status(404);
+        res.body.error.should.equal('image not found');
         done();
       });
     });
@@ -220,8 +209,8 @@ describe('Sync API', () => {
       agent
       .get(`/image/${imageId}`)
       .end((err, res) => {
-        res.should.have.status(400);
-        res.body.error.should.equal('cannot find image');
+        res.should.have.status(404);
+        res.body.error.should.equal('image not found');
         done();
       });
     });

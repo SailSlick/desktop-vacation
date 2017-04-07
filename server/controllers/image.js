@@ -22,12 +22,20 @@ module.exports = {
   },
 
   upload: (req, res, next) => {
-    if (!req.files) {
-      return next({ status: 400, error: 'no files sent' });
+    if (!req.files || typeof req.body.metadatas !== 'string') {
+      return next({ status: 400, error: 'invalid request' });
     }
 
     // Decode the metadatas
     const metadatas = JSON.parse(req.body.metadatas);
+
+    if (metadatas.length !== req.files.length) {
+      return next({ status: 400, error: 'invalid request' });
+    }
+
+    if (metadatas.length === 0) {
+      return next({ status: 302, error: 'no images to upload' });
+    }
 
     // Combine the form data, file path and uid to form
     // actual database documents

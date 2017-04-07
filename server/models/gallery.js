@@ -77,9 +77,10 @@ module.exports = {
   },
 
   removeImageGlobal: (imageId, uid, next) => {
+    const id = db.getId(imageId);
     db.updateMany(
-      { uid, images: imageId },
-      { $pull: { images: imageId } },
+      { uid, images: id },
+      { $pull: { images: id } },
       (success) => {
         if (!success) return next('invalid request, or invalid permissions');
         return next();
