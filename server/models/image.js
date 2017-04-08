@@ -1,38 +1,84 @@
+const fs = require('fs');
+const mkdirp = require('mkdirp');
+const async = require('async');
+const multer = require('multer');
 const DBTools = require('../middleware/db');
 
-const db = new DBTools('fs.files');
+const db = new DBTools('images');
+
+const IMAGE_TYPES = [
+  'image/png',
+  'image/jpeg',
+  'image/gif',
+  'image/bmp',
+  'image/gif',
+  'image/tiff'
+];
+
+const IMAGE_FOLDER = 'private/images';
+
+if (!fs.existsSync(IMAGE_FOLDER)) {
+  mkdirp.sync(IMAGE_FOLDER);
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    // Multer is lazy...
+    const path = `${IMAGE_FOLDER}/${req.session.uid}`;
+    if (!fs.existsSync(path)) {
+      fs.mkdirSync(path);
+    }
+    cb(null, path);
+  }
+});
+
+function fileFilter(req, file, cb) {
+  return cb(null, IMAGE_TYPES.some(type => file.mimetype === type));
+}
 
 module.exports = {
-  add(uid, imageId, next) {
-    // The file should already exist thanks to multer
-    db.updateOne({ _id: db.getId(imageId) }, { uid, shared: false }, (success) => {
-      if (!success) {
-        next('Failure adding user id to image');
-      } else {
-        next(null);
-      }
-    });
+  uploadMiddleware: multer({ storage, fileFilter }).array('images'),
+
+  addMany(images, cb) {
+    db.insertMany(images, cb);
   },
 
   get(uid, id, next) {
     db.findOne({ _id: db.getId(id) }, (doc) => {
       if (!doc) {
-        next('cannot find image', null);
+        next(404, null);
       } else if (doc.uid !== uid && !doc.shared) {
-        next(401, null); // using a number here prevents buggy string comp
+        next(401, null);
       } else {
-        next(null, {
-          file: db.readFile(id),
-          contentType: doc.contentType
-        });
+        next(null, doc);
       }
     });
   },
 
   remove(uid, id, next) {
-    db.removeOne({ _id: db.getId(id), uid }, (removed) => {
-      if (removed) return next();
-      return next('cannot find image, or invalid permissions');
+    module.exports.get(uid, id, (err, file) => {
+      if (err) {
+        return next('cannot find image, or invalid permissions');
+      }
+      if (file.refs - 1 === 0) {
+        return db.removeOne({ _id: db.getId(id), uid }, (removed) => {
+          if (!removed) {
+            return next('failed to remove image');
+          }
+          fs.unlinkSync(file.location);
+          return next();
+        });
+      }
+      return db.updateRaw(
+        { _id: db.getId(id), uid },
+        { $inc: { refs: -1 } },
+        (updated) => {
+          if (!updated) {
+            return next('failed to remove image');
+          }
+          return next();
+        }
+      );
     });
   },
 
@@ -50,16 +96,30 @@ module.exports = {
   },
 
   unshare(uid, imageId, next) {
-    db.updateOne({ _id: db.getId(imageId), uid }, { shared: false }, (success) => {
-      if (!success) {
-        next('failure to unshare image');
-      } else {
-        next(null);
+    db.updateOne(
+      { _id: db.getId(imageId), uid },
+      { shared: false },
+      (success, matchedCount) => {
+        if (!success && matchedCount < 1) {
+          next('failure to unshare image');
+        } else {
+          next(null);
+        }
       }
-    });
+    );
   },
 
   purgeUserImages: (uid, cb) => {
-    db.removeMany({ uid }, () => cb());
+    db.findMany({ uid }, images =>
+      async.each(
+        images,
+        (image, next) =>
+          fs.unlink(image.path, next),
+        (err) => {
+          if (err) cb('failed to purge user');
+          else db.removeMany({ uid }, () => cb());
+        }
+      )
+    );
   }
 };

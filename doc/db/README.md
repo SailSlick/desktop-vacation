@@ -9,7 +9,8 @@ We use 3 different MongoDB collections for our server storage. The specs can
 be found at the following links.
 - [Users](/doc/db/users.md)
 - [Galleries](/doc/db/galleries.md)
-- [Images](/doc/db/Images)
+- [Images](/doc/db/images.md)
+- [Images (GridFS)](/doc/db/images-gridfs.md)
 
 ### Client -> LokiJS
 We decided to use [LokiJs](http://lokijs.org/#/), a javascript in-memory
@@ -19,4 +20,4 @@ We use 3 different LokiJs collections for our client storage. The specs can be
 found at the following links.
 - [Host](/doc/db/host.md)
 - [Galleries](/doc/db/galleries.md)
-- [Images](/doc/db/Images)
+- [Images](/doc/db/images.md)

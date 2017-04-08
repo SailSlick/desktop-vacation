@@ -146,7 +146,7 @@ class Gallery extends React.Component {
         }
         console.log(`syncing, gallery: ${gallery.remoteId}`);
         if (gallery.remoteId) {
-          Sync.uploadImages(gallery.remoteId, id);
+          Sync.uploadImages(gallery.remoteId, id, () => {});
         } else {
           danger('Can\'t sync from subgallery.');
         }

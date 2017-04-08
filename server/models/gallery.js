@@ -103,28 +103,24 @@ const galleryModel = {
     });
   },
 
-  addImages: (gid, baseGalleryId, uid, imageIds, next) => {
+  addImages: (gid, imageIds, cb) => {
     db.updateRaw(
-      { uid, _id: db.getId(gid) },
+      { _id: db.getId(gid) },
       { $addToSet: { images: { $each: imageIds } } },
       (success) => {
-        if (gid === baseGalleryId) {
-          next();
-        } else if (!success) {
-          next('invalid update');
-        } else {
-          module.exports.addImages(baseGalleryId, baseGalleryId, uid, imageIds, next);
-        }
+        if (!success) cb('invalid update');
+        else cb();
       }
     );
   },
 
   removeImageGlobal: (imageId, uid, next) => {
+    const id = db.getId(imageId);
     db.updateMany(
-      { uid, images: imageId },
-      { $pull: { images: imageId } },
+      { uid, images: id },
+      { $pull: { images: id } },
       (success) => {
-        if (!success) return next('invalid gallery, or invalid permissions');
+        if (!success) return next('invalid request, or invalid permissions');
         return next();
       }
     );
