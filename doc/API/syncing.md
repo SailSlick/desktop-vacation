@@ -15,12 +15,11 @@ Upload an array of images to the server
 
 #### JSON Parameters
 
-| Name       | Type   | Description                                             |
-|------------|--------|---------------------------------------------------------|
-| images     | Array  | Image files to be uploaded                              |
-| metadatas  | Array  | Image's respective [metadata (object)](../db/images.md) |
-| hashes     | Array  | Image's respective hashes (string)                      |
-| gid        | String | Serverside ID of target gallery                         |
+| Name       | Type   | Description                                                                   |
+|------------|--------|-------------------------------------------------------------------------------|
+| images     | Array  | Image files to be uploaded                                                    |
+| metadatas  | String | JSON encoded array of image's respective [metadata (object)](../db/images.md) |
+| hashes     | Array  | Image's respective hashes (string)                                            |
 
 ### Response
 
@@ -42,7 +41,8 @@ they were uploaded.
 
 | Error Message             | Status |
 |---------------------------|--------|
-| `bad image(s)`            |   400  |
+| `no images to upload`     |   302  |
+| `invalid request`         |   400  |
 | `not logged in`           |   401  |
 | `upload failed`           |   500  |
 
@@ -414,10 +414,12 @@ is invisible to the client.
 
 ## Image Unsyncing
 
-- Remove from collection
-- Decrement ref counter in FS
-- If FS ref counter is 0:
-  - Remove from FS too
+- Decrement ref counter in image collection
+  - If ref counter is 0:
+    - Decrement ref counter in FS
+    - If FS ref counter is 0:
+      - Remove from FS too
+    - Remove from collection
 
 ## Gallery Unsyncing
 
