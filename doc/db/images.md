@@ -19,6 +19,7 @@ instead of `ObjectId`s
 | remoteId     | Client  | String   | Unique ID of the image serverside                                |
 | url          | Client  | String   | Relative URL used when sharing the image                         |
 | modified     | Client  | Date     | JS Date object of the modified time                              |
+| mimeType     | Server  | String   | MIME Type of the original image file                             |
 | shared       | Server  | Boolean  | Whether or not the image is publically visible                   |
 | refs         | Server  | Number   | Number of galleries/syncs referencing this image                 |
 

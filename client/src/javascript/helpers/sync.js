@@ -29,7 +29,7 @@ export default {
         return cb();
       }
       const formData = {
-        gid: galleryRemoteId,
+        metadatas: JSON.stringify([file.metadata]),
         images: [fs.createReadStream(file.location)]
       };
       const options = {
