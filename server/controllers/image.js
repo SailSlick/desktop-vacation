@@ -22,20 +22,38 @@ module.exports = {
   },
 
   upload: (req, res, next) => {
-    if (!req.files || typeof req.body.metadatas !== 'string') {
+    if (!req.files && !req.body.files) {
+      return next({ status: 400, error: 'invalid request' });
+    }
+    if (req.body.files && req.files.length === 0) {
+      // Get user's base gallery id
+      return user.getBaseGallery(req.session.uid, baseGalleryId =>
+        // Add images to base gallery
+        galleries.addImages(baseGalleryId, req.body.files, (error) => {
+          if (error) return next({ status: 500, error: 'upload failed' });
+          return res.status(200).json({
+            message: 'images uploaded',
+            'image-ids': req.body.files
+          });
+        })
+      );
+    }
+    if (!req.body.hashes || !req.body.metadatas) {
       return next({ status: 400, error: 'invalid request' });
     }
 
     // Decode the metadatas and hashes
-    const metadatas = JSON.parse(req.body.metadatas);
-    const hashes = JSON.parse(req.body.hashes);
+    let metadatas = req.body.metadatas;
+    let hashes = req.body.hashes;
 
-    if (metadatas.length !== req.files.length && req.files.length !== hashes.length) {
-      return next({ status: 400, error: 'invalid request' });
+    if (typeof metadatas === 'string') {
+      metadatas = JSON.parse(metadatas);
+      hashes = JSON.parse(hashes);
     }
 
-    if (metadatas.length === 0) {
-      return next({ status: 302, error: 'no images to upload' });
+    if (req.files.length === 0 || metadatas.length !== req.files.length
+      || req.files.length !== hashes.length) {
+      return next({ status: 400, error: 'invalid request' });
     }
 
     // Combine the form data, file path and uid to form
@@ -49,7 +67,6 @@ module.exports = {
       shared: false,
       refs: 1
     }));
-
     // Add images to images collection
     return images.addMany(newImages, (newIds) => {
       if (newIds === false) return next({ status: 500, error: 'upload failed' });
