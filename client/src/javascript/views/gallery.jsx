@@ -8,9 +8,10 @@ import GalleryCard from './gallerycard.jsx';
 import SelectTools from './selectTools.jsx';
 import GalleryBar from './galleryBar.jsx';
 import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
-import { success, danger } from '../helpers/notifier';
+import { success, warning, danger } from '../helpers/notifier';
 import Sync from '../helpers/sync';
 import Galleries from '../models/galleries';
+import Images from '../models/images';
 import Host from '../models/host';
 
 const append_gallery_event_name = 'append_gallery';
@@ -37,6 +38,7 @@ class Gallery extends React.Component {
     this.removeItem = this.removeItem.bind(this);
     this.uploadItem = this.uploadItem.bind(this);
     this.removeAll = this.removeAll.bind(this);
+    this.tagAll = this.tagAll.bind(this);
     this.selectItem = this.selectItem.bind(this);
     this.selectAll = this.selectAll.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
@@ -171,6 +173,31 @@ class Gallery extends React.Component {
     });
   }
 
+  tagAll(key, value, cb) {
+    const numItems = this.state.selection.length;
+    eachOf(this.state.selection, (id, index, next) => {
+      if (index === numItems - 1) Galleries.should_save = true;
+      Images.get(id, (image) => {
+        if (key === 'tags') {
+          if (image.metadata[key].indexOf(value) !== -1) return next();
+          image.metadata[key].push(value);
+        } else if (key === 'rating') {
+          image.metadata[key] = value;
+        } else {
+          next('invalid key');
+        }
+        return Images.update(id, { metadata: image.metadata }, (doc) => {
+          if (!doc) return next('Failed to update metadata');
+          return next();
+        });
+      });
+    }, (err) => {
+      console.log('asdfadsf');
+      if (err) warning(err);
+      cb(err);
+    });
+  }
+
   selectItem(id) {
     // Avoid calling setState by making in-place changes
     const pos = this.state.selection.indexOf(id);
@@ -279,7 +306,7 @@ class Gallery extends React.Component {
             addAllToGallery={this.addAllToGallery}
             selectAll={this.selectAll}
             removeAll={this.removeAll}
-            tagAll={() => console.log('this will eventually tag things')}
+            tagAll={this.tagAll}
           />
         </Col>
         <Col xs={4}>

@@ -21,6 +21,7 @@ describe('Gallery Component', () => {
   let test_image;
   let test_component;
   let galleriesUpdateMetadataStub;
+  let imagesUpdateStub;
   let hostAuthStub;
   let uploadStub;
 
@@ -28,6 +29,7 @@ describe('Gallery Component', () => {
     hostAuthStub = stub(Host, 'isAuthed').returns(true);
     uploadStub = stub(Sync, 'uploadImages');
     galleriesUpdateMetadataStub = stub(Galleries, 'updateMetadata');
+    imagesUpdateStub = stub(Images, 'update').callsArg(2);
     // Create test image
     Images.add(test_image_path, (inserted_image) => {
       test_image = inserted_image;
@@ -53,6 +55,7 @@ describe('Gallery Component', () => {
   // Remove test image and gallery
   after((done) => {
     galleriesUpdateMetadataStub.restore();
+    imagesUpdateStub.restore();
     hostAuthStub.restore();
     uploadStub.restore();
     test_component.unmount();
@@ -115,6 +118,34 @@ describe('Gallery Component', () => {
   it('can select all images', (done) => {
     test_component.instance().selectAll(true, () => {
       test_component.state().selection.should.contain(test_image.$loki);
+      done();
+    });
+  });
+
+  it('can tag all selected images', (done) => {
+    imagesUpdateStub.reset();
+    test_component.instance().tagAll('tags', 'lundruverz', () => {
+      imagesUpdateStub.callCount.should.be.equal(
+        test_component.state().selection.length
+      );
+      done();
+    });
+  });
+
+  it('can rate all selected images', (done) => {
+    imagesUpdateStub.reset();
+    test_component.instance().tagAll('rating', 3, () => {
+      imagesUpdateStub.callCount.should.be.equal(
+        test_component.state().selection.length
+      );
+      done();
+    });
+  });
+
+  it('fails to change tags with unsupported key', (done) => {
+    imagesUpdateStub.reset();
+    test_component.instance().tagAll('flupper', 3, () => {
+      imagesUpdateStub.callCount.should.be.equal(0);
       done();
     });
   });
