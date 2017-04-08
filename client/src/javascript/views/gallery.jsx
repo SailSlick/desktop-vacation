@@ -192,7 +192,6 @@ class Gallery extends React.Component {
         });
       });
     }, (err) => {
-      console.log('asdfadsf');
       if (err) warning(err);
       cb(err);
     });
