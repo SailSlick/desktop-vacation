@@ -15,6 +15,7 @@ function makeHost(mainGal) {
   const userData = {
     username: hostname,
     gallery: mainGal,
+    remoteGallery: '58dd0a5a8fa1094235ccb8c3',
     slideshowConfig: {
       onstart: false,
       galleryname: hostname.concat('_all'),

@@ -34,6 +34,7 @@ describe('Profile Component', () => {
     logoutStub.restore();
     changePageStub.restore();
     hostGetStub.restore();
+    hostAuthStub.restore();
     done();
   });
 
