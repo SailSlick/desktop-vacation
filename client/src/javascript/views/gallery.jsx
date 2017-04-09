@@ -175,12 +175,12 @@ class Gallery extends React.Component {
 
   tagAll(key, value, cb) {
     const numItems = this.state.selection.length;
+    Galleries.should_save = false;
     eachOf(this.state.selection, (id, index, next) => {
       if (index === numItems - 1) Galleries.should_save = true;
       Images.get(id, (image) => {
         if (key === 'tags') {
-          if (image.metadata[key].indexOf(value) !== -1) return next();
-          image.metadata[key].push(value);
+          if (image.metadata[key].indexOf(value) === -1) image.metadata[key].push(value);
         } else if (key === 'rating') {
           image.metadata[key] = value;
         } else {

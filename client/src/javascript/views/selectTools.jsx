@@ -19,7 +19,7 @@ export default class SelectTools extends React.Component {
     const key = ev.target.metadataKey.value;
     let value = ev.target.metadataValue.value;
     if (key !== 'rating' && key !== 'tags') {
-      return danger(`invalid key input: ${key}`);
+      return danger(`Invalid key input: ${key}`);
     }
     if (key === 'rating') {
       value = Number(value);

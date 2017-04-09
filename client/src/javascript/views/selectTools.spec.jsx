@@ -12,20 +12,18 @@ describe('Selection Toolbar Component', () => {
   let addAllStub;
   let selectAllStub;
   let removeAllStub;
-  let tagAllStub;
   let test_component;
 
   before(() => {
     selectAllStub = stub();
     removeAllStub = stub();
     addAllStub = stub();
-    tagAllStub = stub();
     test_component = mount(<SelectTools
       multiSelect
       addAllToGallery={addAllStub}
       selectAll={selectAllStub}
       removeAll={removeAllStub}
-      tagAll={tagAllStub}
+      tagAll={() => {}}
     />);
   });
 
