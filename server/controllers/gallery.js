@@ -59,7 +59,7 @@ module.exports = {
         } else if (existingGallery.uid !== uid) {
           next({ status: 403, error: 'incorrect permissions' });
         } else {
-          // Remove the unsynced images and galleries
+          // Remove the images and galleries deleted from the client
           const removedImages = existingGallery.images.filter(oldImage =>
             gallery.images.some(newImage => oldImage === newImage)
           );
@@ -88,6 +88,8 @@ module.exports = {
                         message: error,
                         gid
                       });
+                    } else if (error) {
+                      return next({ status: 500, error });
                     }
                     return res.status(200).json({ message: 'gallery uploaded', gid });
                   });
