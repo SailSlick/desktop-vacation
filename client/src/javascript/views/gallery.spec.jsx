@@ -29,7 +29,7 @@ describe('Gallery Component', () => {
     hostAuthStub = stub(Host, 'isAuthed').returns(true);
     uploadStub = stub(Sync, 'uploadImages');
     galleriesUpdateMetadataStub = stub(Galleries, 'updateMetadata');
-    imagesUpdateStub = stub(Images, 'update').callsArg(2);
+    imagesUpdateStub = stub(Images, 'update').callsArgWith(2, 'lets pretend :)');
     // Create test image
     Images.add(test_image_path, (inserted_image) => {
       test_image = inserted_image;
@@ -122,19 +122,41 @@ describe('Gallery Component', () => {
     });
   });
 
-  it('can tag all selected images', (done) => {
+  it('can add tags for all selected images', (done) => {
     imagesUpdateStub.reset();
-    test_component.instance().tagAll('tags', 'lundruverz', () => {
+    test_component.instance().tagAll('add tag', 'funny', (err) => {
+      should.not.exist(err);
       imagesUpdateStub.callCount.should.be.equal(
         test_component.state().selection.length
       );
+      done();
+    });
+  });
+
+  it('can remove tags for all selected images', (done) => {
+    imagesUpdateStub.reset();
+    test_component.instance().tagAll('remove tag', 'funny', (err) => {
+      should.not.exist(err);
+      imagesUpdateStub.callCount.should.be.equal(
+        test_component.state().selection.length
+      );
+      done();
+    });
+  });
+
+  it('errors when an unsupported operaton is used to tag images', (done) => {
+    imagesUpdateStub.reset();
+    test_component.instance().tagAll('USE THE KAZOO TIMMY', 'bunnz', (err) => {
+      err.should.exist;
+      imagesUpdateStub.callCount.should.be.equal(0);
       done();
     });
   });
 
   it('can rate all selected images', (done) => {
     imagesUpdateStub.reset();
-    test_component.instance().tagAll('rating', 3, () => {
+    test_component.instance().rateAll(4, (err) => {
+      should.not.exist(err);
       imagesUpdateStub.callCount.should.be.equal(
         test_component.state().selection.length
       );
@@ -142,13 +164,15 @@ describe('Gallery Component', () => {
     });
   });
 
-  it('fails to change tags with unsupported key', (done) => {
+  it('can handle an invalid value for rating images', (done) => {
     imagesUpdateStub.reset();
-    test_component.instance().tagAll('flupper', 3, () => {
+    test_component.instance().rateAll('WUB A LUB A DUB DUB', (err) => {
+      err.should.exist;
       imagesUpdateStub.callCount.should.be.equal(0);
       done();
     });
   });
+
 
   it('can remove all selected images', (done) => {
     const removeStub = stub(Galleries, 'removeItem', (dbId, id, next) => next());

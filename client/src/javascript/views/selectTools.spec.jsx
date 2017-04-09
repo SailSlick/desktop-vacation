@@ -24,6 +24,7 @@ describe('Selection Toolbar Component', () => {
       selectAll={selectAllStub}
       removeAll={removeAllStub}
       tagAll={() => {}}
+      rateAll={() => {}}
     />);
   });
 

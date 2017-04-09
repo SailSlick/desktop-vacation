@@ -39,6 +39,7 @@ class Gallery extends React.Component {
     this.uploadItem = this.uploadItem.bind(this);
     this.removeAll = this.removeAll.bind(this);
     this.tagAll = this.tagAll.bind(this);
+    this.rateAll = this.rateAll.bind(this);
     this.selectItem = this.selectItem.bind(this);
     this.selectAll = this.selectAll.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
@@ -173,21 +174,44 @@ class Gallery extends React.Component {
     });
   }
 
-  tagAll(key, value, cb) {
+  tagAll(op, value, cb) {
     const numItems = this.state.selection.length;
     Galleries.should_save = false;
     eachOf(this.state.selection, (id, index, next) => {
       if (index === numItems - 1) Galleries.should_save = true;
       Images.get(id, (image) => {
-        if (key === 'tags') {
-          if (image.metadata[key].indexOf(value) === -1) image.metadata[key].push(value);
-        } else if (key === 'rating') {
-          image.metadata[key] = value;
+        if (op === 'add tag') {
+          if (image.metadata.tags.indexOf(value) === -1) image.metadata.tags.push(value);
+        } else if (op === 'remove tag') {
+          image.metadata.tags = image.metadata.tags.filter(e => e !== value);
         } else {
-          next('invalid key');
+          return next('Invalid operation');
         }
+
         return Images.update(id, { metadata: image.metadata }, (doc) => {
-          if (!doc) return next('Failed to update metadata');
+          if (!doc) return next('Failed to add tags');
+          return next();
+        });
+      });
+    }, (err) => {
+      if (err) warning(err);
+      cb(err);
+    });
+  }
+
+  rateAll(value, cb) {
+    const numItems = this.state.selection.length;
+    Galleries.should_save = false;
+
+    if (typeof value !== 'number') {
+      return cb('Invalid value');
+    }
+    return eachOf(this.state.selection, (id, index, next) => {
+      if (index === numItems - 1) Galleries.should_save = true;
+      Images.get(id, (image) => {
+        image.metadata.rating = value;
+        return Images.update(id, { metadata: image.metadata }, (doc) => {
+          if (!doc) return next('Failed to rate');
           return next();
         });
       });
@@ -306,6 +330,7 @@ class Gallery extends React.Component {
             selectAll={this.selectAll}
             removeAll={this.removeAll}
             tagAll={this.tagAll}
+            rateAll={this.rateAll}
           />
         </Col>
         <Col xs={4}>

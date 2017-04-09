@@ -12,22 +12,26 @@ export default class SelectTools extends React.Component {
     };
 
     this.tagInput = this.tagInput.bind(this);
+    this.rateInput = this.rateInput.bind(this);
   }
 
   tagInput(ev) {
     ev.preventDefault();
     const key = ev.target.metadataKey.value;
-    let value = ev.target.metadataValue.value;
-    if (key !== 'rating' && key !== 'tags') {
+    const value = ev.target.metadataValue.value;
+    if (key !== 'add tag' && key !== 'remove tag') {
       return danger(`Invalid key input: ${key}`);
-    }
-    if (key === 'rating') {
-      value = Number(value);
-      if (isNaN(value) || value > 5 || value < 0) return danger('Rating must be a number between 0 & 5');
     }
     return this.props.tagAll(key, value, (err) => {
       if (err) warning(err);
-      else success('Updated metadata');
+      else success('Updated tags');
+    });
+  }
+
+  rateInput(value) {
+    return this.props.rateAll(value, (err) => {
+      if (err) warning(err);
+      else success('Updated tags');
     });
   }
 
@@ -71,12 +75,20 @@ export default class SelectTools extends React.Component {
               Remove
             </NavItem>
           </Nav>
+          <div>
+            {[1, 2, 3, 4, 5].map(val => (
+              // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+              <a key={val} onClick={_ => this.rateInput(val)} >
+                <Glyphicon glyph={'star-empty'} />
+              </a>
+            ))}
+          </div>
           <Navbar.Form pullRight>
             <Form onSubmit={this.tagInput}>
               <FormGroup>
                 <FormControl name="metadataKey" componentClass="select">
-                  <option value="tags">tag</option>
-                  <option value="rating">rating</option>
+                  <option value="add tag">add tag</option>
+                  <option value="remove tag">remove tag</option>
                 </FormControl>
                 {' '}
                 <InputGroup>
@@ -100,5 +112,6 @@ SelectTools.propTypes = {
   addAllToGallery: React.PropTypes.func.isRequired,
   selectAll: React.PropTypes.func.isRequired,
   removeAll: React.PropTypes.func.isRequired,
-  tagAll: React.PropTypes.func.isRequired
+  tagAll: React.PropTypes.func.isRequired,
+  rateAll: React.PropTypes.func.isRequired
 };
