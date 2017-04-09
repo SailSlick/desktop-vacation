@@ -28,7 +28,6 @@ imageRouter.post('/:id/unshare', image.unshareImage);
 // gallery
 const galleryRouter = express.Router();
 routes.use('/gallery', galleryRouter);
-
 galleryRouter.use(user.requireAuth);
 galleryRouter.post('/upload', gallery.upload);
 galleryRouter.get('/:gid', gallery.get);

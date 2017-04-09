@@ -83,8 +83,7 @@ module.exports = {
                     // Gallery won't update if nothing has changed
                     // this shouldn't be a fatal error
                     if (error === 'gallery not updated') {
-                      return next({
-                        status: 302,
+                      return res.status(200).json({
                         message: error,
                         gid
                       });

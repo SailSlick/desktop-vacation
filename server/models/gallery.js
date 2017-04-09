@@ -15,7 +15,7 @@ const idValidator = Joi.string()
 const metadataValidator = Joi.object().keys({
   rating: Joi.number().required().min(0).max(5),
   tags: Joi.array().items(Joi.string())
-});
+}).unknown(false);
 
 const galleryValidator = Joi.object().keys({
   uid: idValidator.required(),
@@ -25,14 +25,14 @@ const galleryValidator = Joi.object().keys({
   subgalleries: Joi.array().items(idValidator),
   images: Joi.array().items(idValidator),
   metadata: metadataValidator
-});
+}).required();
 
 const galleryModel = {
   validateGalleryName: galleryName =>
     Joi.validate(galleryName, galleryNameValidator),
 
   validateGalleryObject: gallery =>
-    Joi.validate(gallery, galleryValidator),
+    Joi.validate(gallery, galleryValidator, { stripUnknown: true }),
 
   validateGid: gid =>
     Joi.validate(gid, idValidator.required()),
