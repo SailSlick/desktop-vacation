@@ -215,7 +215,7 @@ class Image extends React.Component {
         </MenuItem>,
         <MenuItem key="unshareButton" onClick={this.unshare}>
           <Glyphicon glyph="lock" />
-            Unshare
+          Unshare
         </MenuItem>
       ]);
     }
@@ -232,7 +232,7 @@ class Image extends React.Component {
             </MenuItem>
             <MenuItem onClick={this.addToGallery}>
               <Glyphicon glyph="th" />
-              Add to gallery
+              Add to gallery/group
             </MenuItem>
             <MenuItem onClick={this.upload}>
               <Glyphicon glyph="upload" />

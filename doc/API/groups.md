@@ -301,7 +301,7 @@ Upon successful request, adds images/galleries to a group.
 | Name      | Type   | Description                   |
 |-----------|--------|-------------------------------|
 | gid       | string | The id of the group to update |
-| groupdata | object | The data to add to the group  |
+| image-ids | object | Array of image-ids to add     |
 
 ### Response
 

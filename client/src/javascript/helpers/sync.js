@@ -5,7 +5,7 @@ import mime from 'mime-types';
 import DbConn from './db';
 import Images from '../models/images';
 import Host from '../models/host';
-import { danger, success, warning } from './notifier';
+import { danger } from './notifier';
 
 function errorHandler(reqErr, response, body, cb) {
   if (reqErr) {
@@ -21,12 +21,10 @@ export default {
   uploadImages: (galleryRemoteId, imageId, cb) => {
     Images.get(imageId, (file) => {
       if (!file) {
-        danger('Invalid image ID');
-        return cb();
+        return cb('Invalid image ID');
       }
       if (file.remoteId) {
-        warning('Item is already synced');
-        return cb();
+        return cb('Item is already synced');
       }
       const formData = {
         metadatas: JSON.stringify([file.metadata]),
@@ -42,16 +40,13 @@ export default {
       return request(options, (reqErr, res, body) => {
         errorHandler(reqErr, res, body, (err, result) => {
           if (err) {
-            danger(err);
-            return cb();
+            return cb(err);
           }
           return Images.update(imageId, { remoteId: result['image-ids'][0] }, (updateErr) => {
             if (err) {
-              danger(updateErr);
-              cb();
+              cb(updateErr);
             } else {
-              success('Images uploaded');
-              cb(result);
+              cb(null, 'Images uploaded', result['image-ids'][0]);
             }
           });
         });

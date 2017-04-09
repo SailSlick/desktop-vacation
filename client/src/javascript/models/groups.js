@@ -1,6 +1,9 @@
 import request from 'request';
+import { map } from 'async';
 import Host from './host';
 import Galleries from './galleries';
+import Images from './images';
+import Sync from '../helpers/sync';
 
 const server_uri = Host.server_uri;
 
@@ -204,21 +207,38 @@ const Groups = {
     });
   },
 
-  addToGroup: (gid, groupdata, cb) => {
-    const options = {
-      uri: server_uri.concat('/group/data/add'),
-      method: 'POST',
-      jar: cookie_jar,
-      json: {
-        gid,
-        groupdata
+  addToGroup: (galleryId, groupId, imageIds, cb) => {
+    map(imageIds, (imageId, next) =>
+      Images.get(imageId, (image) => {
+        if (!image) next('couldn\'t find image', null);
+        if (!image.remoteId) {
+          Galleries.get(1, (gallery) => {
+            Sync.uploadImages(gallery.remoteId, imageId, (err, _msg, id) => {
+              if (err) next(err, null);
+              next(null, id);
+            });
+          });
+        } else next(null, image.remoteId);
+      }), (err, results) => {
+        if (err) cb(err);
+        else {
+          const options = {
+            uri: server_uri.concat('/group/data/add'),
+            method: 'POST',
+            jar: cookie_jar,
+            json: {
+              groupId,
+              'image-ids': results
+            }
+          };
+          request(options, (reqErr, res, body) => {
+            requestHandler(reqErr, body, (error, msg) => {
+              cb(error, msg);
+            });
+          });
+        }
       }
-    };
-    return request(options, (err, res, body) => {
-      requestHandler(err, body, (error, msg) => {
-        cb(error, msg);
-      });
-    });
+    );
   },
 
   removeFromGroup: (gid, groupdata, cb) => {

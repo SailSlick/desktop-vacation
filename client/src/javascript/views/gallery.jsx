@@ -8,7 +8,7 @@ import GalleryCard from './gallerycard.jsx';
 import SelectTools from './selectTools.jsx';
 import GalleryBar from './galleryBar.jsx';
 import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
-import { success, danger } from '../helpers/notifier';
+import { success, danger, warning } from '../helpers/notifier';
 import Sync from '../helpers/sync';
 import Galleries from '../models/galleries';
 import Host from '../models/host';
@@ -146,7 +146,10 @@ class Gallery extends React.Component {
         }
         console.log(`syncing, gallery: ${gallery.remoteId}`);
         if (gallery.remoteId) {
-          Sync.uploadImages(gallery.remoteId, id, () => {});
+          Sync.uploadImages(gallery.remoteId, id, (err, msg) => {
+            if (err) warning(err);
+            else success(msg);
+          });
         } else {
           danger('Can\'t sync from subgallery.');
         }
