@@ -43,51 +43,48 @@ function fileFilter(req, file, cb) {
   if (!req.body.hashes || !req.body.metadatas) {
     cb(null, false);
   } else {
-    // Decode the metadatas and hashes
-    const metadatas = JSON.parse(req.body.metadatas);
-    const hashes = JSON.parse(req.body.hashes);
-
+    if (typeof req.body.metadatas === 'string') {
+      // Decode the metadatas and hashes
+      req.body.metadatas = JSON.parse(req.body.metadatas);
+      req.body.hashes = JSON.parse(req.body.hashes);
+    }
     // set the length of the indexNumber so we can index the hashes
     if (indexNumber === 0) {
-      indexNumber = hashes.length;
+      indexNumber = req.body.hashes.length;
     }
     indexNumber -= 1;
     if (!IMAGE_TYPES.some(type => file.mimetype === type)) cb(null, false);
 
     // check if the hash is in the db
-    fsDb.findOne({ _id: hashes[indexNumber] }, (doc) => {
+    fsDb.findOne({ _id: req.body.hashes[indexNumber] }, (doc) => {
       if (!doc) {
         // if the doc doesn't exist, create a reference in the images-fs db
         const new_file = {
-          _id: hashes[indexNumber],
-          location: `${IMAGE_FOLDER}/${req.session.uid}/${hashes[indexNumber]}`,
+          _id: req.body.hashes[indexNumber],
+          location: `${IMAGE_FOLDER}/${req.session.uid}/${req.body.hashes[indexNumber]}`,
           refs: 1,
           size: file.size
         };
-        fsDb.insertOne(new_file, (docId) => {
-          if (docId === hashes[indexNumber]) cb(null, true);
-          else {
-            console.error('Doc inserted into images-fs doesn\'t have correct _id');
-            cb(null, true);
-          }
-        });
+        fsDb.insertOne(new_file, () => cb(null, true));
       } else {
         // if the doc exists, increment the ref counter
-        doc.refs += 1;
-        fsDb.updateOne({ _id: doc._id }, doc, (success) => {
-          if (success) {
+        fsDb.updateRaw({ _id: doc._id }, { $inc: { refs: 1 } }, (success) => {
+          if (!success) {
+            console.error('Updating ref counter failed');
+            cb(null, false);
+          } else {
             const newImage = {
               uid: req.session.uid,
               location: doc.location,
               mimeType: file.mimetype,
-              metadata: metadatas[indexNumber],
-              hash: hashes[indexNumber],
+              metadata: req.body.metadatas[indexNumber],
+              hash: req.body.hashes[indexNumber],
               shared: false,
               refs: 1
             };
 
-            metadatas.splice(indexNumber, 1);
-            hashes.splice(indexNumber, 1);
+            req.body.metadatas.splice(indexNumber, 1);
+            req.body.hashes.splice(indexNumber, 1);
             if (indexNumber !== 0) indexNumber += 1;
             db.insertOne(newImage, (newId) => {
               if (newId) {
@@ -99,14 +96,9 @@ function fileFilter(req, file, cb) {
                 cb(null, false);
               }
             });
-          } else {
-            console.error('Updating ref counter failed');
-            cb(null, false);
           }
         });
       }
-      req.body.metadatas = metadatas;
-      req.body.hashes = hashes;
     });
   }
 }
@@ -170,7 +162,9 @@ module.exports = {
                   }
                 );
               }
-            } else console.error('expected a doc to exist in images-fs', file.hash);
+            } else {
+              console.error('expected a doc to exist in images-fs', file.hash);
+            }
             return next();
           });
         });
@@ -223,8 +217,11 @@ module.exports = {
           fsDb.findOne({ _id: image.hash }, (fsImage) => {
             if (!fsImage) {
               console.error('Expected an image to exist in fs-images for user purge', image.hash);
-            } else if (fsImage.refs - 1 === 0) fs.unlink(fsImage.location, next);
-            else {
+            } else if (fsImage.refs - 1 === 0) {
+              fs.unlink(fsImage.location, () => {
+                fsDb.removeOne({ _id: image.hash }, () => next());
+              });
+            } else {
               fsDb.updateRaw(
                 { _id: image.hash },
                 { $inc: { refs: -1 } },

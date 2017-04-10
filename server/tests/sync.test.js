@@ -13,6 +13,7 @@ describe('Sync API', () => {
   const agent2 = chai.request.agent(app);
   const username2 = 'huh';
   const testImagePath = 'tests/test_image.jpg';
+  const testImage2Path = './test_image_thumb.jpeg';
   let imageId = '';
   let imageId2 = '';
   let uid = '';
@@ -88,6 +89,26 @@ describe('Sync API', () => {
           res.body['image-ids'].should.have.lengthOf(1);
           imageId = res.body['image-ids'][0];
           done();
+        });
+    });
+
+    it('should correctly respond to a request with an image and it shouldn\'t make it a dup', (done) => {
+      agent
+        .post('/image/upload')
+        .type('form')
+        .field('metadatas', '[{"rating":4,"tags":[]}]')
+        .field('hashes', '["differntHashToTheOneAbove"]')
+        .attach('images', testImage2Path)
+        .end((err, res) => {
+          res.should.have.status(200);
+          res.body.should.have.property('image-ids');
+          res.body.message.should.equal('images uploaded');
+          res.body['image-ids'].should.have.lengthOf(1);
+          images.fsGet('differntHashToTheOneAbove', (getErr, doc) => {
+            doc.should.exist;
+            should.not.exist(getErr);
+            done();
+          });
         });
     });
 
@@ -243,15 +264,11 @@ describe('Sync API', () => {
       .end((_err, res) => {
         res.should.have.status(200);
         res.body.message.should.equal('image deleted');
-        done();
-      });
-    });
-
-    it('should be able to remove an image but not the fs image if duped', (done) => {
-      images.fsGet('34125345hkj14jk2h3k524kv', (err, doc) => {
-        should.not.exist(err);
-        doc.should.exist;
-        done();
+        images.fsGet('34125345hkj14jk2h3k524kv', (err, doc) => {
+          should.not.exist(err);
+          doc.should.exist;
+          done();
+        });
       });
     });
 

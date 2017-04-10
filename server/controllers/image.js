@@ -46,10 +46,8 @@ module.exports = {
     let metadatas = req.body.metadatas;
     let hashes = req.body.hashes;
 
-    if (typeof metadatas === 'string') {
-      metadatas = JSON.parse(metadatas);
-      hashes = JSON.parse(hashes);
-    }
+    if (typeof metadatas === 'string') metadatas = JSON.parse(metadatas);
+    if (typeof hashes === 'string') hashes = JSON.parse(hashes);
 
     if (req.files.length === 0 || metadatas.length !== req.files.length
       || req.files.length !== hashes.length) {

@@ -105,9 +105,6 @@ Return the image with `<id>`
 
 ```
 <image_data>
-{
-  "hash": <sha1 hash>,
-}
 ```
 
 #### Expected Errors
