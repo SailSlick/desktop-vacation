@@ -159,9 +159,11 @@ class Group extends React.Component {
         <Col xs={12}>
           <SelectTools
             multiSelect={this.props.multiSelect}
-            addAllToGallery={this.addAllToGallery}
-            selectAll={this.selectAll}
-            removeAll={this.removeAll}
+            addAllToGallery={() => {}}
+            selectAll={() => {}}
+            removeAll={() => {}}
+            tagAll={() => {}}
+            rateAll={() => {}}
           />
         </Col>
         <br />
