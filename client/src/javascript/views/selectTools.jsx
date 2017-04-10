@@ -9,7 +9,7 @@ export default class SelectTools extends React.Component {
 
     this.state = {
       fixed: false,
-      tag: '',
+      tag: ''
     };
 
     this.tagInput = this.tagInput.bind(this);
@@ -100,7 +100,7 @@ export default class SelectTools extends React.Component {
                   <DropdownButton
                     componentClass={InputGroup.Button}
                     id="input-dropdown-addon"
-                    title="Add/Remove"
+                    title="Tag"
                   >
                     <MenuItem key="1" onSelect={() => this.tagInput('add')}>Add</MenuItem>
                     <MenuItem key="2" onSelect={() => this.tagInput('remove')}>Remove</MenuItem>
