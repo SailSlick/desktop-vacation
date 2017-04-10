@@ -13,7 +13,6 @@ describe('Gallery API', () => {
   const username = 'morty_c137';
   const password = 'awh jeez I dunno rick';
   let uid;
-  let gid;
 
   const testBody = {
     gallery: {
@@ -77,20 +76,6 @@ describe('Gallery API', () => {
         });
     });
 
-    it('should reject galleries with mismatching uids', (done) => {
-      testBody.gallery.uid = testBody.gallery.uid.replace('a', 'f');
-      agent
-        .post(url)
-        .send(testBody)
-        .end((err, res) => {
-          testBody.gallery.uid = uid;
-          res.status.should.equal(401);
-          res.body.should.be.a('object');
-          res.body.error.should.equal('uid of gallery does not match user');
-          done();
-        });
-    });
-
     it('should accept and upload valid galleries', (done) => {
       agent
         .post(url)
@@ -101,7 +86,20 @@ describe('Gallery API', () => {
           res.body.should.have.property('gid');
           res.body.message.should.equal('gallery uploaded');
           testBody.gallery.remoteId = res.body.gid;
-          gid = res.body.gid;
+          done();
+        });
+    });
+
+    it('should reject galleries with mismatching uids', (done) => {
+      testBody.gallery.uid = testBody.gallery.remoteId;
+      agent
+        .post(url)
+        .send(testBody)
+        .end((err, res) => {
+          testBody.gallery.uid = uid;
+          res.status.should.equal(401);
+          res.body.should.be.a('object');
+          res.body.error.should.equal('uid of gallery does not match user');
           done();
         });
     });
@@ -150,7 +148,7 @@ describe('Gallery API', () => {
     it('should 404 safely on non-existant galleries', (done) => {
       agent
         // This is invalid (contains a 'g')
-        .get('/gallery/' + gid.replace('a', 'f'))
+        .get('/gallery/' + testBody.gallery.uid)
         .end((err, res) => {
           res.status.should.equal(404);
           res.body.should.be.a('object');
@@ -161,7 +159,7 @@ describe('Gallery API', () => {
 
     it('should return the same gallery', (done) => {
       agent
-        .get('/gallery/' + gid)
+        .get('/gallery/' + testBody.gallery.remoteId)
         .end((err, res) => {
           res.status.should.equal(200);
           res.body.should.be.a('object');
@@ -194,7 +192,7 @@ describe('Gallery API', () => {
     it('should 500 on non-existant galleries', (done) => {
       agent
         // This is invalid (contains a 'g')
-        .post('/gallery/' + gid.replace('a', 'f') + '/remove')
+        .post('/gallery/' + testBody.gallery.uid + '/remove')
         .end((err, res) => {
           res.status.should.equal(500);
           res.body.should.be.a('object');
@@ -205,7 +203,7 @@ describe('Gallery API', () => {
 
     it('should successfully remove gallery', (done) => {
       agent
-        .post('/gallery/' + gid + '/remove')
+        .post('/gallery/' + testBody.gallery.remoteId + '/remove')
         .end((err, res) => {
           res.status.should.equal(200);
           res.body.should.be.a('object');
