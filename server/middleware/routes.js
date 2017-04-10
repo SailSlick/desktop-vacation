@@ -26,10 +26,13 @@ imageRouter.post('/:id/share', image.shareImage);
 imageRouter.post('/:id/unshare', image.unshareImage);
 
 // gallery
-routes.use('/gallery/*', user.requireAuth);
-routes.post('/gallery/create', gallery.create);
-routes.get('/gallery/:gid', gallery.get);
-
+const galleryRouter = express.Router();
+routes.use('/gallery', galleryRouter);
+galleryRouter.use(user.requireAuth);
+galleryRouter.post('/upload', gallery.upload);
+galleryRouter.use('/:gid', gallery.checkGid);
+galleryRouter.get('/:gid', gallery.get);
+galleryRouter.post('/:gid/remove', gallery.remove);
 
 // group management functionality
 routes.use('/group/*', user.requireAuth);

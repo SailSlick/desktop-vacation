@@ -99,7 +99,7 @@ class DbConn {
           debug('Updated one doc');
           cb(true);
         } else {
-          debug('Did not update one document');
+          debug('Did not update one document', result.matchedCount, result.modifiedCount);
           cb(false, result.matchedCount, result.modifiedCount);
         }
       });

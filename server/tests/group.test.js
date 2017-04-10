@@ -18,18 +18,18 @@ describe('Group API', () => {
   const password2 = 'test_pw_for_group2';
 
   before((done) => {
-    galleryDB.onLoad = () => {
-      console.log('group', galleryDB.col.s.name);
-      agent
-        .post('/user/create')
-        .send({ username, password })
-        .end((_err, _res) => {
-          testAgent
-            .post('/user/create')
-            .send({ username: username2, password: password2 })
-            .end((_err2, _res2) => { done(); });
-        });
-    };
+    console.log('group', galleryDB.col.s.name);
+    agent
+      .post('/user/create')
+      .send({ username, password })
+      .end((_err, _res) => {
+        testAgent
+          .post('/user/create')
+          .send({ username: username2, password: password2 })
+          .end((_err2, _res2) => {
+            done();
+          });
+      });
   });
   describe('/group/create', () => {
     it('should reject groupname over 20 chars', (done) => {
@@ -148,7 +148,7 @@ describe('Group API', () => {
             res.should.have.status(200);
             res.body.should.be.a('object');
             res.body.should.have.property('message');
-            res.body.message.should.equal('gallery deleted');
+            res.body.message.should.equal('gallery removed');
             done();
           });
       });
