@@ -84,8 +84,9 @@ export default class SelectTools extends React.Component {
                 <InputGroup>
                   {[1, 2, 3, 4, 5].map(val => (
                     // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-                    <a key={val} onClick={() => this.rateInput(val)}>
+                    <a key={val} id={`star-${val}`} onClick={() => this.rateInput(val)}>
                       <Glyphicon glyph={'star-empty'} />
+                      <Glyphicon glyph={'star'} />
                     </a>
                   ))}
                 </InputGroup>
