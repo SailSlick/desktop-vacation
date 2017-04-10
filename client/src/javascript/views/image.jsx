@@ -4,6 +4,7 @@ import { Modal, MenuItem, Button, Glyphicon, Image as BsImage, Grid, Col, Row, T
 import { success, danger, warning } from '../helpers/notifier';
 import Wallpaper from '../helpers/wallpaper-client';
 import Sync from '../helpers/sync';
+import Host from '../models/host';
 import Images from '../models/images';
 
 const append_gallery_event_name = 'append_gallery';
@@ -66,7 +67,11 @@ class Image extends React.Component {
   }
 
   upload() {
-    this.props.onUpload(this.props.dbId);
+    if (Host.isAuthed()) {
+      Sync.uploadImages([this.props.dbId], () => {});
+    } else {
+      danger('Can\'t sync, try signing in!');
+    }
   }
 
   unshare() {
@@ -215,7 +220,7 @@ class Image extends React.Component {
         </MenuItem>,
         <MenuItem key="unshareButton" onClick={this.unshare}>
           <Glyphicon glyph="lock" />
-            Unshare
+          Unshare
         </MenuItem>
       ]);
     }
@@ -291,7 +296,6 @@ class Image extends React.Component {
 Image.propTypes = {
   dbId: React.PropTypes.number.isRequired,
   src: React.PropTypes.string.isRequired,
-  onUpload: React.PropTypes.func.isRequired,
   rating: React.PropTypes.number.isRequired,
   tags: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
   onRemove: React.PropTypes.func.isRequired,

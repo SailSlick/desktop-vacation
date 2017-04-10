@@ -14,6 +14,10 @@ const Images = {
     image_db.findOne({ $loki: id }, cb);
   },
 
+  getMany: (ids, cb) => {
+    image_db.findMany({ $loki: { $in: ids } }, cb);
+  },
+
   getByUri: (uri, cb) => {
     image_db.findOne({ uri }, cb);
   },

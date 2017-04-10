@@ -9,10 +9,8 @@ import SelectTools from './selectTools.jsx';
 import GalleryBar from './galleryBar.jsx';
 import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
 import { success, warning, danger } from '../helpers/notifier';
-import Sync from '../helpers/sync';
 import Galleries from '../models/galleries';
 import Images from '../models/images';
-import Host from '../models/host';
 
 const append_gallery_event_name = 'append_gallery';
 
@@ -36,7 +34,6 @@ class Gallery extends React.Component {
     this.removeSubgallery = this.removeSubgallery.bind(this);
     this.addAllToGallery = this.addAllToGallery.bind(this);
     this.removeItem = this.removeItem.bind(this);
-    this.uploadItem = this.uploadItem.bind(this);
     this.removeAll = this.removeAll.bind(this);
     this.tagAll = this.tagAll.bind(this);
     this.rateAll = this.rateAll.bind(this);
@@ -137,25 +134,6 @@ class Gallery extends React.Component {
         if (err_msg) danger(err_msg);
         else success('Image Removed');
       });
-    }
-  }
-
-  uploadItem(id) {
-    if (Host.isAuthed()) {
-      Galleries.get(this.props.dbId, (gallery) => {
-        if (!gallery) {
-          console.error(`Couldn't find gallery: ${this.props.dbId}`);
-          return;
-        }
-        console.log(`syncing, gallery: ${gallery.remoteId}`);
-        if (gallery.remoteId) {
-          Sync.uploadImages(gallery.remoteId, id, () => {});
-        } else {
-          danger('Can\'t sync from subgallery.');
-        }
-      });
-    } else {
-      danger('Can\'t sync, try signing in!');
     }
   }
 
@@ -305,7 +283,6 @@ class Gallery extends React.Component {
           src={image.location}
           url={image.sharedUrl}
           remoteId={image.remoteId}
-          onUpload={this.uploadItem}
           tags={image.metadata.tags}
           rating={image.metadata.rating}
           onRemove={this.removeItem}
