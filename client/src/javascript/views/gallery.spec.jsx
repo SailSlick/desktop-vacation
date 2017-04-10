@@ -124,7 +124,7 @@ describe('Gallery Component', () => {
 
   it('can add tags for all selected images', (done) => {
     imagesUpdateStub.reset();
-    test_component.instance().tagAll('add tag', 'funny', (err) => {
+    test_component.instance().tagAll('add', 'funny', (err) => {
       should.not.exist(err);
       imagesUpdateStub.callCount.should.be.equal(
         test_component.state().selection.length
@@ -135,7 +135,7 @@ describe('Gallery Component', () => {
 
   it('can remove tags for all selected images', (done) => {
     imagesUpdateStub.reset();
-    test_component.instance().tagAll('remove tag', 'funny', (err) => {
+    test_component.instance().tagAll('remove', 'funny', (err) => {
       should.not.exist(err);
       imagesUpdateStub.callCount.should.be.equal(
         test_component.state().selection.length
