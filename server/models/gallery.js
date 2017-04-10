@@ -1,12 +1,41 @@
+const Joi = require('joi');
 const DBTools = require('../middleware/db');
 
 const db = new DBTools('galleries');
 
-module.exports = {
-  verifyGalleryName: groupname =>
-    typeof groupname === 'string' && groupname.length <= 20 && groupname.length >= 3,
+const galleryNameValidator = Joi.string()
+  .min(3)
+  .max(20)
+  .required();
 
-  verifyGid: gid => typeof gid === 'string' && gid.length === 24,
+const idValidator = Joi.string()
+  .hex()
+  .length(24);
+
+const metadataValidator = Joi.object().keys({
+  rating: Joi.number().required().min(0).max(5),
+  tags: Joi.array().items(Joi.string())
+}).unknown(false);
+
+const galleryValidator = Joi.object().keys({
+  uid: idValidator.required(),
+  remoteId: idValidator,
+  name: galleryNameValidator,
+  users: Joi.array().items(Joi.string()),
+  subgalleries: Joi.array().items(idValidator),
+  images: Joi.array().items(idValidator),
+  metadata: metadataValidator
+}).required();
+
+const galleryModel = {
+  validateGalleryName: galleryName =>
+    Joi.validate(galleryName, galleryNameValidator),
+
+  validateGalleryObject: gallery =>
+    Joi.validate(gallery, galleryValidator, { stripUnknown: true }),
+
+  validateGid: gid =>
+    Joi.validate(gid, idValidator.required()),
 
   create: (galleryname, baseGalleryId, uid, cb) => {
     db.findOne({ name: galleryname, uid }, (doc) => {
@@ -22,17 +51,20 @@ module.exports = {
           tags: []
         }
       };
-      return db.insertOne(galleryData, (res) => {
-        if (!res) {
-          return cb(500, 'gallery could not be inserted');
-        } else if (baseGalleryId === null || baseGalleryId === res) {
-          return cb(null, res);
-        }
-        return db.updateRaw(
-        { _id: baseGalleryId, uid },
-        { $addToSet: { subgallaries: res.toString() } },
-        _ => cb(null, res));
-      });
+      return galleryModel.insert(galleryData, baseGalleryId, cb);
+    });
+  },
+
+  insert: (gallery, baseGalleryId, cb) => {
+    db.insertOne(gallery, (newId) => {
+      if (!newId) return cb(500, 'gallery could bot be inserted');
+      if (baseGalleryId === null || baseGalleryId === newId) {
+        return cb(null, newId);
+      }
+      return db.updateRaw(
+      { _id: baseGalleryId },
+      { $addToSet: { subgalleries: newId.toString() } },
+      () => cb(null, newId));
     });
   },
 
@@ -44,17 +76,9 @@ module.exports = {
   },
 
   getGid: (gid, cb) => {
-    gid = db.getId(gid);
-    db.findOne({ _id: gid }, (doc) => {
+    db.findOne({ _id: db.getId(gid) }, (doc) => {
       if (doc) return cb(null, doc);
       return cb('gallery not found', null);
-    });
-  },
-
-  remove: (galleryname, uid, cb) => {
-    db.removeOne({ name: galleryname, uid }, (res) => {
-      if (res) return cb('gallery deleted');
-      return cb('deletion failed');
     });
   },
 
@@ -62,6 +86,20 @@ module.exports = {
     db.updateOne({ name: galleryname, uid }, data, (res) => {
       if (res) return cb('updated one gallery');
       return cb('gallery not updated');
+    });
+  },
+
+  updateGid: (gid, data, cb) => {
+    db.updateOne({ _id: db.getId(gid) }, data, (res) => {
+      if (!res) return cb('gallery not updated');
+      return cb();
+    });
+  },
+
+  remove: (gid, cb) => {
+    db.removeOne({ _id: db.getId(gid) }, (res) => {
+      if (res) return cb();
+      return cb('deletion failed');
     });
   },
 
@@ -88,10 +126,6 @@ module.exports = {
     );
   },
 
-  updateGid: (galleryname, id, data, cb) => {
-    db.updateOne({ name: galleryname, id }, data, (res) => {
-      if (res) return cb('updated one gallery');
-      return cb('gallery not updated');
-    });
-  }
 };
+
+module.exports = galleryModel;
