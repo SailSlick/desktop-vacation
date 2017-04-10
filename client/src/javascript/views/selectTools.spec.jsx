@@ -23,6 +23,8 @@ describe('Selection Toolbar Component', () => {
       addAllToGallery={addAllStub}
       selectAll={selectAllStub}
       removeAll={removeAllStub}
+      tagAll={() => {}}
+      rateAll={() => {}}
     />);
   });
 

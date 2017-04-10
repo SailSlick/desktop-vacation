@@ -5,6 +5,26 @@ html, body, main {
   padding: 0;
 }
 
+nav a {
+  .glyphicon-star-empty {
+    margin-left: .5em;
+    margin-right: .5em;
+  }
+  .glyphicon-star {
+    display: none;
+    margin-left: .5em;
+    margin-right: .5em;
+  }
+  &:hover{
+    .glyphicon-star-empty {
+      display: none;
+    }
+    .glyphicon-star {
+      display: inline-block;
+    }
+  }
+}
+
 .centered { text-align: center; }
 
 .padded { padding: 0 1em; }
