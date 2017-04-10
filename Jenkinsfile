@@ -13,7 +13,7 @@ withCredentials([string(credentialsId: 'slack-token', variable: 'SLACKTOKEN')]) 
 
 	try {
 		stage ('Run Installer') {
-			sh "$WORKSPACE/script/install.sh"
+			sh "BUILDENV=test $WORKSPACE/script/install.sh"
 		}
 
 		stage ('Setup Databases') {
