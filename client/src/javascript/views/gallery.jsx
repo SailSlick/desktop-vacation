@@ -180,9 +180,9 @@ class Gallery extends React.Component {
     eachOf(this.state.selection, (id, index, next) => {
       if (index === numItems - 1) Galleries.should_save = true;
       Images.get(id, (image) => {
-        if (op === 'add tag') {
+        if (op === 'add') {
           if (image.metadata.tags.indexOf(value) === -1) image.metadata.tags.push(value);
-        } else if (op === 'remove tag') {
+        } else if (op === 'remove') {
           image.metadata.tags = image.metadata.tags.filter(e => e !== value);
         } else {
           return next('Invalid operation');
