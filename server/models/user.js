@@ -64,12 +64,7 @@ module.exports = {
     db.findOne({ username }, (doc) => {
       db.removeOne({ username }, (res) => {
         if (!res) return cb('database communication error');
-
-        // This can be changed if/when the user contains their base gallery id
-        return galleryModel.get(username.concat('_all'), doc._id.toString(), (error, gallery) => {
-          if (error) return cb('database communication error');
-          return galleryModel.remove(gallery._id, cb);
-        });
+        return galleryModel.remove(doc.gallery, cb);
       });
     });
   },

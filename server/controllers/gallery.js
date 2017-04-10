@@ -31,14 +31,20 @@ function unsync(uid, gid, cb) {
 
 module.exports = {
 
+  checkGid: (req, res, next) => {
+    if (galleryModel.validateGid(req.params.gid).error) {
+      res.status(400).json({ status: 400, error: 'invalid gid' });
+    } else {
+      next();
+    }
+  },
+
   // Create/Update
   upload: (req, res, next) => {
     const uid = req.session.uid;
     const gallery = req.body.gallery;
 
-    const validation = galleryModel.validateGalleryObject(gallery);
-
-    if (validation.error) {
+    if (galleryModel.validateGalleryObject(gallery).error) {
       return next({ status: 400, error: 'invalid gallery object' });
     }
 
@@ -90,7 +96,7 @@ module.exports = {
                     } else if (error) {
                       return next({ status: 500, error });
                     }
-                    return res.status(200).json({ message: 'gallery uploaded', gid });
+                    return res.status(200).json({ message: 'gallery updated', gid });
                   });
                 });
             }
@@ -113,11 +119,6 @@ module.exports = {
     const uid = req.session.uid;
     const gid = req.params.gid;
 
-    const validation = galleryModel.validateGid(gid);
-
-    if (validation.error) {
-      return next({ status: 400, error: 'invalid gid' });
-    }
     return galleryModel.getGid(gid, (err, gallery) => {
       if (err) return next({ status: 404, error: 'gallery doesn\'t exist' });
 
@@ -142,12 +143,6 @@ module.exports = {
     const uid = req.session.uid;
     const gid = req.params.gid;
 
-    const validation = galleryModel.validateGid(gid);
-
-    if (validation.error) {
-      return next({ status: 400, error: 'invalid gid' });
-    }
-
     return unsync(uid, gid, (error) => {
       if (error === 'incorrect permissions') return next({ status: 403, error });
       if (error) return next({ status: 500, error });
@@ -160,9 +155,7 @@ module.exports = {
     const username = req.session.username;
     const groupname = req.body.groupname;
 
-    const validation = galleryModel.validateGalleryName(groupname);
-
-    if (validation.error) {
+    if (galleryModel.validateGalleryName(groupname).error) {
       return next({ status: 400, error: 'invalid groupname' });
     }
 
@@ -207,9 +200,7 @@ module.exports = {
     const uid = req.session.uid;
     const gid = req.body.gid;
 
-    const validation = galleryModel.validateGid(gid);
-
-    if (validation.error) {
+    if (galleryModel.validateGid(gid).error) {
       return next({ status: 400, error: 'invalid gid' });
     }
 

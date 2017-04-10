@@ -30,6 +30,7 @@ const galleryRouter = express.Router();
 routes.use('/gallery', galleryRouter);
 galleryRouter.use(user.requireAuth);
 galleryRouter.post('/upload', gallery.upload);
+galleryRouter.use('/:gid', gallery.checkGid);
 galleryRouter.get('/:gid', gallery.get);
 galleryRouter.post('/:gid/remove', gallery.remove);
 

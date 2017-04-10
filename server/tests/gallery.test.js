@@ -1,6 +1,9 @@
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const app = require('../app');
+const MongoTools = require('../middleware/db');
+
+const galleryDB = new MongoTools('galleries');
 
 chai.should();
 chai.use(chaiHttp);
@@ -27,14 +30,15 @@ describe('Gallery API', () => {
   };
 
   before((done) => {
-    agent
-      .post('/user/create')
-      .send({ username, password })
-      .end((_err, res) => {
-        uid = res.body.uid;
-        testBody.gallery.uid = uid;
-        done();
-      });
+    galleryDB.onLoad = () =>
+      agent
+        .post('/user/create')
+        .send({ username, password })
+        .end((_err, res) => {
+          uid = res.body.uid;
+          testBody.gallery.uid = uid;
+          done();
+        });
   });
 
   after((done) => {
@@ -124,7 +128,7 @@ describe('Gallery API', () => {
           res.status.should.equal(200);
           res.body.should.be.a('object');
           res.body.should.have.property('gid');
-          res.body.message.should.equal('gallery uploaded');
+          res.body.message.should.equal('gallery updated');
           done();
         });
     });
