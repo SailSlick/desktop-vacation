@@ -48,10 +48,16 @@ sudo systemctl start mongodb
 IR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BASEDIR=`cd "$IR/.."; pwd` # Provides absoloute directory, just in case.
 
+INSTALLCMD=npm-cache
+npm-cache > /dev/null
+if [[ $? -eq 127 ]]; then
+	set INSTALLCMD=npm
+fi
+
 echo "Installing server dependencies..."
-cd "$BASEDIR/server" && npm install
+cd "$BASEDIR/server" && $INSTALLCMD install
 echo "Installing client dependencies..."
-cd "$BASEDIR/client" && npm install
+cd "$BASEDIR/client" && $INSTALLCMD install
 
 # Add (relative) symlinks for client HTML javascript/css dependencies
 echo "Creating symlinks for client dependencies"
