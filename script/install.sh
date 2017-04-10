@@ -67,13 +67,14 @@ mkdir stylesheets
 cd thirdparty
 ln -s ../../node_modules/bootstrap/dist bootstrap
 
-echo "Creating symlinks for build system"
-echo "Running build system to create cache folders"
-cd $BASEDIR/client
-npm run release
-echo "Fixing above error"
-
-# Uses find to determine where to put the symlink (survives new versions)
-ln -fs /usr/bin/xorriso "$(find ~/.cache/electron-builder -name 'xorriso')"
+if [[ $BUILDENV -ne 'test' ]]; then
+	echo "Creating symlinks for build system"
+	echo "Running build system to create cache folders"
+	cd $BASEDIR/client
+	npm run release
+	echo "Fixing above error"
+	# Uses find to determine where to put the symlink (survives new versions)
+	ln -fs /usr/bin/xorriso "$(find ~/.cache/electron-builder -name 'xorriso')"
+fi
 
 echo "Done!"
