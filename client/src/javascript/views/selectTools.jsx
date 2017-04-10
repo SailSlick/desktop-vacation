@@ -1,6 +1,6 @@
 import React from 'react';
 import Waypoint from 'react-waypoint';
-import { Nav, Navbar, NavItem, Glyphicon, Form, InputGroup, FormGroup, FormControl, Button } from 'react-bootstrap';
+import { Nav, Navbar, NavItem, Glyphicon, Form, InputGroup, FormGroup, FormControl, Button, MenuItem, DropdownButton } from 'react-bootstrap';
 import { success, warning, danger } from '../helpers/notifier';
 
 export default class SelectTools extends React.Component {
@@ -75,28 +75,27 @@ export default class SelectTools extends React.Component {
               Remove
             </NavItem>
           </Nav>
-          <div>
-            {[1, 2, 3, 4, 5].map(val => (
-              // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-              <a key={val} onClick={_ => this.rateInput(val)} >
-                <Glyphicon glyph={'star-empty'} />
-              </a>
-            ))}
-          </div>
           <Navbar.Form pullRight>
             <Form onSubmit={this.tagInput}>
               <FormGroup>
-                <FormControl name="metadataKey" componentClass="select">
-                  <option value="add tag">add tag</option>
-                  <option value="remove tag">remove tag</option>
-                </FormControl>
-                {' '}
                 <InputGroup>
-                  <FormControl name="metadataValue" type="text" />
-                  {' '}
-                  <Button type="submit">
-                    <Glyphicon glyph="tag" />
-                  </Button>
+                  {[1, 2, 3, 4, 5].map(val => (
+                    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+                    <a key={val} onClick={() => this.rateInput(val)}>
+                      <Glyphicon glyph={'star-empty'} />
+                    </a>
+                  ))}
+                </InputGroup>
+                <InputGroup>
+                  <FormControl type="text" />
+                  <DropdownButton
+                    componentClass={InputGroup.Button}
+                    id="input-dropdown-addon"
+                    title="Add/Remove"
+                  >
+                    <MenuItem key="1">Add</MenuItem>
+                    <MenuItem key="2">Remove</MenuItem>
+                  </DropdownButton>
                 </InputGroup>
               </FormGroup>
             </Form>
