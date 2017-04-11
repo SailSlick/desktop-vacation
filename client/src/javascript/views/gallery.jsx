@@ -6,6 +6,7 @@ import { Col, Row } from 'react-bootstrap';
 import Image from './image.jsx';
 import GalleryCard from './gallerycard.jsx';
 import SelectTools from './selectTools.jsx';
+import FilterTools from './filterTools.jsx';
 import GalleryBar from './galleryBar.jsx';
 import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
 import { success, warning, danger } from '../helpers/notifier';
@@ -332,6 +333,10 @@ class Gallery extends React.Component {
             tagAll={this.tagAll}
             rateAll={this.rateAll}
           />
+          <FilterTools
+            filterToggle={this.props.filterToggle}
+            changeFilter={this.props.changeFilter}
+          />
         </Col>
         <Col xs={4}>
           {items.map((item, i) => (i % 3 === 0 && item) || null)}
@@ -362,8 +367,10 @@ class Gallery extends React.Component {
 Gallery.propTypes = {
   dbId: React.PropTypes.number.isRequired,
   onChange: React.PropTypes.func.isRequired,
+  changeFilter: React.PropTypes.func,
   simple: React.PropTypes.bool,
   multiSelect: React.PropTypes.bool,
+  filterToggle: React.PropTypes.bool,
   infoBar: React.PropTypes.bool,
   onRefresh: React.PropTypes.func,
   filter: React.PropTypes.shape({
@@ -381,7 +388,9 @@ Gallery.defaultProps = {
   },
   simple: false,
   multiSelect: false,
+  filterToggle: false,
   infoBar: false,
+  changeFilter: () => true,
   onRefresh: () => true
 };
 

@@ -3,7 +3,7 @@ import { eachOf } from 'async';
 import mousetrap from 'mousetrap';
 import { AlertList } from 'react-bs-notifier';
 import { ipcRenderer as ipc } from 'electron';
-import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup, FormControl, ListGroup, ListGroupItem, InputGroup, Form, Glyphicon } from 'react-bootstrap';
+import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Grid, Modal, Button, FormGroup, FormControl, ListGroup, ListGroupItem, InputGroup } from 'react-bootstrap';
 import Gallery from './gallery.jsx';
 import Galleries from '../models/galleries';
 import Host from '../models/host';
@@ -24,6 +24,8 @@ const PrimaryContent = ({ page, parent }) =>
       dbId={parent.state.galleryId}
       onChange={parent.changeGallery}
       multiSelect={parent.state.multiSelect}
+      filterToggle={parent.state.filterToggle}
+      changeFilter={parent.changeFilter}
       filter={parent.state.filter}
       infoBar={parent.state.infoBar}
     />),
@@ -82,6 +84,7 @@ class Main extends React.Component {
       page: 0,
       imageSelection: null,
       multiSelect: false,
+      filterToggle: false,
       alerts: [],
       galleryname: '',
       groupUsersModal: false,
@@ -106,6 +109,7 @@ class Main extends React.Component {
     this.showAlert = this.showAlert.bind(this);
     this.dismissAlert = this.dismissAlert.bind(this);
     this.toggleSelectMode = this.toggleSelectMode.bind(this);
+    this.toggleFilterMode = this.toggleFilterMode.bind(this);
     this.toggleInfoBarMode = this.toggleInfoBarMode.bind(this);
     this.getNewGroupName = this.getNewGroupName.bind(this);
     this.addNewGroup = this.addNewGroup.bind(this);
@@ -155,7 +159,8 @@ class Main extends React.Component {
       selectGalleryModal: false,
       page: 0,
       imageSelection: null,
-      multiSelect: false
+      multiSelect: false,
+      filterToggle: false,
     });
   }
 
@@ -242,6 +247,7 @@ class Main extends React.Component {
         galleryId,
         imageSelection: null,
         multiSelect: false,
+        filterToggle: false,
         infoBar: false,
         page: 0,
         filter: {
@@ -260,15 +266,25 @@ class Main extends React.Component {
       selectGalleryModal: false,
       imageSelection: null,
       multiSelect: false,
+      filterToggle: false,
       invitesModal: false
     });
   }
 
   toggleSelectMode() {
     this.setState({
-      multiSelect: !this.state.multiSelect
+      multiSelect: !this.state.multiSelect,
+      filterToggle: false
     });
   }
+
+  toggleFilterMode() {
+    this.setState({
+      filterToggle: !this.state.filterToggle,
+      multiSelect: false
+    });
+  }
+
 
   toggleInfoBarMode() {
     this.setState({
@@ -313,6 +329,7 @@ class Main extends React.Component {
         galleryId: lokiId,
         imageSelection: null,
         multiSelect: false,
+        filterToggle: false,
         infoBar: false,
         page: 1,
         filter: {
@@ -445,27 +462,8 @@ class Main extends React.Component {
               </NavDropdown>
               <NavItem onClick={_ => this.profileView()}>Profile</NavItem>
               <NavItem onClick={this.toggleSelectMode}>MultiSelect</NavItem>
+              <NavItem onClick={this.toggleFilterMode}>Filter</NavItem>
             </Nav>
-            <Navbar.Form pullRight>
-              <Form onSubmit={this.changeFilter}>
-                <FormGroup>
-                  <FormControl name="filterKey" componentClass="select">
-                    <option value="name">name</option>
-                    <option value="tag">tag</option>
-                    <option value="rating">rating</option>
-                  </FormControl>
-                  {' '}
-                  <InputGroup>
-                    <FormControl name="filterValue" type="text" placeholder="Filter view" />
-                    <InputGroup.Button>
-                      <Button type="submit">
-                        <Glyphicon glyph={'search'} />
-                      </Button>
-                    </InputGroup.Button>
-                  </InputGroup>
-                </FormGroup>
-              </Form>
-            </Navbar.Form>
           </Navbar.Collapse>
         </Navbar>
 

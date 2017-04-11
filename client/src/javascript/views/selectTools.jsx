@@ -40,7 +40,7 @@ export default class SelectTools extends React.Component {
 
   render() {
     if (!this.props.multiSelect) {
-      return <br />;
+      return null;
     }
     return (
       <div>
