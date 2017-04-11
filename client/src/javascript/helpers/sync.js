@@ -27,6 +27,7 @@ export default {
         return cb('Item is already synced');
       }
       const formData = {
+        hashes: JSON.stringify([file.hash]),
         metadatas: JSON.stringify([file.metadata]),
         images: [fs.createReadStream(file.location)]
       };

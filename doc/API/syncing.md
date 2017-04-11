@@ -41,7 +41,7 @@ they were uploaded.
 
 | Error Message             | Status |
 |---------------------------|--------|
-| `no images to upload`     |   302  |
+| `no images to upload`     |   200  |
 | `invalid request`         |   400  |
 | `not logged in`           |   401  |
 | `upload failed`           |   500  |

@@ -8,9 +8,10 @@ import GalleryCard from './gallerycard.jsx';
 import SelectTools from './selectTools.jsx';
 import GalleryBar from './galleryBar.jsx';
 import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
-import { success, danger, warning } from '../helpers/notifier';
+import { success, warning, danger } from '../helpers/notifier';
 import Sync from '../helpers/sync';
 import Galleries from '../models/galleries';
+import Images from '../models/images';
 import Host from '../models/host';
 
 const append_gallery_event_name = 'append_gallery';
@@ -37,6 +38,8 @@ class Gallery extends React.Component {
     this.removeItem = this.removeItem.bind(this);
     this.uploadItem = this.uploadItem.bind(this);
     this.removeAll = this.removeAll.bind(this);
+    this.tagAll = this.tagAll.bind(this);
+    this.rateAll = this.rateAll.bind(this);
     this.selectItem = this.selectItem.bind(this);
     this.selectAll = this.selectAll.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
@@ -174,6 +177,53 @@ class Gallery extends React.Component {
     });
   }
 
+  tagAll(op, value, cb) {
+    const numItems = this.state.selection.length;
+    Galleries.should_save = false;
+    eachOf(this.state.selection, (id, index, next) => {
+      if (index === numItems - 1) Galleries.should_save = true;
+      Images.get(id, (image) => {
+        if (op === 'add') {
+          if (image.metadata.tags.indexOf(value) === -1) image.metadata.tags.push(value);
+        } else if (op === 'remove') {
+          image.metadata.tags = image.metadata.tags.filter(e => e !== value);
+        } else {
+          return next('Invalid operation');
+        }
+
+        return Images.update(id, { metadata: image.metadata }, (doc) => {
+          if (!doc) return next('Failed to add tags');
+          return next();
+        });
+      });
+    }, (err) => {
+      if (err) warning(err);
+      cb(err);
+    });
+  }
+
+  rateAll(value, cb) {
+    const numItems = this.state.selection.length;
+    Galleries.should_save = false;
+
+    if (typeof value !== 'number') {
+      return cb('Invalid value');
+    }
+    return eachOf(this.state.selection, (id, index, next) => {
+      if (index === numItems - 1) Galleries.should_save = true;
+      Images.get(id, (image) => {
+        image.metadata.rating = value;
+        return Images.update(id, { metadata: image.metadata }, (doc) => {
+          if (!doc) return next('Failed to rate');
+          return next();
+        });
+      });
+    }, (err) => {
+      if (err) warning(err);
+      cb(err);
+    });
+  }
+
   selectItem(id) {
     // Avoid calling setState by making in-place changes
     const pos = this.state.selection.indexOf(id);
@@ -282,6 +332,8 @@ class Gallery extends React.Component {
             addAllToGallery={this.addAllToGallery}
             selectAll={this.selectAll}
             removeAll={this.removeAll}
+            tagAll={this.tagAll}
+            rateAll={this.rateAll}
           />
         </Col>
         <Col xs={4}>

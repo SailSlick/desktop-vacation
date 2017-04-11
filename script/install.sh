@@ -48,10 +48,16 @@ sudo systemctl start mongodb
 IR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BASEDIR=`cd "$IR/.."; pwd` # Provides absoloute directory, just in case.
 
+INSTALLCMD=npm-cache
+npm-cache > /dev/null
+if [[ $? -eq 127 ]]; then
+	set INSTALLCMD=npm
+fi
+
 echo "Installing server dependencies..."
-cd "$BASEDIR/server" && npm install
+cd "$BASEDIR/server" && $INSTALLCMD install
 echo "Installing client dependencies..."
-cd "$BASEDIR/client" && npm install
+cd "$BASEDIR/client" && $INSTALLCMD install
 
 # Add (relative) symlinks for client HTML javascript/css dependencies
 echo "Creating symlinks for client dependencies"
@@ -61,13 +67,14 @@ mkdir stylesheets
 cd thirdparty
 ln -s ../../node_modules/bootstrap/dist bootstrap
 
-echo "Creating symlinks for build system"
-echo "Running build system to create cache folders"
-cd $BASEDIR/client
-npm run release
-echo "Fixing above error"
-
-# Uses find to determine where to put the symlink (survives new versions)
-ln -fs /usr/bin/xorriso "$(find ~/.cache/electron-builder -name 'xorriso')"
+if [[ $BUILDENV -ne 'test' ]]; then
+	echo "Creating symlinks for build system"
+	echo "Running build system to create cache folders"
+	cd $BASEDIR/client
+	npm run release
+	echo "Fixing above error"
+	# Uses find to determine where to put the symlink (survives new versions)
+	ln -fs /usr/bin/xorriso "$(find ~/.cache/electron-builder -name 'xorriso')"
+fi
 
 echo "Done!"

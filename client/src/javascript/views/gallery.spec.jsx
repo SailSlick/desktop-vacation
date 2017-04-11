@@ -21,6 +21,7 @@ describe('Gallery Component', () => {
   let test_image;
   let test_component;
   let galleriesUpdateMetadataStub;
+  let imagesUpdateStub;
   let hostAuthStub;
   let uploadStub;
 
@@ -28,6 +29,7 @@ describe('Gallery Component', () => {
     hostAuthStub = stub(Host, 'isAuthed').returns(true);
     uploadStub = stub(Sync, 'uploadImages');
     galleriesUpdateMetadataStub = stub(Galleries, 'updateMetadata');
+    imagesUpdateStub = stub(Images, 'update').callsArgWith(2, 'lets pretend :)');
     // Create test image
     Images.add(test_image_path, (inserted_image) => {
       test_image = inserted_image;
@@ -53,6 +55,7 @@ describe('Gallery Component', () => {
   // Remove test image and gallery
   after((done) => {
     galleriesUpdateMetadataStub.restore();
+    imagesUpdateStub.restore();
     hostAuthStub.restore();
     uploadStub.restore();
     test_component.unmount();
@@ -118,6 +121,58 @@ describe('Gallery Component', () => {
       done();
     });
   });
+
+  it('can add tags for all selected images', (done) => {
+    imagesUpdateStub.reset();
+    test_component.instance().tagAll('add', 'funny', (err) => {
+      should.not.exist(err);
+      imagesUpdateStub.callCount.should.be.equal(
+        test_component.state().selection.length
+      );
+      done();
+    });
+  });
+
+  it('can remove tags for all selected images', (done) => {
+    imagesUpdateStub.reset();
+    test_component.instance().tagAll('remove', 'funny', (err) => {
+      should.not.exist(err);
+      imagesUpdateStub.callCount.should.be.equal(
+        test_component.state().selection.length
+      );
+      done();
+    });
+  });
+
+  it('errors when an unsupported operaton is used to tag images', (done) => {
+    imagesUpdateStub.reset();
+    test_component.instance().tagAll('USE THE KAZOO TIMMY', 'bunnz', (err) => {
+      err.should.exist;
+      imagesUpdateStub.callCount.should.be.equal(0);
+      done();
+    });
+  });
+
+  it('can rate all selected images', (done) => {
+    imagesUpdateStub.reset();
+    test_component.instance().rateAll(4, (err) => {
+      should.not.exist(err);
+      imagesUpdateStub.callCount.should.be.equal(
+        test_component.state().selection.length
+      );
+      done();
+    });
+  });
+
+  it('can handle an invalid value for rating images', (done) => {
+    imagesUpdateStub.reset();
+    test_component.instance().rateAll('WUB A LUB A DUB DUB', (err) => {
+      err.should.exist;
+      imagesUpdateStub.callCount.should.be.equal(0);
+      done();
+    });
+  });
+
 
   it('can remove all selected images', (done) => {
     const removeStub = stub(Galleries, 'removeItem', (dbId, id, next) => next());
