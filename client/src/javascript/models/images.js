@@ -10,13 +10,11 @@ let image_db;
 
 // Exported methods
 const Images = {
-  get: (id, cb) => {
-    image_db.findOne({ $loki: id }, cb);
-  },
+  get: (id, cb) => image_db.findOne({ $loki: id }, cb),
 
-  getByUri: (uri, cb) => {
-    image_db.findOne({ uri }, cb);
-  },
+  getByUri: (uri, cb) => image_db.findOne({ uri }, cb),
+
+  getMongo: (id, cb) => image_db.findOne({ remoteId: id }, cb),
 
   add: (path, cb) => {
     // make the hash
@@ -91,12 +89,12 @@ const Images = {
     });
   },
 
-  download: (remoteId, cb) => {
+  download: (remoteId, gid, cb) => {
     image_db.findOne({ remoteId }, (existingDoc) => {
       if (existingDoc) {
         cb(null, existingDoc.$loki);
       } else {
-        Sync.downloadImage(remoteId, (err, location) => {
+        Sync.downloadImage(remoteId, gid, (err, location) => {
           if (err) console.error(err);
           else {
             console.log(`Adding image at ${location}`);

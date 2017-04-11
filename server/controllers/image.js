@@ -99,6 +99,30 @@ module.exports = {
     });
   },
 
+  groupImageDownload: (req, res, next) => {
+    const uid = req.session.uid;
+    const username = req.session.username;
+
+    images.get(req.params.id, (err, image) => {
+      if (err) {
+        next({ status: 404, error: 'image not found' });
+      } else {
+        galleries.getGid(req.params.gid, (gErr, doc) => {
+          if (gErr) {
+            return next({ status: 404, error: 'group doesn\'t exist' });
+          }
+          if (doc.uid !== uid && doc.users.indexOf(username) === -1) {
+            return next({ status: 400, error: 'user isn\'t member of group' });
+          }
+          return res.sendFile(`${process.cwd()}/${image.location}`, {
+            headers: { 'Content-Type': image.mimeType },
+            dotfiles: 'deny'
+          });
+        });
+      }
+    });
+  },
+
   remove: (req, res, next) => {
     galleries.removeImageGlobal(
       req.params.id,

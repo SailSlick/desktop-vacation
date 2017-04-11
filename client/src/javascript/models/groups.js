@@ -213,7 +213,7 @@ const Groups = {
         if (!image) next('couldn\'t find image', null);
         if (!image.remoteId) {
           Galleries.get(1, (gallery) => {
-            Sync.uploadImages(gallery.remoteId, imageId, (err, _msg, id) => {
+            Sync.uploadImages(gallery.remoteId, imageId, (err, msg, id) => {
               if (err) next(err, null);
               next(null, id);
             });
@@ -264,7 +264,7 @@ const Groups = {
       cb([], []);
     } else {
       let subgalleries = gallery.subgalleries;
-      const images = gallery.images;
+      const imagesIds = gallery.images;
       subgalleries = subgalleries.filter(x => x._id);
       subgalleries = subgalleries.map((x) => {
         Galleries.getMongo(x._id, (subgallery) => {
@@ -273,7 +273,32 @@ const Groups = {
         });
         return x;
       });
-      Galleries.filter(subgalleries, images, filter, cb);
+      map(imagesIds, (id, next) => {
+        Galleries.getMongo(id, (image) => {
+          if (image) {
+            next(null, image);
+          }
+          // image not on client, download it
+          let gid = null;
+          if (gallery._id) gid = gallery._id;
+          Images.download(id, gid, (err, lokiId) => {
+            if (err) {
+              console.error(err);
+              next(null);
+            }
+            Images.get(lokiId, (doc) => {
+              if (!doc) {
+                console.error('Couldn\'t find doc');
+                next(null);
+              }
+              next(null, doc);
+            });
+          });
+        });
+      }, (err, result) => {
+        if (err) cb(err);
+        Galleries.filter(subgalleries, result, filter, cb);
+      });
     }
   }
 };

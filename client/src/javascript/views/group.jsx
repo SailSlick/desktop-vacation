@@ -61,16 +61,20 @@ class Group extends React.Component {
     if (groupId === '1') groupId = null;
     if (Host.isAuthed()) {
       Groups.get(groupId, (err, res, group) => {
-        if (err) danger(`${err}: ${res}`);
-        return Groups.expand(group, filter, (subgalleries, images) => {
-          this.setState({
-            subgalleries,
-            images,
-            itemsLimit: (db_update && this.state.itemsLimit >= 12) ? this.state.itemsLimit : 12,
-            itemsTotal: subgalleries.length + images.length
-          }, () => {
-            console.log('Group refreshed', groupId);
-          });
+        if (err) danger(`group get ${err}: ${res}`);
+        return Groups.expand(group, filter, (exErr, subgalleries, images) => {
+          if (err) danger('expand error', exErr);
+          else {
+            console.log('expanded', subgalleries, images);
+            this.setState({
+              subgalleries,
+              images,
+              itemsLimit: (db_update && this.state.itemsLimit >= 12) ? this.state.itemsLimit : 12,
+              itemsTotal: subgalleries.length + images.length
+            }, () => {
+              console.log('Group refreshed', groupId);
+            });
+          }
         });
       });
     }
@@ -148,6 +152,7 @@ class Group extends React.Component {
           dbId={image.$loki}
           src={image.location}
           onRemove={this.removeItem}
+          onUpload={() => true}
           tags={image.metadata.tags}
           rating={image.metadata.rating}
         />

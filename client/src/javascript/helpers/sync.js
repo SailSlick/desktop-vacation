@@ -55,8 +55,8 @@ export default {
     });
   },
 
-  downloadImage: (id, cb) => {
-    const imageUrl = Host.server_uri.concat(`/image/${id}`);
+  downloadImage: (id, gid, cb) => {
+    const imageUrl = Host.server_uri.concat(`/image/${id}/${gid || ''}`);
     console.log('Downloading image to disk');
     const options = {
       uri: imageUrl,
@@ -75,6 +75,7 @@ export default {
         );
         req.pipe(fs.createWriteStream(newFilePath));
       } else {
+        console.error('Image couldn\'t be downloaded', res.statusCode, res.message);
         danger('Couldn\'t download image');
         cb('Status code was not 200', null);
       }

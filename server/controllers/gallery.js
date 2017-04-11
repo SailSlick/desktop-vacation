@@ -457,7 +457,7 @@ module.exports = {
     if (typeof imageIds === 'string') imageIds = JSON.parse(imageIds);
     galleryModel.getGid(gid, (err, doc) => {
       if (!doc) return next({ status: 404, error: 'group doesn\'t exist' });
-      if (!(doc.uid === uid || doc.user.indexOf(username) !== -1)) {
+      if (!(doc.uid === uid || doc.users.indexOf(username) !== -1)) {
         return next(400, 'user isn\'t member of group');
       }
       return async.each(imageIds,

@@ -144,10 +144,9 @@ class Main extends React.Component {
       galleryId,
       groupId,
       this.state.imageSelection,
-      (err, msg) => {
-        if (err) danger(msg);
+      (err, _msg) => {
+        if (err) danger('Group change failed');
         else {
-          success(msg);
           this.onSelectGallery(galleryId);
         }
       }

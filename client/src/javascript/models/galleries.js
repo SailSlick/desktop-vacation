@@ -145,7 +145,7 @@ const Galleries = {
         images = images.filter(x => x.metadata.rating === filter.rating);
       }
     }
-    cb(subgalleries, images);
+    cb(null, subgalleries, images);
   },
 
   // Returns:
@@ -306,7 +306,9 @@ const Galleries = {
           console.log('No images to sync');
           return next();
         }
-        return map(body.data.images, Images.download, (downloadErr, imageIds) => {
+        return map(body.data.images,
+        (id, nextIm) => Images.download(id, null, nextIm),
+        (downloadErr, imageIds) => {
           if (downloadErr) console.error(downloadErr);
           each(imageIds,
             (id, mapcb) => {

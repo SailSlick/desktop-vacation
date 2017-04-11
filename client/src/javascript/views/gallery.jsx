@@ -94,7 +94,8 @@ class Gallery extends React.Component {
     filter = filter || this.props.filter;
 
     Galleries.get(dbId, gallery =>
-      Galleries.expand(gallery, filter, (subgalleries, images) =>
+      Galleries.expand(gallery, filter, (exErr, subgalleries, images) => {
+        if (exErr) danger(exErr);
         this.setState({
           subgalleries,
           images,
@@ -106,8 +107,8 @@ class Gallery extends React.Component {
         }, () => {
           console.log('Gallery refreshed');
           this.props.onRefresh();
-        })
-      )
+        });
+      })
     );
   }
 
