@@ -85,11 +85,11 @@ module.exports = {
   },
 
   download: (req, res, next) => {
-    images.get(req.session.uid, req.params.id, (err, image) => {
-      if (err === 401) {
-        next({ status: 401, error: 'invalid permissions' });
-      } else if (err === 404) {
+    images.get(req.params.id, (err, image) => {
+      if (err) {
         next({ status: 404, error: 'image not found' });
+      } else if (image.uid !== req.session.uid && !image.shared) {
+        next({ status: 401, error: 'invalid permissions' });
       } else {
         res.sendFile(`${process.cwd()}/${image.location}`, {
           headers: { 'Content-Type': image.mimeType },

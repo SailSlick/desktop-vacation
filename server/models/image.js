@@ -39,6 +39,14 @@ const storage = multer.diskStorage({
   }
 });
 
+function incrementImageRef(id, cb) {
+  db.updateRaw({ _id: db.getId(id) }, { $inc: { refs: 1 } }, (success) => {
+    if (!success) {
+      cb('Updating ref counter failed');
+    } else cb();
+  });
+}
+
 function fileFilter(req, file, cb) {
   if (!req.body.hashes || !req.body.metadatas) {
     cb(null, false);
@@ -68,8 +76,8 @@ function fileFilter(req, file, cb) {
         fsDb.insertOne(new_file, () => cb(null, true));
       } else {
         // if the doc exists, increment the ref counter
-        fsDb.updateRaw({ _id: doc._id }, { $inc: { refs: 1 } }, (success) => {
-          if (!success) {
+        incrementImageRef(doc._id, (failure) => {
+          if (failure) {
             console.error('Updating ref counter failed');
             cb(null, false);
           } else {
@@ -106,16 +114,16 @@ function fileFilter(req, file, cb) {
 module.exports = {
   uploadMiddleware: multer({ storage, fileFilter }).array('images'),
 
+  incrementRef: (id, cb) => incrementImageRef(id, cb),
+
   addMany(images, cb) {
     db.insertMany(images, cb);
   },
 
-  get(uid, id, next) {
+  get(id, next) {
     db.findOne({ _id: db.getId(id) }, (doc) => {
       if (!doc) {
         next(404, null);
-      } else if (doc.uid !== uid && !doc.shared) {
-        next(401, null);
       } else {
         next(null, doc);
       }

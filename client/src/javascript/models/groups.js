@@ -40,7 +40,7 @@ const Groups = {
           return Galleries.add(groupname, (doc, err_msg) => {
             Galleries.should_save = true;
             if (err_msg) return cb(500, err_msg);
-            return Galleries.convertToGroup(doc.$loki, body.data, (ret) => {
+            return Galleries.convertToGroup(doc.$loki, body.gid, (ret) => {
               if (ret) return cb(error, msg);
               return cb(500, 'convert To group failed');
             });
@@ -207,7 +207,7 @@ const Groups = {
     });
   },
 
-  addToGroup: (galleryId, groupId, imageIds, cb) => {
+  addToGroup: (galleryId, gid, imageIds, cb) => {
     map(imageIds, (imageId, next) =>
       Images.get(imageId, (image) => {
         if (!image) next('couldn\'t find image', null);
@@ -223,12 +223,11 @@ const Groups = {
         if (err) cb(err);
         else {
           const options = {
-            uri: server_uri.concat('/group/data/add'),
+            uri: server_uri.concat(`/group/${gid || ''}/add`),
             method: 'POST',
             jar: cookie_jar,
             json: {
-              groupId,
-              'image-ids': results
+              'image-ids': JSON.stringify(results)
             }
           };
           request(options, (reqErr, res, body) => {
@@ -241,14 +240,13 @@ const Groups = {
     );
   },
 
-  removeFromGroup: (gid, groupdata, cb) => {
+  removeFromGroup: (galleryId, gid, imageIds, cb) => {
     const options = {
-      uri: server_uri.concat('/group/data/remove'),
+      uri: server_uri.concat(`/group/${gid || ''}/remove`),
       method: 'POST',
       jar: cookie_jar,
       json: {
-        gid,
-        groupdata
+        imageIds
       }
     };
     return request(options, (err, res, body) => {
@@ -271,7 +269,7 @@ const Groups = {
       subgalleries = subgalleries.map((x) => {
         Galleries.getMongo(x._id, (subgallery) => {
           if (subgallery) x.$loki = subgallery.$loki;
-          x.$loki = 0;
+          else x.$loki = 0;
         });
         return x;
       });

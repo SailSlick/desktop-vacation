@@ -317,7 +317,7 @@ Upon successful request, adds images/galleries to a group.
 | `'group doesn't exist'`             |   404  |
 | `'user isn't member of group'`      |   400  |
 | `'data is invalid'`                 |   400  |
-| `'incorrect permissions for group'` |   401  |
+| `'incorrect permissions for image'` |   401  |
 
 ## Remove images/galleries from group
 

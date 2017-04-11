@@ -447,7 +447,7 @@ class Main extends React.Component {
                 <MenuItem onClick={this.toggleInfoBarMode}>Info Bar</MenuItem>
               </NavDropdown>
               <NavDropdown title="Groups" id="groups">
-                <MenuItem onClick={_ => this.changeGroup(BASE_GROUP_ID, BASE_GALLERY_ID)}>
+                <MenuItem onClick={_ => this.changeGroup(BASE_GALLERY_ID, BASE_GROUP_ID)}>
                   View
                 </MenuItem>
                 <MenuItem onClick={this.getNewGroupName}>Add</MenuItem>

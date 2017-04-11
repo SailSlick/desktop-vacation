@@ -41,7 +41,7 @@ class Group extends React.Component {
     this.props.filter.rating !== nextProps.filter.rating ||
     this.props.filter.name !== nextProps.filter.name ||
     this.props.filter.tag !== nextProps.filter.tag) {
-      this.refresh(nextProps.dbId, nextProps.filter);
+      this.refresh(nextProps.groupId, nextProps.filter);
     }
     if (!nextProps.multiSelect) {
       this.setState({ selection: [] });
@@ -60,9 +60,9 @@ class Group extends React.Component {
     // Null the group ID if we're looking at the base group
     if (groupId === '1') groupId = null;
     if (Host.isAuthed()) {
-      Groups.get(groupId, (err, res, gallery) => {
+      Groups.get(groupId, (err, res, group) => {
         if (err) danger(`${err}: ${res}`);
-        return Groups.expand(gallery, filter, (subgalleries, images) => {
+        return Groups.expand(group, filter, (subgalleries, images) => {
           this.setState({
             subgalleries,
             images,
