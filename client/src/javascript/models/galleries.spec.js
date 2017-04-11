@@ -30,7 +30,7 @@ describe('Galleries model', () => {
 
   // Create a test image
   before((done) => {
-    imageDownloadStub = stub(Images, 'download').callsArgWith(1, null, fakeImageId);
+    imageDownloadStub = stub(Images, 'download').callsArgWith(2, null, fakeImageId);
     Images.add(test_image_path, (inserted_image) => {
       test_image = inserted_image;
       Host.getBaseRemote((remoteId) => {
@@ -115,7 +115,8 @@ describe('Galleries model', () => {
 
   it('can expand gallery and pick thumbnails', done =>
     Galleries.get(base_gallery_id, base_gallery =>
-      Galleries.expand(base_gallery, {}, (subgalleries) => {
+      Galleries.expand(base_gallery, {}, (err, subgalleries) => {
+        should.not.exist(err);
         subgalleries.should.include.something.with.property('thumbnail');
         done();
       })
@@ -141,7 +142,8 @@ describe('Galleries model', () => {
 
   it('can expand gallery with name filter', done =>
     Galleries.get(base_gallery_id, base_gallery =>
-      Galleries.expand(base_gallery, { name: test_gallery_name }, (subgalleries) => {
+      Galleries.expand(base_gallery, { name: test_gallery_name }, (err, subgalleries) => {
+        should.not.exist(err);
         subgalleries.should.have.lengthOf(1);
         done();
       })
@@ -150,7 +152,8 @@ describe('Galleries model', () => {
 
   it('can expand gallery with rating filter', done =>
     Galleries.get(base_gallery_id, base_gallery =>
-      Galleries.expand(base_gallery, { rating: 3 }, (subgalleries) => {
+      Galleries.expand(base_gallery, { rating: 3 }, (err, subgalleries) => {
+        should.not.exist(err);
         subgalleries.should.have.lengthOf(0);
         done();
       })
@@ -175,7 +178,8 @@ describe('Galleries model', () => {
 
   it('can expand gallery with tag filter', done =>
     Galleries.get(base_gallery_id, base_gallery =>
-      Galleries.expand(base_gallery, { tag: 'test' }, (subgalleries) => {
+      Galleries.expand(base_gallery, { tag: 'test' }, (err, subgalleries) => {
+        should.not.exist(err);
         subgalleries.should.have.lengthOf(1);
         done();
       })
@@ -269,7 +273,8 @@ describe('Galleries model', () => {
   );
 
   it('can expand gallery without thumbnails', done =>
-    Galleries.expand(test_gallery, {}, (subgalleries, images) => {
+    Galleries.expand(test_gallery, {}, (err, subgalleries, images) => {
+      should.not.exist(err);
       test_gallery.subgalleries.should.not.have.length(0);
       subgalleries.should.not.be.empty;
       subgalleries.should.all.have.property('thumbnail', null);

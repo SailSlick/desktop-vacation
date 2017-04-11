@@ -122,7 +122,6 @@ class Main extends React.Component {
 
     // Events
     document.addEventListener('append_gallery', this.showGallerySelector, false);
-    // document.addEventListener('append_group', this.showGroupSelector, false);
     document.addEventListener('notify', this.showAlert, false);
     mousetrap.bind('shift+s', this.toggleSelectMode);
     mousetrap.bind('shift+i', this.toggleInfoBarMode);

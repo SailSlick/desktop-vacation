@@ -76,8 +76,8 @@ function fileFilter(req, file, cb) {
         fsDb.insertOne(new_file, () => cb(null, true));
       } else {
         // if the doc exists, increment the ref counter
-        incrementImageRef(doc._id, (failure) => {
-          if (failure) {
+        fsDb.updateRaw({ _id: doc._id }, { $inc: { refs: 1 } }, (success) => {
+          if (!success) {
             console.error('Updating ref counter failed');
             cb(null, false);
           } else {
@@ -141,7 +141,7 @@ module.exports = {
   },
 
   remove(uid, id, next) {
-    module.exports.get(uid, id, (err, file) => {
+    module.exports.get(id, (err, file) => {
       if (err) {
         return next('cannot find image, or invalid permissions');
       }

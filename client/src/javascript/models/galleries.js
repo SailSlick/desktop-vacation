@@ -299,8 +299,7 @@ const Galleries = {
       };
       return request(options, (err, response, body) => {
         if (response.statusCode !== 200) {
-          console.error(`Failure to sync, code: ${response.statusCode}`);
-          console.error(body.error);
+          console.error(`Failure to sync, code: ${response.statusCode}`, body.error);
           return next();
         } else if (!body.data.images || body.data.images.length === 0) {
           console.log('No images to sync');
