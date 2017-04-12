@@ -299,29 +299,30 @@ const Galleries = {
       };
       return request(options, (err, response, body) => {
         if (response.statusCode !== 200) {
-          console.error(`Failure to sync, code: ${response.statusCode}`, body.error);
+          console.error(`Failure to sync, code: ${response.statusCode}`);
+          console.error(body.error);
           return next();
         } else if (!body.data.images || body.data.images.length === 0) {
           console.log('No images to sync');
           return next();
         }
         return map(body.data.images,
-        (id, nextIm) => Images.download(id, null, nextIm),
-        (downloadErr, imageIds) => {
-          if (downloadErr) console.error(downloadErr);
-          each(imageIds,
-            (id, mapcb) => {
-              Galleries.addItem(BASE_GALLERY_ID, id, (addErr, _res) => {
-                if (addErr) mapcb(err);
-                else mapcb();
-              });
-            },
-            (addErr) => {
-              if (addErr) console.error(addErr);
-              next();
-            }
-          );
-        });
+          (id, nextIm) => Images.download(id, null, nextIm),
+          (downloadErr, imageIds) => {
+            if (downloadErr) console.error(downloadErr);
+            each(imageIds,
+              (id, mapcb) => {
+                Galleries.addItem(BASE_GALLERY_ID, id, (addErr, _res) => {
+                  if (addErr) mapcb(err);
+                  else mapcb();
+                });
+              },
+              (addErr) => {
+                if (addErr) console.error(addErr);
+                next();
+              }
+            );
+          });
       });
     });
   }

@@ -409,12 +409,14 @@ module.exports = {
         galleryModel.getGid(gid, (map_err, gallery) => {
           if (map_err === 'gallery not found') return cb(null, {});
           if (map_err) return cb(map_err, {});
+          let images = [];
+          if (gallery.images && gallery.images.length > 0) images = [gallery.images[0]];
           return cb(null, {
             _id: gallery._id,
             name: gallery.name,
             uid: gallery.uid,
             users: gallery.users,
-            images: [],
+            images,
             metadata: gallery.metadata
           });
         });

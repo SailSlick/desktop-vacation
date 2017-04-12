@@ -65,7 +65,6 @@ class Group extends React.Component {
         return Groups.expand(group, filter, (exErr, subgalleries, images) => {
           if (err) danger('expand error', exErr);
           else {
-            console.log('expanded', subgalleries, images);
             this.setState({
               subgalleries,
               images,
@@ -185,16 +184,18 @@ class Group extends React.Component {
         <Col xs={4}>
           {items.map((item, i) => ((i + 1) % 3 === 0 && item) || null)}
         </Col>
-        <Col xs={12}>
-          <Waypoint onEnter={this.loadMore}>
-            <div>
-              <InfiniteScrollInfo
-                itemsLimit={this.state.itemsLimit}
-                itemsTotal={this.state.itemsTotal}
-              />
-            </div>
-          </Waypoint>
-        </Col>
+        { (this.props.simple) ? <Col /> : (
+          <Col xs={12}>
+            <Waypoint onEnter={this.loadMore}>
+              <div>
+                <InfiniteScrollInfo
+                  itemsLimit={this.state.itemsLimit}
+                  itemsTotal={this.state.itemsTotal}
+                />
+              </div>
+            </Waypoint>
+          </Col>
+        )}
       </Row>
     );
   }

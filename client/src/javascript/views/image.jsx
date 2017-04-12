@@ -232,7 +232,7 @@ class Image extends React.Component {
             </MenuItem>
             <MenuItem onClick={this.addToGallery}>
               <Glyphicon glyph="th" />
-              Add to gallery/group
+              Add to ...
             </MenuItem>
             <MenuItem onClick={this.upload}>
               <Glyphicon glyph="upload" />

@@ -207,40 +207,43 @@ const Groups = {
     });
   },
 
-  addToGroup: (galleryId, gid, imageIds, cb) => {
-    map(imageIds, (imageId, next) =>
-      Images.get(imageId, (image) => {
-        if (!image) next('couldn\'t find image', null);
-        if (!image.remoteId) {
-          Galleries.get(1, (gallery) => {
-            Sync.uploadImages(gallery.remoteId, imageId, (err, msg, id) => {
-              if (err) next(err, null);
-              next(null, id);
+  addToGroup: (gid, imageIds, cb) => {
+    Galleries.getMongo(gid, (group) => {
+      imageIds = imageIds.filter(id => group.images.indexOf(id) === -1);
+      map(imageIds, (imageId, next) =>
+        Images.get(imageId, (image) => {
+          if (!image) next('couldn\'t find image', null);
+          if (!image.remoteId) {
+            Galleries.get(1, (gallery) => {
+              Sync.uploadImages(gallery.remoteId, imageId, (err, msg, id) => {
+                if (err) next(err, null);
+                next(null, id);
+              });
             });
-          });
-        } else next(null, image.remoteId);
-      }), (err, results) => {
-        if (err) cb(err);
-        else {
-          const options = {
-            uri: server_uri.concat(`/group/${gid || ''}/add`),
-            method: 'POST',
-            jar: cookie_jar,
-            json: {
-              'image-ids': JSON.stringify(results)
-            }
-          };
-          request(options, (reqErr, res, body) => {
-            requestHandler(reqErr, body, (error, msg) => {
-              cb(error, msg);
+          } else next(null, image.remoteId);
+        }), (err, results) => {
+          if (err) cb(err);
+          else {
+            const options = {
+              uri: server_uri.concat(`/group/${gid || ''}/add`),
+              method: 'POST',
+              jar: cookie_jar,
+              json: {
+                'image-ids': JSON.stringify(results)
+              }
+            };
+            request(options, (reqErr, res, body) => {
+              requestHandler(reqErr, body, (error, msg) => {
+                cb(error, msg);
+              });
             });
-          });
+          }
         }
-      }
-    );
+      );
+    });
   },
 
-  removeFromGroup: (galleryId, gid, imageIds, cb) => {
+  removeFromGroup: (gid, imageIds, cb) => {
     const options = {
       uri: server_uri.concat(`/group/${gid || ''}/remove`),
       method: 'POST',
@@ -268,33 +271,29 @@ const Groups = {
       subgalleries = subgalleries.filter(x => x._id);
       subgalleries = subgalleries.map((x) => {
         Galleries.getMongo(x._id, (subgallery) => {
-          if (subgallery) x.$loki = subgallery.$loki;
-          else x.$loki = 0;
+          x.thumbnail = null;
+          if (subgallery) {
+            x.$loki = subgallery.$loki;
+            // get thumbnail
+            if (x.images.length !== 0) {
+              let gid = null;
+              if (gallery._id) gid = gallery._id;
+              Images.getOrDownload(x.images[0], gid, (err, image) => {
+                if (image) {
+                  x.thumbnail = image.location;
+                }
+              });
+            }
+          } else {
+            x.$loki = 0;
+          }
         });
         return x;
       });
       map(imagesIds, (id, next) => {
-        Galleries.getMongo(id, (image) => {
-          if (image) {
-            next(null, image);
-          }
-          // image not on client, download it
-          let gid = null;
-          if (gallery._id) gid = gallery._id;
-          Images.download(id, gid, (err, lokiId) => {
-            if (err) {
-              console.error(err);
-              next(null);
-            }
-            Images.get(lokiId, (doc) => {
-              if (!doc) {
-                console.error('Couldn\'t find doc');
-                next(null);
-              }
-              next(null, doc);
-            });
-          });
-        });
+        let gid = null;
+        if (gallery._id) gid = gallery._id;
+        Images.getOrDownload(id, gid, next);
       }, (err, result) => {
         if (err) cb(err);
         Galleries.filter(subgalleries, result, filter, cb);

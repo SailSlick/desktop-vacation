@@ -276,7 +276,7 @@ group. if there is no gid it will return all the user's groups.
       "name": "scenery",
       "uid": ObjectId("542c2b97bac0595474108b48"),
       "users": ["m1cr0man","Sully"],
-      "images": []
+      "images": [ObjectId("542c2b97bac0595474108b48")]
     }],
     "images": []
     }

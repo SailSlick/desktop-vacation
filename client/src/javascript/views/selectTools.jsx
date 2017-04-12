@@ -71,7 +71,7 @@ export default class SelectTools extends React.Component {
             </NavItem>
             <NavItem onClick={this.props.addAllToGallery}>
               <Glyphicon glyph="th" />
-              Add To Gallery
+              Add To ...
             </NavItem>
             <NavItem onClick={this.props.removeAll}>
               <Glyphicon glyph="remove" />

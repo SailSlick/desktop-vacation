@@ -14,7 +14,7 @@ const Images = {
 
   getByUri: (uri, cb) => image_db.findOne({ uri }, cb),
 
-  getMongo: (id, cb) => image_db.findOne({ remoteId: id }, cb),
+  getRemoteId: (remoteId, cb) => image_db.findOne({ remoteId }, cb),
 
   add: (path, cb) => {
     // make the hash
@@ -100,6 +100,30 @@ const Images = {
             console.log(`Adding image at ${location}`);
             Images.addRemoteId(location, remoteId, (doc) => {
               cb(null, doc.$loki);
+            });
+          }
+        });
+      }
+    });
+  },
+
+  getOrDownload: (id, gid, next) => {
+    Images.getRemoteId(id, (image) => {
+      if (image) {
+        next(null, image);
+      } else {
+        // image not on client, download it
+        Images.download(id, gid, (err, lokiId) => {
+          if (err) {
+            console.error(err);
+            next(null);
+          } else {
+            Images.get(lokiId, (doc) => {
+              if (!doc) {
+                console.error('Couldn\'t find doc');
+                next(null);
+              }
+              next(null, doc);
             });
           }
         });

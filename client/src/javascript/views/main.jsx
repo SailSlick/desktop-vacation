@@ -140,7 +140,6 @@ class Main extends React.Component {
 
   onSelectGroup(galleryId, groupId) {
     Groups.addToGroup(
-      galleryId,
       groupId,
       this.state.imageSelection,
       (err, _msg) => {

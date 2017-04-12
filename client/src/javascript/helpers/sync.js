@@ -56,6 +56,7 @@ export default {
   },
 
   downloadImage: (id, gid, cb) => {
+    if (gid === null) gid = '';
     const imageUrl = Host.server_uri.concat(`/image/${id}/${gid || ''}`);
     console.log('Downloading image to disk');
     const options = {
