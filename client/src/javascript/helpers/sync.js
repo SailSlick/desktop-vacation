@@ -33,6 +33,7 @@ export default {
       images: []
     };
     const submittedIds = [];
+    const existingIds = [];
     return Images.getMany(imageIds, (images) => {
       if (!images) {
         danger('Error retrieving image(s)');
@@ -47,13 +48,15 @@ export default {
           formData.metadatas.push(image.metadata);
           formData.images.push(fs.createReadStream(image.location));
           submittedIds.push(image.$loki);
+        } else {
+          existingIds.push(image.remoteId);
         }
       });
 
       // Check if there is anything to sync
       if (formData.hashes.length === 0) {
         warning('Image(s) already synced');
-        return cb();
+        return cb(existingIds);
       }
 
       const options = {
@@ -68,6 +71,8 @@ export default {
       formData.hashes = JSON.stringify(formData.hashes);
       formData.metadatas = JSON.stringify(formData.metadatas);
 
+      console.log(formData);
+
       // Upload the images
       return request(options, (reqErr, res, body) =>
         errorHandler(reqErr, res, body, () => {
@@ -79,7 +84,7 @@ export default {
             Images.update(submittedIds[index], { remoteId }, () => next());
           }, () => {
             success(`${formData.images.length} image(s) uploaded`);
-            cb(body);
+            cb(existingIds.concat(body['image-ids']));
           });
         }, () => cb())
       );
