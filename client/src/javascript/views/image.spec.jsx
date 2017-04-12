@@ -16,18 +16,19 @@ chaiShould();
 describe('Image Component', () => {
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
   const removeSpy = spy();
-  const uploadSpy = spy();
   const fakeUrl = 'psst. im not a real url';
   let test_image;
   let test_component;
   let imageUpdateStub;
   let syncShareStub;
   let syncUnshareStub;
+  let syncUploadStub;
 
   before((done) => {
     imageUpdateStub = stub(Images, 'update');
     syncShareStub = stub(Sync, 'shareImage').returns(fakeUrl);
     syncUnshareStub = stub(Sync, 'unshareImage');
+    syncUploadStub = stub(Sync, 'uploadImages');
     Images.add(test_image_path, (inserted_image) => {
       test_image = inserted_image;
       test_component = mount(<Image
@@ -38,7 +39,7 @@ describe('Image Component', () => {
         tags={test_image.metadata.tags}
         src={test_image_path}
         onRemove={removeSpy}
-        onUpload={uploadSpy}
+        onUpload={() => true}
       />);
       done();
     });
@@ -49,6 +50,7 @@ describe('Image Component', () => {
     imageUpdateStub.restore();
     syncShareStub.restore();
     syncUnshareStub.restore();
+    syncUploadStub.restore();
   });
 
   it('can add a tag', (done) => {
@@ -144,10 +146,11 @@ describe('Image Component', () => {
   });
 
   it('can request upload of element', (done) => {
-    uploadSpy.reset();
-    uploadSpy.called.should.not.be.ok;
+    syncUploadStub.reset();
+    syncUploadStub.called.should.not.be.ok;
     test_component.find('.img-menu a').at(2).simulate('click');
-    uploadSpy.called.should.be.ok;
+    syncUploadStub.called.should.be.ok;
+    syncUploadStub.firstCall.args[0].should.deep.equal([test_image.$loki]);
     done();
   });
 

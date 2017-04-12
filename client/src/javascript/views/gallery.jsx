@@ -155,7 +155,6 @@ class Gallery extends React.Component {
   }
 
   syncAll(cb) {
-    console.log(this.state.selection);
     Sync.uploadImages(this.state.selection, cb);
   }
 

@@ -54,7 +54,7 @@ describe('Sync helper', () => {
       .post('/image/upload')
       .reply(200, { 'image-ids': [fakeRemote], message: 'its ALIVEEE' });
 
-      Sync.uploadImages(remoteGalleryId, testImage.$loki, () => {
+      Sync.uploadImages([testImage.$loki], () => {
         Images.get(testImage.$loki, (image) => {
           image.remoteId.should.equal(fakeRemote);
           done();
@@ -63,7 +63,7 @@ describe('Sync helper', () => {
     });
 
     it('should not be able to sync an already synced image', (done) => {
-      Sync.uploadImages(remoteGalleryId, testImage.$loki, (res) => {
+      Sync.uploadImages([testImage.$loki], (res) => {
         should.not.exist(res);
         done();
       });
