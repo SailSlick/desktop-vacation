@@ -146,11 +146,10 @@ describe('Gallery Component', () => {
 
   it('can sync all selected images', (done) => {
     uploadStub.reset();
-    test_component.instance().syncAll(() => {
-      uploadStub.called.should.be.ok;
-      uploadStub.firstCall.args[0].should.deep.equal(test_component.state().selection);
-      done();
-    });
+    test_component.instance().syncAll();
+    uploadStub.called.should.be.ok;
+    uploadStub.firstCall.args[0].should.deep.equal(test_component.state().selection);
+    done();
   });
 
   it('errors when an unsupported operaton is used to tag images', (done) => {
