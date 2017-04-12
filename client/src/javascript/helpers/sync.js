@@ -23,13 +23,17 @@ function errorHandler(reqErr, response, body, cb, next) {
 
 export default {
   uploadImages: (imageIds, cb) => {
+    if (!Host.isAuthed()) {
+      danger('Can\'t sync, try signing in!');
+      return cb();
+    }
     const formData = {
       hashes: [],
       metadatas: [],
       images: []
     };
     const submittedIds = [];
-    Images.getMany(imageIds, (images) => {
+    return Images.getMany(imageIds, (images) => {
       if (!images) {
         danger('Error retrieving image(s)');
         return cb();

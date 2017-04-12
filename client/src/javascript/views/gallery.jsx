@@ -9,6 +9,7 @@ import SelectTools from './selectTools.jsx';
 import GalleryBar from './galleryBar.jsx';
 import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
 import { success, warning, danger } from '../helpers/notifier';
+import Sync from '../helpers/sync';
 import Galleries from '../models/galleries';
 import Images from '../models/images';
 
@@ -35,6 +36,7 @@ class Gallery extends React.Component {
     this.addAllToGallery = this.addAllToGallery.bind(this);
     this.removeItem = this.removeItem.bind(this);
     this.removeAll = this.removeAll.bind(this);
+    this.syncAll = this.syncAll.bind(this);
     this.tagAll = this.tagAll.bind(this);
     this.rateAll = this.rateAll.bind(this);
     this.selectItem = this.selectItem.bind(this);
@@ -150,6 +152,11 @@ class Gallery extends React.Component {
       else success(`${num_items} images removed`);
       if (typeof cb === 'function') cb();
     });
+  }
+
+  syncAll(cb) {
+    console.log(this.state.selection);
+    Sync.uploadImages(this.state.selection, cb);
   }
 
   tagAll(op, value, cb) {
@@ -306,6 +313,7 @@ class Gallery extends React.Component {
             addAllToGallery={this.addAllToGallery}
             selectAll={this.selectAll}
             removeAll={this.removeAll}
+            syncAll={this.syncAll}
             tagAll={this.tagAll}
             rateAll={this.rateAll}
           />
