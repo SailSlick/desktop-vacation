@@ -407,22 +407,8 @@ class Main extends React.Component {
     }
   }
 
-  changeFilter(event) {
-    event.preventDefault();
-    const filter = {
-      name: '',
-      tag: '',
-      rating: 0
-    };
-    const key = event.target.filterKey.value;
-    let value = event.target.filterValue.value;
-    if (key === 'rating') {
-      value = Number(value);
-      if (isNaN(value) || value > 5 || value < 0) return danger('Rating must be a number between 0 & 5');
-    }
-    filter[key] = value;
-    success('Filtering');
-    return this.setState({ filter });
+  changeFilter(filter) {
+    this.setState({ filter });
   }
 
   render() {

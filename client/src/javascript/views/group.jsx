@@ -92,6 +92,7 @@ class Group extends React.Component {
     if (typeof field === 'object') tags = field;
     if (typeof field === 'string') {
       if (field.length === 0) return danger('Empty tag');
+      if (field.indexOf(' ') !== 0) return danger('Tags can\'t have spaces');
       if (toRemove) tags = tags.filter(val => val !== field);
       else tags.push(field);
     }

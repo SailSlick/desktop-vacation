@@ -1,4 +1,4 @@
-import { map, each, eachOf } from 'async';
+import { map, each, eachOf, filter as asyncFilter } from 'async';
 import { ipcRenderer as ipc } from 'electron';
 import request from 'request';
 import Host from './host';
@@ -124,28 +124,50 @@ const Galleries = {
 
   getName: (name, cb) => gallery_db.findOne({ name }, cb),
 
-  filter: (subgalleries, images, filter, cb) => {
-    if (filter) {
-      if (filter.name) {
-        filter.name = filter.name.toLowerCase();
-        subgalleries = subgalleries.filter(x => x.name.toLowerCase().indexOf(filter.name) !== -1);
-        images = images.filter(x => x.location.toLowerCase().indexOf(filter.name) !== -1);
-      }
-      if (filter.tag) {
-        filter.tag = filter.tag.toLowerCase();
-        subgalleries = subgalleries.filter(x =>
-          x.metadata.tags.join().toLowerCase().indexOf(filter.tag) !== -1
-        );
-        images = images.filter(x =>
-          x.metadata.tags.join().toLowerCase().indexOf(filter.tag) !== -1
-        );
-      }
-      if (filter.rating && filter.rating !== 0) {
-        subgalleries = subgalleries.filter(x => x.metadata.rating === filter.rating);
-        images = images.filter(x => x.metadata.rating === filter.rating);
+  filterSingle: (item, filter, cb) => {
+    let filterThrough = true;
+    if (filter.name) {
+      filter.name = filter.name.toLowerCase();
+      if (item.name) {
+        filterThrough = filterThrough && item.name.toLowerCase().indexOf(filter.name) !== -1;
+      } else if (item.location) {
+        filterThrough = filterThrough && item.location.toLowerCase().indexOf(filter.name) !== -1;
       }
     }
-    cb(subgalleries, images);
+    if (filter.tags) {
+      filterThrough = filterThrough &&
+        filter.tags.filter((tag) => {
+          if (tag.length === 0) {
+            return true;
+          }
+          tag = tag.toLowerCase();
+          return item.metadata.tags.indexOf(tag) !== -1;
+        }).length === filter.tags.length;
+    }
+    if (filter.rating && filter.rating !== 0) {
+      filterThrough = filterThrough && item.metadata.rating === filter.rating;
+    }
+    return cb(null, filterThrough);
+  },
+
+  filter: (subgalleries, images, filter, cb) => {
+    if (filter) {
+      asyncFilter(
+        subgalleries,
+        (x, next) => Galleries.filterSingle(x, filter, next),
+        (_, filteredGalleries) => {
+          asyncFilter(
+            images,
+            (x, next) => Galleries.filterSingle(x, filter, next),
+            (__, filteredImages) => {
+              cb(filteredGalleries, filteredImages);
+            }
+          );
+        }
+      );
+    } else {
+      cb(subgalleries, images);
+    }
   },
 
   // Returns:

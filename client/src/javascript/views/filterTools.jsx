@@ -7,7 +7,33 @@ export default class SelectTools extends React.Component {
     super(props);
 
     this.state = {
+      fixed: false,
+      tagInput: '',
+      name: '',
+      rating: null,
     };
+
+    this.filter = this.filter.bind(this);
+    this.handleTagsChange = this.handleTagsChange.bind(this);
+    this.handleNameChange = this.handleNameChange.bind(this);
+  }
+
+  filter() {
+    const tags = this.state.tagInput.split(' ');
+    const filter = {
+      tags,
+      name: this.state.name,
+      rating: this.state.rating
+    };
+    this.props.changeFilter(filter);
+  }
+
+  handleTagsChange(ev) {
+    this.setState({ tagInput: ev.target.value });
+  }
+
+  handleNameChange(ev) {
+    this.setState({ name: ev.target.value });
   }
 
   render() {
@@ -33,23 +59,41 @@ export default class SelectTools extends React.Component {
             </Navbar.Brand>
           </Navbar.Header>
           <Navbar.Form pullRight>
-            <Form onSubmit={this.props.changeFilter}>
-              <FormGroup>
-                <FormControl name="filterKey" componentClass="select">
-                  <option value="name">name</option>
-                  <option value="tag">tag</option>
-                  <option value="rating">rating</option>
-                </FormControl>
-                {' '}
-                <InputGroup>
-                  <FormControl name="filterValue" type="text" placeholder="Filter view" />
-                  <InputGroup.Button>
-                    <Button type="submit">
-                      <Glyphicon glyph={'search'} />
-                    </Button>
-                  </InputGroup.Button>
-                </InputGroup>
-              </FormGroup>
+            <Form onSubmit={e => e.preventDefault()}>
+              {[1, 2, 3, 4, 5].map((val) => {
+                if (val === this.state.rating) {
+                  // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+                  return (<a key={val} onClick={() => this.stateState({ rating: 0 })}>
+                    <Glyphicon glyph={'star'} />
+                  </a>);
+                }
+                // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+                return (<a
+                  key={val}
+                  className="star-hover"
+                  onClick={() => this.setState({ rating: val })}
+                >
+                  <Glyphicon glyph={'star-empty'} />
+                  <Glyphicon glyph={'star'} />
+                </a>);
+              })}
+              <FormControl
+                name="filterValue"
+                type="text"
+                placeholder="tags"
+                value={this.state.tags}
+                onChange={this.handleTagsChange}
+              />
+              <FormControl
+                name="filterValue"
+                type="text"
+                placeholder="name"
+                value={this.state.name}
+                onChange={this.handleNameChange}
+              />
+              <Button onClick={this.filter}>
+                <Glyphicon glyph={'search'} />
+              </Button>
             </Form>
           </Navbar.Form>
         </Navbar>

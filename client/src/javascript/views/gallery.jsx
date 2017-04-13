@@ -74,7 +74,7 @@ class Gallery extends React.Component {
     if (nextProps.dbId !== this.props.dbId ||
     this.props.filter.rating !== nextProps.filter.rating ||
     this.props.filter.name !== nextProps.filter.name ||
-    this.props.filter.tag !== nextProps.filter.tag) {
+    this.props.filter.tags !== nextProps.filter.tags) {
       this.refresh(nextProps.dbId, nextProps.filter);
     }
     if (!nextProps.multiSelect) {
@@ -249,6 +249,7 @@ class Gallery extends React.Component {
     if (typeof field === 'number') rating = field;
     if (typeof field === 'string') {
       if (field === '') return danger('Empty tag');
+      if (field.indexOf(' ') !== -1) return danger('Tags can\'t have spaces');
       if (toRemove) tags = tags.filter(val => val !== field);
       else {
         if (tags.indexOf(field) !== -1) return danger('Tag exists');
@@ -375,7 +376,7 @@ Gallery.propTypes = {
   onRefresh: React.PropTypes.func,
   filter: React.PropTypes.shape({
     rating: React.PropTypes.number,
-    tag: React.PropTypes.string,
+    tags: React.PropTypes.array,
     name: React.PropTypes.string
   })
 };
@@ -384,7 +385,7 @@ Gallery.defaultProps = {
   filter: {
     name: '',
     rating: 0,
-    tag: ''
+    tags: ['']
   },
   simple: false,
   multiSelect: false,
