@@ -226,8 +226,7 @@ describe('Group model', () => {
 
   it('can expand a group', (done) => {
     const groups = { subgalleries: [{ _id: 'not gonna be found' }], images: [] };
-    Groups.expand(groups, {}, (err, subgalleries, images) => {
-      should.not.exist(err);
+    Groups.expand(groups, {}, (subgalleries, images) => {
       subgalleries.length.should.equal(1);
       images.length.should.equal(0);
       done();
@@ -236,8 +235,7 @@ describe('Group model', () => {
 
   it('can expand a group with name filter', (done) => {
     const groups = { subgalleries: [{ _id: 'not gonna be found', name: 'huh' }], images: [] };
-    Groups.expand(groups, { name: 'huh' }, (err, subgalleries, images) => {
-      should.not.exist(err);
+    Groups.expand(groups, { name: 'huh' }, (subgalleries, images) => {
       subgalleries.length.should.equal(1);
       images.length.should.equal(0);
       done();
@@ -246,8 +244,7 @@ describe('Group model', () => {
 
   it('can expand a group with rating filter', (done) => {
     const groups = { subgalleries: [{ _id: 'not gonna be found', name: 'huh', metadata: { tags: [], rating: 3 } }], images: [] };
-    Groups.expand(groups, { rating: 3 }, (err, subgalleries, images) => {
-      should.not.exist(err);
+    Groups.expand(groups, { rating: 3 }, (subgalleries, images) => {
       subgalleries.length.should.equal(1);
       images.length.should.equal(0);
       done();
@@ -272,8 +269,7 @@ describe('Group model', () => {
 
   it('can expand a group with tag filter', (done) => {
     const groups = { subgalleries: [{ _id: 'not gonna be found', name: 'huh', metadata: { tags: ['test'], rating: 3 } }], images: [] };
-    Groups.expand(groups, { tag: 'test' }, (err, subgalleries, images) => {
-      should.not.exist(err);
+    Groups.expand(groups, { tag: 'test' }, (subgalleries, images) => {
       subgalleries.length.should.equal(1);
       images.length.should.equal(0);
       done();

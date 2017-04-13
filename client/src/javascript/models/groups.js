@@ -4,6 +4,7 @@ import Host from './host';
 import Galleries from './galleries';
 import Images from './images';
 import Sync from '../helpers/sync';
+import { warning } from '../helpers/notifier';
 
 const server_uri = Host.server_uri;
 
@@ -215,9 +216,8 @@ const Groups = {
           if (!image) next('couldn\'t find image', null);
           if (!image.remoteId) {
             Galleries.get(1, (gallery) => {
-              Sync.uploadImages(gallery.remoteId, imageId, (err, msg, id) => {
-                if (err) next(err, null);
-                next(null, id);
+              Sync.uploadImages(gallery.remoteId, imageId, (id) => {
+                if (id) next(null, [id]);
               });
             });
           } else next(null, image.remoteId);
@@ -295,7 +295,7 @@ const Groups = {
         if (gallery._id) gid = gallery._id;
         Images.getOrDownload(id, gid, next);
       }, (err, result) => {
-        if (err) cb(err);
+        if (err) warning(err);
         Galleries.filter(subgalleries, result, filter, cb);
       });
     }

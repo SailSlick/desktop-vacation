@@ -64,7 +64,7 @@ describe('Sync helper', () => {
 
     it('should not be able to sync an already synced image', (done) => {
       Sync.uploadImages(remoteGalleryId, testImage.$loki, (res) => {
-        res.should.equal('Item is already synced');
+        should.not.exist(res);
         done();
       });
     });

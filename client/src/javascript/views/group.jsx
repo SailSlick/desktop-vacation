@@ -62,18 +62,15 @@ class Group extends React.Component {
     if (Host.isAuthed()) {
       Groups.get(groupId, (err, res, group) => {
         if (err) danger(`group get ${err}: ${res}`);
-        return Groups.expand(group, filter, (exErr, subgalleries, images) => {
-          if (err) danger('expand error', exErr);
-          else {
-            this.setState({
-              subgalleries,
-              images,
-              itemsLimit: (db_update && this.state.itemsLimit >= 12) ? this.state.itemsLimit : 12,
-              itemsTotal: subgalleries.length + images.length
-            }, () => {
-              console.log('Group refreshed', groupId);
-            });
-          }
+        return Groups.expand(group, filter, (subgalleries, images) => {
+          this.setState({
+            subgalleries,
+            images,
+            itemsLimit: (db_update && this.state.itemsLimit >= 12) ? this.state.itemsLimit : 12,
+            itemsTotal: subgalleries.length + images.length
+          }, () => {
+            console.log('Group refreshed', groupId);
+          });
         });
       });
     }

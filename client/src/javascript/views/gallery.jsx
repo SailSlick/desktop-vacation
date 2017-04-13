@@ -94,8 +94,7 @@ class Gallery extends React.Component {
     filter = filter || this.props.filter;
 
     Galleries.get(dbId, gallery =>
-      Galleries.expand(gallery, filter, (exErr, subgalleries, images) => {
-        if (exErr) danger(exErr);
+      Galleries.expand(gallery, filter, (subgalleries, images) => {
         this.setState({
           subgalleries,
           images,
@@ -150,10 +149,7 @@ class Gallery extends React.Component {
         }
         console.log(`syncing, gallery: ${gallery.remoteId}`);
         if (gallery.remoteId) {
-          Sync.uploadImages(gallery.remoteId, id, (err, msg) => {
-            if (err) warning(err);
-            else success(msg);
-          });
+          Sync.uploadImages(gallery.remoteId, id, () => {});
         } else {
           danger('Can\'t sync from subgallery.');
         }

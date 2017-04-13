@@ -30,7 +30,7 @@ export default {
       return Host.update({ $loki: oldHostData.$loki }, config, () => {
         // gets the named gallery from db
         Galleries.get(galleryId, gallery =>
-          Galleries.expand(gallery, {}, (err, subgalleries, images) => {
+          Galleries.expand(gallery, {}, (subgalleries, images) => {
             const image_paths = images.map(image => image.location);
 
             if (image_paths.length === 0) {
