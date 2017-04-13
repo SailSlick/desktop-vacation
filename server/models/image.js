@@ -17,8 +17,6 @@ const IMAGE_TYPES = [
 ];
 const IMAGE_FOLDER = 'private/images';
 
-let indexNumber = 0;
-
 if (!fs.existsSync(IMAGE_FOLDER)) {
   mkdirp.sync(IMAGE_FOLDER);
 }
@@ -34,8 +32,7 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     // name the file after the hash
-    if (req.body.hashes[indexNumber]) cb(null, req.body.hashes[indexNumber]);
-    else cb(null, Date.now());
+    cb(null, file.originalname);
   }
 });
 
@@ -49,24 +46,30 @@ function fileFilter(req, file, cb) {
       req.body.hashes = JSON.parse(req.body.hashes);
     }
     // set the length of the indexNumber so we can index the hashes
-    if (indexNumber === 0) {
-      indexNumber = req.body.hashes.length;
+    if (req.body.indexNumber === undefined) {
+      req.body.indexNumber = -1;
     }
-    indexNumber -= 1;
+    req.body.indexNumber += 1;
+    const indexNumber = req.body.indexNumber;
+
+    file.originalname = req.body.hashes[indexNumber];
+    const metadata = req.body.metadatas[indexNumber];
     if (!IMAGE_TYPES.some(type => file.mimetype === type)) cb(null, false);
 
     // check if the hash is in the db
-    fsDb.findOne({ _id: req.body.hashes[indexNumber] }, (doc) => {
+    fsDb.findOne({ _id: file.originalname }, (doc) => {
       if (!doc) {
         // if the doc doesn't exist, create a reference in the images-fs db
         const new_file = {
-          _id: req.body.hashes[indexNumber],
-          location: `${IMAGE_FOLDER}/${req.session.uid}/${req.body.hashes[indexNumber]}`,
+          _id: file.originalname,
+          location: `${IMAGE_FOLDER}/${req.session.uid}/${file.originalname}`,
           refs: 1,
           size: file.size
         };
         fsDb.insertOne(new_file, () => cb(null, true));
       } else {
+        req.body.metadatas[indexNumber] = null;
+        req.body.hashes[indexNumber] = null;
         // if the doc exists, increment the ref counter
         fsDb.updateRaw({ _id: doc._id }, { $inc: { refs: 1 } }, (success) => {
           if (!success) {
@@ -77,15 +80,11 @@ function fileFilter(req, file, cb) {
               uid: req.session.uid,
               location: doc.location,
               mimeType: file.mimetype,
-              metadata: req.body.metadatas[indexNumber],
-              hash: req.body.hashes[indexNumber],
+              metadata,
+              hash: file.originalname,
               shared: false,
               refs: 1
             };
-
-            req.body.metadatas.splice(indexNumber, 1);
-            req.body.hashes.splice(indexNumber, 1);
-            if (indexNumber !== 0) indexNumber += 1;
             db.insertOne(newImage, (newId) => {
               if (newId) {
                 if (req.body.files) req.body.files.push(newId);

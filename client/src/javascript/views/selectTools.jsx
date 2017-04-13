@@ -69,6 +69,10 @@ export default class SelectTools extends React.Component {
               <Glyphicon glyph="minus" />
               Deselect All
             </NavItem>
+            <NavItem onClick={this.props.syncAll}>
+              <Glyphicon glyph="upload" />
+              Sync
+            </NavItem>
             <NavItem onClick={this.props.addAllToGallery}>
               <Glyphicon glyph="th" />
               Add To Gallery

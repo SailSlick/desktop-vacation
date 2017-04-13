@@ -71,8 +71,6 @@ export default {
       formData.hashes = JSON.stringify(formData.hashes);
       formData.metadatas = JSON.stringify(formData.metadatas);
 
-      console.log(formData);
-
       // Upload the images
       return request(options, (reqErr, res, body) =>
         errorHandler(reqErr, res, body, () => {

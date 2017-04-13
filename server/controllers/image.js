@@ -46,6 +46,9 @@ module.exports = {
     let metadatas = req.body.metadatas;
     let hashes = req.body.hashes;
 
+    metadatas = metadatas.filter(x => x !== null);
+    hashes = hashes.filter(x => x !== null);
+
     if (typeof metadatas === 'string') metadatas = JSON.parse(metadatas);
     if (typeof hashes === 'string') hashes = JSON.parse(hashes);
 
@@ -68,6 +71,7 @@ module.exports = {
     // Add images to images collection
     return images.addMany(newImages, (newIds) => {
       if (newIds === false) return next({ status: 500, error: 'upload failed' });
+      if (req.body.files) newIds = newIds.concat(req.body.files);
 
       // Get user's base gallery id
       return user.getBaseGallery(req.session.uid, baseGalleryId =>
