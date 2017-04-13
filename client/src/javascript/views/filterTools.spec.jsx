@@ -8,7 +8,7 @@ import FilterTools from './filterTools.jsx';
 use(chaiEnzyme());
 chaiShould();
 
-describe('Filter Tootbar Component', () => {
+describe('Filter Toolbar Component', () => {
   let changeFilterStub;
   let test_component;
 

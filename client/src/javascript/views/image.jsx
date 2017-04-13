@@ -117,7 +117,7 @@ class Image extends React.Component {
     if (typeof field === 'string') {
       field = field.trim();
       if (field === '') return danger('Empty tag');
-      if (field.indexOf(',') !== -1) return danger('Tags can\'t have spaces');
+      if (field.indexOf(',') !== -1) return danger('Tags can\'t have commas');
       if (toRemove) tags = tags.filter(val => val !== field);
       else {
         if (tags.indexOf(field) !== -1) return danger('Tag exists');

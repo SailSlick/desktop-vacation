@@ -128,6 +128,7 @@ class Main extends React.Component {
     // Events
     document.addEventListener('append_gallery', this.showGallerySelector, false);
     document.addEventListener('notify', this.showAlert, false);
+    mousetrap.bind('ctrl+f', this.toggleFilterMode);
     mousetrap.bind('shift+s', this.toggleSelectMode);
     mousetrap.bind('shift+i', this.toggleInfoBarMode);
   }
@@ -141,6 +142,7 @@ class Main extends React.Component {
     document.removeEventListener('append_gallery', this.showGallerySelector, false);
     document.removeEventListener('notify', this.showAlert, false);
     mousetrap.unbind('shift+s');
+    mousetrap.unbind('ctrl+f');
   }
 
   onSelectGallery(galleryId) {

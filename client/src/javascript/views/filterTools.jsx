@@ -1,5 +1,6 @@
 import React from 'react';
 import Waypoint from 'react-waypoint';
+import mousetrap from 'mousetrap';
 import { Navbar, Form, FormControl, Button, Glyphicon } from 'react-bootstrap';
 
 export default class FilterTools extends React.Component {
@@ -16,6 +17,12 @@ export default class FilterTools extends React.Component {
     this.filter = this.filter.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.clearFilter = this.clearFilter.bind(this);
+
+    mousetrap.bind('shift+f', this.filter);
+  }
+
+  componentWillUnmount() {
+    mousetrap.unbind('shift+f');
   }
 
   filter() {
@@ -77,7 +84,7 @@ export default class FilterTools extends React.Component {
                     id="deselect-star"
                     onClick={() => this.setState({ rating: 0 })}
                   >
-                    <Glyphicon glyph={'star'} />
+                    <Glyphicon glyph="star" />
                   </a>);
                 }
                 // eslint-disable-next-line jsx-a11y/no-static-element-interactions
@@ -86,8 +93,8 @@ export default class FilterTools extends React.Component {
                   className="star-hover"
                   onClick={() => this.setState({ rating: val })}
                 >
-                  <Glyphicon glyph={'star-empty'} />
-                  <Glyphicon glyph={'star'} />
+                  <Glyphicon glyph="star-empty" />
+                  <Glyphicon glyph="star" />
                 </a>);
               })}
               <FormControl
