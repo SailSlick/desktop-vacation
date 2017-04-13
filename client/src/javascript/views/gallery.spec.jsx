@@ -184,10 +184,13 @@ describe('Gallery Component', () => {
 
   it('can remove all selected images', (done) => {
     const removeStub = stub(Galleries, 'removeItem', (dbId, id, next) => next());
+    const dispatchStub = stub(document, 'dispatchEvent');
     test_component.instance().removeAll(() => {
       removeStub.callCount.should.be.equal(test_component.state().selection.length);
+      dispatchStub.called.should.be.ok;
       Galleries.should_save.should.be.ok;
       removeStub.restore();
+      dispatchStub.restore();
       done();
     });
   });
