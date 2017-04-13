@@ -30,7 +30,7 @@ describe('Galleries model', () => {
 
   // Create a test image
   before((done) => {
-    imageDownloadStub = stub(Images, 'download').callsArgWith(1, null, fakeImageId);
+    imageDownloadStub = stub(Images, 'download').callsArgWith(2, null, fakeImageId);
     Images.add(test_image_path, (inserted_image) => {
       test_image = inserted_image;
       Host.getBaseRemote((remoteId) => {

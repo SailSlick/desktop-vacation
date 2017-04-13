@@ -102,6 +102,7 @@ class Main extends React.Component {
     };
 
     this.onSelectGallery = this.onSelectGallery.bind(this);
+    this.onSelectGroup = this.onSelectGroup.bind(this);
     this.getNewGalleryName = this.getNewGalleryName.bind(this);
     this.showGallerySelector = this.showGallerySelector.bind(this);
     this.addNewGallery = this.addNewGallery.bind(this);
@@ -143,6 +144,19 @@ class Main extends React.Component {
     document.removeEventListener('notify', this.showAlert, false);
     mousetrap.unbind('shift+s');
     mousetrap.unbind('ctrl+f');
+  }
+
+  onSelectGroup(galleryId, groupId) {
+    Groups.addToGroup(
+      groupId,
+      this.state.imageSelection,
+      (err, _msg) => {
+        if (err) danger('Group change failed');
+        else {
+          this.onSelectGallery(galleryId);
+        }
+      }
+    );
   }
 
   onSelectGallery(galleryId) {
@@ -324,7 +338,7 @@ class Main extends React.Component {
     });
   }
 
-  changeGroup(groupId, lokiId) {
+  changeGroup(lokiId, groupId) {
     if (!this.state.account) {
       danger('Account not created');
       return;
@@ -441,7 +455,7 @@ class Main extends React.Component {
                 <MenuItem onClick={this.toggleInfoBarMode}>Info Bar</MenuItem>
               </NavDropdown>
               <NavDropdown title="Groups" id="groups">
-                <MenuItem onClick={_ => this.changeGroup(BASE_GROUP_ID, BASE_GALLERY_ID)}>
+                <MenuItem onClick={_ => this.changeGroup(BASE_GALLERY_ID, BASE_GROUP_ID)}>
                   View
                 </MenuItem>
                 <MenuItem onClick={this.getNewGroupName}>Add</MenuItem>
@@ -528,14 +542,22 @@ class Main extends React.Component {
 
         <Modal show={this.state.selectGalleryModal} onHide={this.hideModals}>
           <Modal.Header closeButton>
-            <Modal.Title>Select a Gallery</Modal.Title>
+            <Modal.Title>Select a Gallery/Group</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Grid fluid>
+              <h1>Galleries</h1>
               <Gallery
                 simple
                 dbId={BASE_GALLERY_ID}
                 onChange={this.onSelectGallery}
+              />
+              <h1>Groups</h1>
+              <Group
+                simple
+                dbId={BASE_GALLERY_ID}
+                groupId={BASE_GROUP_ID}
+                onChange={this.onSelectGroup}
               />
             </Grid>
           </Modal.Body>

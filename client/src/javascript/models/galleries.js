@@ -328,21 +328,23 @@ const Galleries = {
           console.log('No images to sync');
           return next();
         }
-        return map(body.data.images, Images.download, (downloadErr, imageIds) => {
-          if (downloadErr) console.error(downloadErr);
-          each(imageIds,
-            (id, mapcb) => {
-              Galleries.addItem(BASE_GALLERY_ID, id, (addErr, _res) => {
-                if (addErr) mapcb(err);
-                else mapcb();
-              });
-            },
-            (addErr) => {
-              if (addErr) console.error(addErr);
-              next();
-            }
-          );
-        });
+        return map(body.data.images,
+          (id, nextIm) => Images.download(id, null, nextIm),
+          (downloadErr, imageIds) => {
+            if (downloadErr) console.error(downloadErr);
+            each(imageIds,
+              (id, mapcb) => {
+                Galleries.addItem(BASE_GALLERY_ID, id, (addErr, _res) => {
+                  if (addErr) mapcb(err);
+                  else mapcb();
+                });
+              },
+              (addErr) => {
+                if (addErr) console.error(addErr);
+                next();
+              }
+            );
+          });
       });
     });
   }

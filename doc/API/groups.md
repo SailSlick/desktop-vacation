@@ -276,7 +276,7 @@ group. if there is no gid it will return all the user's groups.
       "name": "scenery",
       "uid": ObjectId("542c2b97bac0595474108b48"),
       "users": ["m1cr0man","Sully"],
-      "images": []
+      "images": [ObjectId("542c2b97bac0595474108b48")]
     }],
     "images": []
     }
@@ -301,7 +301,7 @@ Upon successful request, adds images/galleries to a group.
 | Name      | Type   | Description                   |
 |-----------|--------|-------------------------------|
 | gid       | string | The id of the group to update |
-| groupdata | object | The data to add to the group  |
+| image-ids | object | Array of image-ids to add     |
 
 ### Response
 
@@ -317,7 +317,7 @@ Upon successful request, adds images/galleries to a group.
 | `'group doesn't exist'`             |   404  |
 | `'user isn't member of group'`      |   400  |
 | `'data is invalid'`                 |   400  |
-| `'incorrect permissions for group'` |   401  |
+| `'incorrect permissions for image'` |   401  |
 
 ## Remove images/galleries from group
 

@@ -1,6 +1,10 @@
 import request from 'request';
+import { map } from 'async';
 import Host from './host';
 import Galleries from './galleries';
+import Images from './images';
+import Sync from '../helpers/sync';
+import { warning } from '../helpers/notifier';
 
 const server_uri = Host.server_uri;
 
@@ -37,7 +41,7 @@ const Groups = {
           return Galleries.add(groupname, (doc, err_msg) => {
             Galleries.should_save = true;
             if (err_msg) return cb(500, err_msg);
-            return Galleries.convertToGroup(doc.$loki, body.data, (ret) => {
+            return Galleries.convertToGroup(doc.$loki, body.gid, (ret) => {
               if (ret) return cb(error, msg);
               return cb(500, 'convert To group failed');
             });
@@ -99,7 +103,36 @@ const Groups = {
     return request(options, (err, res, body) => {
       requestHandler(err, body, (error, msg) => {
         if (error) return cb(error, msg);
-        return cb(error, msg, body.data);
+        const gallery = body.data;
+        let downloads = false;
+
+        return map(gallery.subgalleries, (subgal, galNext) => {
+          subgal.thumbnail = null;
+          // get thumbnail
+          if (subgal.images && subgal.images.length !== 0) {
+            Images.getOrDownload(subgal.images[0], gid, (thumbErr, image) => {
+              if (image) {
+                subgal.thumbnail = image.location;
+                galNext(null, subgal);
+              }
+            });
+          } else galNext(null, subgal);
+        }, (galMapErr, galResults) => {
+          gallery.subgalleries = galResults;
+          map(gallery.images, (id, next) => {
+            Images.getOrDownload(id, gid, (getErr, image, download) => {
+              if (download) downloads = true;
+              next(getErr, image);
+            });
+          }, (mapErr, result) => {
+            if (mapErr) warning(err);
+            gallery.images = result;
+            if (downloads && Galleries.should_save) {
+              document.dispatchEvent(Galleries.gallery_update_event);
+            }
+            return cb(error, msg, gallery);
+          });
+        });
       });
     });
   },
@@ -204,31 +237,34 @@ const Groups = {
     });
   },
 
-  addToGroup: (gid, groupdata, cb) => {
-    const options = {
-      uri: server_uri.concat('/group/data/add'),
-      method: 'POST',
-      jar: cookie_jar,
-      json: {
-        gid,
-        groupdata
-      }
-    };
-    return request(options, (err, res, body) => {
-      requestHandler(err, body, (error, msg) => {
-        cb(error, msg);
+  addToGroup: (gid, imageIds, cb) => {
+    Galleries.getMongo(gid, (group) => {
+      imageIds = imageIds.filter(id => group.images.indexOf(id) === -1);
+      Sync.uploadImages(imageIds, (ids) => {
+        const options = {
+          uri: server_uri.concat(`/group/${gid || ''}/add`),
+          method: 'POST',
+          jar: cookie_jar,
+          json: {
+            'image-ids': JSON.stringify(ids)
+          }
+        };
+        request(options, (reqErr, res, body) => {
+          requestHandler(reqErr, body, (error, msg) => {
+            cb(error, msg);
+          });
+        });
       });
     });
   },
 
-  removeFromGroup: (gid, groupdata, cb) => {
+  removeFromGroup: (gid, imageIds, cb) => {
     const options = {
-      uri: server_uri.concat('/group/data/remove'),
+      uri: server_uri.concat(`/group/${gid || ''}/remove`),
       method: 'POST',
       jar: cookie_jar,
       json: {
-        gid,
-        groupdata
+        imageIds
       }
     };
     return request(options, (err, res, body) => {
@@ -246,16 +282,18 @@ const Groups = {
       cb([], []);
     } else {
       let subgalleries = gallery.subgalleries;
-      const images = gallery.images;
       subgalleries = subgalleries.filter(x => x._id);
       subgalleries = subgalleries.map((x) => {
         Galleries.getMongo(x._id, (subgallery) => {
-          if (subgallery) x.$loki = subgallery.$loki;
-          x.$loki = 0;
+          if (subgallery) {
+            x.$loki = subgallery.$loki;
+          } else {
+            x.$loki = 0;
+          }
         });
         return x;
       });
-      Galleries.filter(subgalleries, images, filter, cb);
+      Galleries.filter(subgalleries, gallery.images, filter, cb);
     }
   }
 };

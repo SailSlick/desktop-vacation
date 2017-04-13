@@ -1,5 +1,5 @@
 const galleryModel = require('../models/gallery');
-const imageModel = require('../models/gallery');
+const imageModel = require('../models/image');
 const userModel = require('../models/user');
 const async = require('async');
 
@@ -409,12 +409,14 @@ module.exports = {
         galleryModel.getGid(gid, (map_err, gallery) => {
           if (map_err === 'gallery not found') return cb(null, {});
           if (map_err) return cb(map_err, {});
+          let images = [];
+          if (gallery.images && gallery.images.length > 0) images = [gallery.images[0]];
           return cb(null, {
             _id: gallery._id,
             name: gallery.name,
             uid: gallery.uid,
             users: gallery.users,
-            images: [],
+            images,
             metadata: gallery.metadata
           });
         });
@@ -451,19 +453,36 @@ module.exports = {
     const username = req.session.username;
     const uid = req.session.uid;
     const gid = req.params.gid;
-    // const updateData = req.body.updateData;
+    let imageIds = req.body['image-ids'];
 
+    // Decode the imageIds
+    if (typeof imageIds === 'string') imageIds = JSON.parse(imageIds);
     galleryModel.getGid(gid, (err, doc) => {
       if (!doc) return next({ status: 404, error: 'group doesn\'t exist' });
-      if (!(doc.uid === uid || doc.user.indexOf(username) !== -1)) {
-        return next({ status: 400, error: 'user isn\'t member of group' });
+      if (!(doc.uid === uid || doc.users.indexOf(username) !== -1)) {
+        return next(400, 'user isn\'t member of group');
       }
-      return next();
-      /* Waiting on server syncing
-      return next({ status: 401, error: 'incorrect permissions for group' });
-      return next({ status: 400, error: 'data is invalid' });
-      return next({ status: 200, message: 'data added to group' });
-      */
+      return async.each(imageIds,
+        (id, nextId) => {
+          imageModel.get(id, (getErr, image) => {
+            if (getErr) nextId(400, 'data is invalid');
+            else if (uid !== image.uid) {
+              nextId(401, 'incorrect permissions for image');
+            }
+            galleryModel.addImages(gid, [id], (failure) => {
+              if (failure) nextId(500, failure);
+              else {
+                imageModel.incrementRef(id, (incErr) => {
+                  if (incErr) console.error(incErr);
+                  nextId(null, 'data added to group');
+                });
+              }
+            });
+          });
+        }, (error, message) => {
+          if (error) return next({ status: error, error: message });
+          return next({ status: 200, message });
+        });
     });
   },
 
@@ -471,19 +490,34 @@ module.exports = {
     const username = req.session.username;
     const uid = req.session.uid;
     const gid = req.params.gid;
-    // const updateData = req.body.updateData;
+    const imageIds = req.body['image-ids'];
 
     galleryModel.getGid(gid, (err, doc) => {
       if (!doc) return next({ status: 404, error: 'group doesn\'t exist' });
       if (!(doc.uid === uid || doc.user.indexOf(username) !== -1)) {
-        return next({ status: 400, error: 'user isn\'t member of group' });
+        return next(400, 'user isn\'t member of group');
       }
-      return next();
-      /* Waiting on server syncing
-      return next({ status: 401, error: 'incorrect permissions for group' });
-      return next({ status: 400, error: 'data is invalid' });
-      return next({ status: 200, message: 'data removed from group' });
-      */
+      return async.each(imageIds,
+        (id, nextId) => {
+          imageModel.get(id, (getErr, image) => {
+            if (getErr) nextId(400, 'data is invalid');
+            else if (uid !== image.uid) {
+              nextId(401, 'incorrect permissions for image');
+            }
+            galleryModel.addImages(gid, id, (failure) => {
+              if (failure) nextId(500, failure);
+              else {
+                imageModel.incrementRef(id, (incErr) => {
+                  if (incErr) console.error(incErr);
+                  nextId(null, 'data added to group');
+                });
+              }
+            });
+          });
+        }, (error, message) => {
+          if (error) return next({ status: error, error: message });
+          return next({ status: 200, message });
+        });
     });
   }
 };

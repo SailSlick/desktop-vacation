@@ -16,7 +16,7 @@ describe('Images model', () => {
 
   before((done) => {
     syncDownloadStub = stub(Sync, 'downloadImage')
-      .callsArgWith(1, null, fakeLocation);
+      .callsArgWith(2, null, fakeLocation);
     done();
   });
 
@@ -65,7 +65,7 @@ describe('Images model', () => {
 
   it('can download image', (done) => {
     syncDownloadStub.reset();
-    Images.download(fakeRemote, (err, id) => {
+    Images.download(fakeRemote, null, (err, id) => {
       syncDownloadStub.called.should.be.ok;
       Images.get(id, (image) => {
         image.remoteId.should.equal(fakeRemote);
@@ -77,7 +77,7 @@ describe('Images model', () => {
 
   it('won\'t redownload an image thats already there', (done) => {
     syncDownloadStub.reset();
-    Images.download(fakeRemote, (err, id) => {
+    Images.download(fakeRemote, null, (err, id) => {
       Images.get(id, (image) => {
         syncDownloadStub.called.should.not.be.ok;
         image.remoteId.should.equal(fakeRemote);

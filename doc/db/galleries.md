@@ -7,7 +7,8 @@ Stores the gallery data for all users
 #### NOTE: Clientside Database
 
 LokiJs uses a `$loki` field instead of the `_id` field and uses integers
-instead of `ObjectId`s
+instead of `ObjectId`s. The clientside db also has a group field (boolean) which states
+whether the gallery is a group or not
 
 | Field        | Type     | Description                                                      |
 |--------------|----------|------------------------------------------------------------------|

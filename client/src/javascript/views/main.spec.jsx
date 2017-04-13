@@ -180,7 +180,7 @@ describe('Main Component', () => {
 
   it('can change group', (done) => {
     test_component.should.have.state('groupId', '1');
-    test_component.instance().changeGroup('1');
+    test_component.instance().changeGroup(1, '1');
     test_component.should.have.state('page', 1);
     done();
   });
@@ -197,7 +197,7 @@ describe('Main Component', () => {
 
   it('can\'t change to null group', (done) => {
     test_component.should.have.state('groupId', '1');
-    test_component.instance().changeGroup(null);
+    test_component.instance().changeGroup(null, null);
     test_component.should.have.state('groupId', '1');
     done();
   });

@@ -24,6 +24,8 @@ imageRouter.use('/upload', image.uploadMiddleware, image.upload);
 imageRouter.post('/:id/remove', image.remove);
 imageRouter.post('/:id/share', image.shareImage);
 imageRouter.post('/:id/unshare', image.unshareImage);
+imageRouter.use('/:id/:gid', gallery.checkGid);
+imageRouter.get('/:id/:gid', image.groupImageDownload);
 
 // gallery
 const galleryRouter = express.Router();

@@ -10,17 +10,13 @@ let image_db;
 
 // Exported methods
 const Images = {
-  get: (id, cb) => {
-    image_db.findOne({ $loki: id }, cb);
-  },
+  get: (id, cb) => image_db.findOne({ $loki: id }, cb),
 
-  getMany: (ids, cb) => {
-    image_db.findMany({ $loki: { $in: ids } }, cb);
-  },
+  getByUri: (uri, cb) => image_db.findOne({ uri }, cb),
 
-  getByUri: (uri, cb) => {
-    image_db.findOne({ uri }, cb);
-  },
+  getRemoteId: (remoteId, cb) => image_db.findOne({ remoteId }, cb),
+
+  getMany: (ids, cb) => image_db.findMany({ $loki: { $in: ids } }, cb),
 
   add: (path, cb) => {
     // make the hash
@@ -95,17 +91,41 @@ const Images = {
     });
   },
 
-  download: (remoteId, cb) => {
+  download: (remoteId, gid, cb) => {
     image_db.findOne({ remoteId }, (existingDoc) => {
       if (existingDoc) {
         cb(null, existingDoc.$loki);
       } else {
-        Sync.downloadImage(remoteId, (err, location) => {
+        Sync.downloadImage(remoteId, gid, (err, location) => {
           if (err) console.error(err);
           else {
             console.log(`Adding image at ${location}`);
             Images.addRemoteId(location, remoteId, (doc) => {
               cb(null, doc.$loki);
+            });
+          }
+        });
+      }
+    });
+  },
+
+  getOrDownload: (id, gid, next) => {
+    Images.getRemoteId(id, (image) => {
+      if (image) {
+        next(null, image);
+      } else {
+        // image not on client, download it
+        Images.download(id, gid, (err, lokiId) => {
+          if (err) {
+            console.error(err);
+            next(null);
+          } else {
+            Images.get(lokiId, (doc) => {
+              if (!doc) {
+                console.error('Couldn\'t find doc');
+                next(null);
+              }
+              next(null, doc, true);
             });
           }
         });
