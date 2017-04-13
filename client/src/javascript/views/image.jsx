@@ -116,7 +116,7 @@ class Image extends React.Component {
     if (typeof field === 'number') rating = field;
     if (typeof field === 'string') {
       if (field === '') return danger('Empty tag');
-      if (field.indexOf(' ') !== 0) return danger('Tags can\'t have spaces');
+      if (field.indexOf(' ') !== -1) return danger('Tags can\'t have spaces');
       if (toRemove) tags = tags.filter(val => val !== field);
       else {
         if (tags.indexOf(field) !== -1) return danger('Tag exists');

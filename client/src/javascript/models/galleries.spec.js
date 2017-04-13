@@ -166,16 +166,25 @@ describe('Galleries model', () => {
   });
 
   it('can update tag metadata for a gallery', (done) => {
-    const metadata = { rating: test_gallery.metadata.rating, tags: ['test'] };
+    const metadata = { rating: test_gallery.metadata.rating, tags: ['test', 'best', 'nest'] };
     Galleries.updateMetadata(test_gallery.$loki, metadata, (updatedGallery) => {
       updatedGallery.metadata.tags.should.include('test');
       done();
     });
   });
 
-  it('can expand gallery with tag filter', done =>
+  it('can expand gallery with single tag filter', done =>
     Galleries.get(base_gallery_id, base_gallery =>
-      Galleries.expand(base_gallery, { tag: 'test' }, (subgalleries) => {
+      Galleries.expand(base_gallery, { tags: ['test'] }, (subgalleries) => {
+        subgalleries.should.have.lengthOf(1);
+        done();
+      })
+    )
+  );
+
+  it('can expand gallery with multiple tag filters', done =>
+    Galleries.get(base_gallery_id, base_gallery =>
+      Galleries.expand(base_gallery, { tags: ['test', 'best'] }, (subgalleries) => {
         subgalleries.should.have.lengthOf(1);
         done();
       })
