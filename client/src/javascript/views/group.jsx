@@ -4,6 +4,7 @@ import { Col, Row } from 'react-bootstrap';
 import Image from './image.jsx';
 import GalleryCard from './gallerycard.jsx';
 import SelectTools from './selectTools.jsx';
+import FilterTools from './filterTools.jsx';
 import GalleryBar from './galleryBar.jsx';
 import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
 import { danger, success } from '../helpers/notifier';
@@ -91,7 +92,9 @@ class Group extends React.Component {
     if (typeof field === 'number') rating = field;
     if (typeof field === 'object') tags = field;
     if (typeof field === 'string') {
+      field = field.trim();
       if (field.length === 0) return danger('Empty tag');
+      if (field.indexOf(',') !== -1) return danger('Tags can\'t have commas');
       if (toRemove) tags = tags.filter(val => val !== field);
       else tags.push(field);
     }
@@ -171,6 +174,10 @@ class Group extends React.Component {
             rateAll={() => {}}
             syncAll={() => {}}
           />
+          <FilterTools
+            filterToggle={this.props.filterToggle}
+            changeFilter={this.props.changeFilter}
+          />
         </Col>
         <br />
         <Col xs={4}>
@@ -203,6 +210,8 @@ Group.propTypes = {
   groupId: React.PropTypes.string.isRequired,
   dbId: React.PropTypes.number.isRequired,
   onChange: React.PropTypes.func.isRequired,
+  changeFilter: React.PropTypes.func,
+  filterToggle: React.PropTypes.bool,
   simple: React.PropTypes.bool,
   infoBar: React.PropTypes.bool,
   multiSelect: React.PropTypes.bool,
@@ -221,6 +230,8 @@ Group.defaultProps = {
   },
   simple: false,
   multiSelect: false,
+  filterToggle: false,
+  changeFilter: () => true,
   infoBar: false,
 };
 

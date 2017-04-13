@@ -6,6 +6,7 @@ import { Col, Row } from 'react-bootstrap';
 import Image from './image.jsx';
 import GalleryCard from './gallerycard.jsx';
 import SelectTools from './selectTools.jsx';
+import FilterTools from './filterTools.jsx';
 import GalleryBar from './galleryBar.jsx';
 import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
 import { success, warning, danger } from '../helpers/notifier';
@@ -72,7 +73,7 @@ class Gallery extends React.Component {
     if (nextProps.dbId !== this.props.dbId ||
     this.props.filter.rating !== nextProps.filter.rating ||
     this.props.filter.name !== nextProps.filter.name ||
-    this.props.filter.tag !== nextProps.filter.tag) {
+    this.props.filter.tags !== nextProps.filter.tags) {
       this.refresh(nextProps.dbId, nextProps.filter);
     }
     if (!nextProps.multiSelect) {
@@ -232,7 +233,9 @@ class Gallery extends React.Component {
 
     if (typeof field === 'number') rating = field;
     if (typeof field === 'string') {
+      field = field.trim();
       if (field === '') return danger('Empty tag');
+      if (field.indexOf(',') !== -1) return danger('Tags can\'t have commas');
       if (toRemove) tags = tags.filter(val => val !== field);
       else {
         if (tags.indexOf(field) !== -1) return danger('Tag exists');
@@ -317,6 +320,10 @@ class Gallery extends React.Component {
             tagAll={this.tagAll}
             rateAll={this.rateAll}
           />
+          <FilterTools
+            filterToggle={this.props.filterToggle}
+            changeFilter={this.props.changeFilter}
+          />
         </Col>
         <Col xs={4}>
           {items.map((item, i) => (i % 3 === 0 && item) || null)}
@@ -347,13 +354,15 @@ class Gallery extends React.Component {
 Gallery.propTypes = {
   dbId: React.PropTypes.number.isRequired,
   onChange: React.PropTypes.func.isRequired,
+  changeFilter: React.PropTypes.func,
   simple: React.PropTypes.bool,
   multiSelect: React.PropTypes.bool,
+  filterToggle: React.PropTypes.bool,
   infoBar: React.PropTypes.bool,
   onRefresh: React.PropTypes.func,
   filter: React.PropTypes.shape({
     rating: React.PropTypes.number,
-    tag: React.PropTypes.string,
+    tags: React.PropTypes.array,
     name: React.PropTypes.string
   })
 };
@@ -362,11 +371,13 @@ Gallery.defaultProps = {
   filter: {
     name: '',
     rating: 0,
-    tag: ''
+    tags: ['']
   },
   simple: false,
   multiSelect: false,
+  filterToggle: false,
   infoBar: false,
+  changeFilter: () => true,
   onRefresh: () => true
 };
 
