@@ -9,13 +9,13 @@ import Galleries from '../models/galleries';
 import Host from '../models/host';
 import { danger, success, warning } from './notifier';
 
-function errorHandler(reqErr, response, body, cb, next) {
+function errorHandler(reqErr, response, body, cb) {
   if (reqErr) {
     danger(reqErr);
-    next(reqErr);
+    cb(reqErr);
   } else if (response.statusCode !== 200) {
     danger(body.error);
-    next(body.error);
+    cb(body.error);
   } else {
     cb();
   }
@@ -75,18 +75,19 @@ export default {
 
       // Upload the images
       return request(options, (reqErr, res, body) =>
-        errorHandler(reqErr, res, body, () => {
+        errorHandler(reqErr, res, body, (err) => {
+          if (err) return cb();
           Galleries.should_save = false;
 
           // Map each remoteId to the respective image
-          eachOf(body['image-ids'], (remoteId, index, next) => {
+          return eachOf(body['image-ids'], (remoteId, index, next) => {
             Galleries.should_save = (index === body['image-ids'].length - 1);
             Images.update(submittedIds[index], { remoteId }, () => next());
           }, () => {
             success(`${formData.images.length} image(s) uploaded`);
             cb(existingIds.concat(body['image-ids']));
           });
-        }, () => cb())
+        })
       );
     });
   },
@@ -132,7 +133,7 @@ export default {
       json: true
     };
     request(options, (reqErr, response, body) =>
-      errorHandler(reqErr, response, body, cb, cb)
+      errorHandler(reqErr, response, body, cb)
     );
   },
 
@@ -146,7 +147,7 @@ export default {
       json: true
     };
     return request(options, (reqErr, response, body) =>
-      errorHandler(reqErr, response, body, () => cb(null, uri), cb)
+      errorHandler(reqErr, response, body, err => cb(err, uri))
     );
   },
 
@@ -159,7 +160,7 @@ export default {
       json: true
     };
     return request(options, (reqErr, response, body) => {
-      errorHandler(reqErr, response, body, cb, cb);
+      errorHandler(reqErr, response, body, cb);
     });
   }
 };

@@ -91,9 +91,8 @@ describe('Sync helper', () => {
         .post(`/image/${badRemote}/share`)
         .reply(400, { error: 'invalid something or other !?' }, headers);
 
-      Sync.shareImage(badRemote, (err, uri) => {
+      Sync.shareImage(badRemote, (err) => {
         err.should.exist;
-        should.not.exist(uri);
         done();
       });
     });
