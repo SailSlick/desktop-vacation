@@ -19,22 +19,18 @@ describe('Sync helper', () => {
   const badRemote = 'EZpzlemonsqEZ';
   const testImagePath = path.join(__dirname, '../build/icons/512x512.png');
   let testImage;
-  let remoteGalleryId;
   let fsWriteStub;
 
   before((done) => {
     fsWriteStub = stub(fs, 'createWriteStream').returns(new Readable());
     Images.add(testImagePath, (inserted_image) => {
       testImage = inserted_image;
-      Host.getBaseRemote((remoteId) => {
-        remoteGalleryId = remoteId;
-        // NOTE logging in so that Host.isAuthed() returns true
-        Nock(Host.server_uri)
-          .post('/user/login')
-          .reply(200, { status: 200 }, headers);
-        Host.login('Sully', 'MyPlumbusMyPlumbusMyVacaForAPlumbus', () => {
-          done();
-        });
+      // NOTE logging in so that Host.isAuthed() returns true
+      Nock(Host.server_uri)
+        .post('/user/login')
+        .reply(200, { status: 200 }, headers);
+      Host.login('Sully', 'MyPlumbusMyPlumbusMyVacaForAPlumbus', () => {
+        done();
       });
     });
   });
