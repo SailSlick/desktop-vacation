@@ -2,7 +2,7 @@ import React from 'react';
 import Waypoint from 'react-waypoint';
 import { Navbar, Form, FormControl, Button, Glyphicon } from 'react-bootstrap';
 
-export default class SelectTools extends React.Component {
+export default class FilterTools extends React.Component {
   constructor(props) {
     super(props);
 
@@ -14,8 +14,7 @@ export default class SelectTools extends React.Component {
     };
 
     this.filter = this.filter.bind(this);
-    this.handleTagsChange = this.handleTagsChange.bind(this);
-    this.handleNameChange = this.handleNameChange.bind(this);
+    this.handleChange = this.handleChange.bind(this);
     this.clearFilter = this.clearFilter.bind(this);
   }
 
@@ -37,12 +36,8 @@ export default class SelectTools extends React.Component {
     });
   }
 
-  handleTagsChange(ev) {
-    this.setState({ tagInput: ev.target.value });
-  }
-
-  handleNameChange(ev) {
-    this.setState({ name: ev.target.value });
+  handleChange(ev) {
+    this.setState({ [ev.target.name]: ev.target.value });
   }
 
   render() {
@@ -87,18 +82,18 @@ export default class SelectTools extends React.Component {
                 </a>);
               })}
               <FormControl
-                name="filterValue"
+                name="tagInput"
                 type="text"
                 placeholder="tags"
                 value={this.state.tags}
-                onChange={this.handleTagsChange}
+                onChange={this.handleChange}
               />
               <FormControl
-                name="filterValue"
+                name="name"
                 type="text"
                 placeholder="name"
                 value={this.state.name}
-                onChange={this.handleNameChange}
+                onChange={this.handleChange}
               />
               <Button onClick={this.filter}>
                 <Glyphicon glyph={'search'} />
@@ -114,7 +109,7 @@ export default class SelectTools extends React.Component {
   }
 }
 
-SelectTools.propTypes = {
+FilterTools.propTypes = {
   filterToggle: React.PropTypes.bool.isRequired,
   changeFilter: React.PropTypes.func.isRequired
 };

@@ -173,6 +173,51 @@ describe('Galleries model', () => {
     });
   });
 
+  it('handles filterSingle with defaults properly', (done) => {
+    Galleries.filterSingle(test_gallery, { name: '', tags: [''], rating: 0 }, (err, found) => {
+      should.not.exist(err);
+      found.should.be.ok;
+      done();
+    });
+  });
+
+  it('handles filterSingle with complex filters properly', (done) => {
+    Galleries.filterSingle(test_gallery, { tags: ['best', 'test'], rating: 4 }, (err, found) => {
+      should.not.exist(err);
+      found.should.be.ok;
+      done();
+    });
+  });
+
+  it('failes when filterSingle is called with non-existent metadata', (done) => {
+    Galleries.filterSingle(test_gallery, { name: 'gr9', tags: ['flest', 'test'], rating: 3 }, (err, found) => {
+      should.not.exist(err);
+      found.should.not.be.ok;
+      done();
+    });
+  });
+
+  it('should handle non existent filtering', (done) => {
+    Galleries.filter([test_gallery], [test_image], null, (subgalleries, images) => {
+      subgalleries.should.deep.equal([test_gallery]);
+      images.should.deep.equal([test_image]);
+      done();
+    });
+  });
+
+  it('should handle complex filtering', (done) => {
+    Galleries.filter(
+      [test_gallery],
+      [test_image],
+      { rating: 4, tags: ['test', 'best'] },
+      (subgalleries, images) => {
+        subgalleries.should.deep.equal([test_gallery]);
+        images.length.should.equal(0);
+        done();
+      }
+    );
+  });
+
   it('can expand gallery with single tag filter', done =>
     Galleries.get(base_gallery_id, base_gallery =>
       Galleries.expand(base_gallery, { tags: ['test'] }, (subgalleries) => {
