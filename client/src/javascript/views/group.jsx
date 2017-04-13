@@ -169,6 +169,7 @@ class Group extends React.Component {
             removeAll={() => {}}
             tagAll={() => {}}
             rateAll={() => {}}
+            syncAll={() => {}}
           />
         </Col>
         <br />

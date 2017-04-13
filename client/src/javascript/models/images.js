@@ -125,7 +125,7 @@ const Images = {
                 console.error('Couldn\'t find doc');
                 next(null);
               }
-              next(null, doc);
+              next(null, doc, true);
             });
           }
         });

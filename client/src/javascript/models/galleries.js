@@ -338,7 +338,7 @@ document.addEventListener('gallery_updated', () =>
   gallery_db.save(_ => console.log('Database saved')),
 false);
 
-document.addEventListener('sync_root', Galleries.syncRoot, false);
+document.addEventListener('sync_root', () => Galleries.syncRoot(), false);
 
 // IPC Calls
 ipc.on('selected-directory', (event, files) => {

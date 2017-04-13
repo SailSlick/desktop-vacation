@@ -103,7 +103,36 @@ const Groups = {
     return request(options, (err, res, body) => {
       requestHandler(err, body, (error, msg) => {
         if (error) return cb(error, msg);
-        return cb(error, msg, body.data);
+        const gallery = body.data;
+        let downloads = false;
+
+        return map(gallery.subgalleries, (subgal, galNext) => {
+          subgal.thumbnail = null;
+          // get thumbnail
+          if (subgal.images && subgal.images.length !== 0) {
+            Images.getOrDownload(subgal.images[0], gid, (thumbErr, image) => {
+              if (image) {
+                subgal.thumbnail = image.location;
+                galNext(null, subgal);
+              }
+            });
+          } else galNext(null, subgal);
+        }, (galMapErr, galResults) => {
+          gallery.subgalleries = galResults;
+          map(gallery.images, (id, next) => {
+            Images.getOrDownload(id, gid, (getErr, image, download) => {
+              if (download) downloads = true;
+              next(getErr, image);
+            });
+          }, (mapErr, result) => {
+            if (mapErr) warning(err);
+            gallery.images = result;
+            if (downloads && Galleries.should_save) {
+              document.dispatchEvent(Galleries.gallery_update_event);
+            }
+            return cb(error, msg, gallery);
+          });
+        });
       });
     });
   },
@@ -253,37 +282,18 @@ const Groups = {
       cb([], []);
     } else {
       let subgalleries = gallery.subgalleries;
-      const imagesIds = gallery.images;
       subgalleries = subgalleries.filter(x => x._id);
       subgalleries = subgalleries.map((x) => {
         Galleries.getMongo(x._id, (subgallery) => {
-          x.thumbnail = null;
           if (subgallery) {
             x.$loki = subgallery.$loki;
-            // get thumbnail
-            if (x.images.length !== 0) {
-              let gid = null;
-              if (gallery._id) gid = gallery._id;
-              Images.getOrDownload(x.images[0], gid, (err, image) => {
-                if (image) {
-                  x.thumbnail = image.location;
-                }
-              });
-            }
           } else {
             x.$loki = 0;
           }
         });
         return x;
       });
-      map(imagesIds, (id, next) => {
-        let gid = null;
-        if (gallery._id) gid = gallery._id;
-        Images.getOrDownload(id, gid, next);
-      }, (err, result) => {
-        if (err) warning(err);
-        Galleries.filter(subgalleries, result, filter, cb);
-      });
+      Galleries.filter(subgalleries, gallery.images, filter, cb);
     }
   }
 };
