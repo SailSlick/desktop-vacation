@@ -61,7 +61,7 @@ class Group extends React.Component {
     if (groupId === '1') groupId = null;
     if (Host.isAuthed()) {
       Groups.get(groupId, (err, res, group) => {
-        if (err) danger(`group get ${err}: ${res}`);
+        if (err) console.error(`group get ${err}: ${res}`);
         return Groups.expand(group, filter, (subgalleries, images) => {
           this.setState({
             subgalleries,
