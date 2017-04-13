@@ -211,35 +211,21 @@ const Groups = {
   addToGroup: (gid, imageIds, cb) => {
     Galleries.getMongo(gid, (group) => {
       imageIds = imageIds.filter(id => group.images.indexOf(id) === -1);
-      map(imageIds, (imageId, next) =>
-        Images.get(imageId, (image) => {
-          if (!image) next('couldn\'t find image', null);
-          if (!image.remoteId) {
-            Galleries.get(1, (gallery) => {
-              Sync.uploadImages(gallery.remoteId, imageId, (id) => {
-                if (id) next(null, [id]);
-              });
-            });
-          } else next(null, image.remoteId);
-        }), (err, results) => {
-          if (err) cb(err);
-          else {
-            const options = {
-              uri: server_uri.concat(`/group/${gid || ''}/add`),
-              method: 'POST',
-              jar: cookie_jar,
-              json: {
-                'image-ids': JSON.stringify(results)
-              }
-            };
-            request(options, (reqErr, res, body) => {
-              requestHandler(reqErr, body, (error, msg) => {
-                cb(error, msg);
-              });
-            });
+      Sync.uploadImages(imageIds, (ids) => {
+        const options = {
+          uri: server_uri.concat(`/group/${gid || ''}/add`),
+          method: 'POST',
+          jar: cookie_jar,
+          json: {
+            'image-ids': JSON.stringify(ids)
           }
-        }
-      );
+        };
+        request(options, (reqErr, res, body) => {
+          requestHandler(reqErr, body, (error, msg) => {
+            cb(error, msg);
+          });
+        });
+      });
     });
   },
 
