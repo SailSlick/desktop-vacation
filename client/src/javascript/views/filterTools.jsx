@@ -1,6 +1,6 @@
 import React from 'react';
 import Waypoint from 'react-waypoint';
-import { Navbar, Form, FormGroup, InputGroup, FormControl, Button, Glyphicon } from 'react-bootstrap';
+import { Navbar, Form, FormControl, Button, Glyphicon } from 'react-bootstrap';
 
 export default class SelectTools extends React.Component {
   constructor(props) {
@@ -10,12 +10,13 @@ export default class SelectTools extends React.Component {
       fixed: false,
       tagInput: '',
       name: '',
-      rating: null,
+      rating: 0,
     };
 
     this.filter = this.filter.bind(this);
     this.handleTagsChange = this.handleTagsChange.bind(this);
     this.handleNameChange = this.handleNameChange.bind(this);
+    this.clearFilter = this.clearFilter.bind(this);
   }
 
   filter() {
@@ -26,6 +27,14 @@ export default class SelectTools extends React.Component {
       rating: this.state.rating
     };
     this.props.changeFilter(filter);
+  }
+
+  clearFilter() {
+    this.props.changeFilter({
+      tags: [],
+      name: '',
+      rating: 0
+    });
   }
 
   handleTagsChange(ev) {
@@ -93,6 +102,9 @@ export default class SelectTools extends React.Component {
               />
               <Button onClick={this.filter}>
                 <Glyphicon glyph={'search'} />
+              </Button>
+              <Button onClick={this.clearFilter}>
+                <Glyphicon glyph={'remove'} />
               </Button>
             </Form>
           </Navbar.Form>
