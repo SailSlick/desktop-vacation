@@ -365,6 +365,7 @@ is invisible to the client.
 - Download gallery data from server
   - If it doesn't 404:
     - Remove images/subgalleries as appropriate from client
+    - Download new images/subgalleries
 - Get list of unsynced images
   - Follow protocol to sync these
 - Get list of unsynced subgalleries
