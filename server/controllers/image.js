@@ -22,9 +22,20 @@ module.exports = {
   },
 
   upload: (req, res, next) => {
-    if (!req.files && !req.body.files) {
+    if ((!req.files && !req.body.files) || (!req.body.hashes || !req.body.metadatas)) {
       return next({ status: 400, error: 'invalid request' });
     }
+
+    // Decode the metadatas and hashes
+    let metadatas = req.body.metadatas;
+    let hashes = req.body.hashes;
+    const totalFiles = (req.files || []).length + (req.body.files || []).length;
+
+    if (totalFiles === 0 || req.body.metadatas.length !== totalFiles
+      || totalFiles !== req.body.hashes.length) {
+      return next({ status: 400, error: 'invalid request' });
+    }
+
     if (req.body.files && req.files.length === 0) {
       // Get user's base gallery id
       return user.getBaseGallery(req.session.uid, baseGalleryId =>
@@ -38,13 +49,6 @@ module.exports = {
         })
       );
     }
-    if (!req.body.hashes || !req.body.metadatas) {
-      return next({ status: 400, error: 'invalid request' });
-    }
-
-    // Decode the metadatas and hashes
-    let metadatas = req.body.metadatas;
-    let hashes = req.body.hashes;
 
     metadatas = metadatas.filter(x => x !== null);
     hashes = hashes.filter(x => x !== null);
@@ -52,10 +56,6 @@ module.exports = {
     if (typeof metadatas === 'string') metadatas = JSON.parse(metadatas);
     if (typeof hashes === 'string') hashes = JSON.parse(hashes);
 
-    if (req.files.length === 0 || metadatas.length !== req.files.length
-      || req.files.length !== hashes.length) {
-      return next({ status: 400, error: 'invalid request' });
-    }
 
     // Combine the form data, file path and uid to form
     // actual database documents

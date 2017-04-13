@@ -50,55 +50,60 @@ function fileFilter(req, file, cb) {
       req.body.indexNumber = -1;
     }
     req.body.indexNumber += 1;
-    const indexNumber = req.body.indexNumber;
+    if (req.body.indexNumber >= req.body.metadatas.length ||
+    req.body.indexNumber >= req.body.hashes.length) {
+      cb(null, false);
+    } else {
+      const indexNumber = req.body.indexNumber;
 
-    file.originalname = req.body.hashes[indexNumber];
-    const metadata = req.body.metadatas[indexNumber];
-    if (!IMAGE_TYPES.some(type => file.mimetype === type)) cb(null, false);
+      file.originalname = req.body.hashes[indexNumber];
+      const metadata = req.body.metadatas[indexNumber];
+      if (!IMAGE_TYPES.some(type => file.mimetype === type)) cb(null, false);
 
-    // check if the hash is in the db
-    fsDb.findOne({ _id: file.originalname }, (doc) => {
-      if (!doc) {
-        // if the doc doesn't exist, create a reference in the images-fs db
-        const new_file = {
-          _id: file.originalname,
-          location: `${IMAGE_FOLDER}/${req.session.uid}/${file.originalname}`,
-          refs: 1,
-          size: file.size
-        };
-        fsDb.insertOne(new_file, () => cb(null, true));
-      } else {
-        req.body.metadatas[indexNumber] = null;
-        req.body.hashes[indexNumber] = null;
-        // if the doc exists, increment the ref counter
-        fsDb.updateRaw({ _id: doc._id }, { $inc: { refs: 1 } }, (success) => {
-          if (!success) {
-            console.error('Updating ref counter failed');
-            cb(null, false);
-          } else {
-            const newImage = {
-              uid: req.session.uid,
-              location: doc.location,
-              mimeType: file.mimetype,
-              metadata,
-              hash: file.originalname,
-              shared: false,
-              refs: 1
-            };
-            db.insertOne(newImage, (newId) => {
-              if (newId) {
-                if (req.body.files) req.body.files.push(newId);
-                else req.body.files = [newId];
-                cb(null, false);
-              } else {
-                console.error('New item in images db (not new to fs-images) could not be inserted');
-                cb(null, false);
-              }
-            });
-          }
-        });
-      }
-    });
+      // check if the hash is in the db
+      fsDb.findOne({ _id: file.originalname }, (doc) => {
+        if (!doc) {
+          // if the doc doesn't exist, create a reference in the images-fs db
+          const new_file = {
+            _id: file.originalname,
+            location: `${IMAGE_FOLDER}/${req.session.uid}/${file.originalname}`,
+            refs: 1,
+            size: file.size
+          };
+          fsDb.insertOne(new_file, () => cb(null, true));
+        } else {
+          req.body.metadatas[indexNumber] = null;
+          req.body.hashes[indexNumber] = null;
+          // if the doc exists, increment the ref counter
+          fsDb.updateRaw({ _id: doc._id }, { $inc: { refs: 1 } }, (success) => {
+            if (!success) {
+              console.error('Updating ref counter failed');
+              cb(null, false);
+            } else {
+              const newImage = {
+                uid: req.session.uid,
+                location: doc.location,
+                mimeType: file.mimetype,
+                metadata,
+                hash: file.originalname,
+                shared: false,
+                refs: 1
+              };
+              db.insertOne(newImage, (newId) => {
+                if (newId) {
+                  if (req.body.files) req.body.files.push(newId);
+                  else req.body.files = [newId];
+                  cb(null, false);
+                } else {
+                  console.error('New item in images db (not new to fs-images) could not be inserted');
+                  cb(null, false);
+                }
+              });
+            }
+          });
+        }
+      });
+    }
   }
 }
 

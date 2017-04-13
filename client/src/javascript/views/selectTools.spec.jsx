@@ -34,7 +34,7 @@ describe('Selection Toolbar Component', () => {
   });
 
   it('can render', (done) => {
-    test_component.find('NavItem').should.have.length(4);
+    test_component.find('NavItem').should.have.length(5);
     done();
   });
 
@@ -49,14 +49,14 @@ describe('Selection Toolbar Component', () => {
 
   it('can add all to gallery', (done) => {
     addAllStub.reset();
-    test_component.find('Glyphicon').at(2).simulate('click');
+    test_component.find('Glyphicon').at(3).simulate('click');
     addAllStub.called.should.be.ok;
     done();
   });
 
   it('can remove selection', (done) => {
     removeAllStub.reset();
-    test_component.find('Glyphicon').at(3).simulate('click');
+    test_component.find('Glyphicon').at(4).simulate('click');
     removeAllStub.called.should.be.ok;
     done();
   });

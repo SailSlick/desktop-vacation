@@ -6,7 +6,7 @@ const images = require('../models/image');
 const should = chai.should();
 chai.use(chaiHttp);
 
-describe('Sync API', () => {
+describe('Image API', () => {
   const agent = chai.request.agent(app);
   const username = 'rick_sanchez';
   const password = 'that mulan szechuan teriyaki dipping sauce morty';
