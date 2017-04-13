@@ -7,7 +7,7 @@ import DbConn from './db';
 import Images from '../models/images';
 import Galleries from '../models/galleries';
 import Host from '../models/host';
-import { danger, success, warning } from './notifier';
+import { danger, warning, success } from './notifier';
 
 function errorHandler(reqErr, response, body, cb) {
   if (reqErr) {
@@ -90,8 +90,9 @@ export default {
     });
   },
 
-  downloadImage: (id, cb) => {
-    const imageUrl = Host.server_uri.concat(`/image/${id}`);
+  downloadImage: (id, gid, cb) => {
+    if (gid === null) gid = '';
+    const imageUrl = Host.server_uri.concat(`/image/${id}/${gid || ''}`);
     console.log('Downloading image to disk');
     const options = {
       uri: imageUrl,
@@ -110,6 +111,7 @@ export default {
         );
         req.pipe(fs.createWriteStream(newFilePath));
       } else {
+        console.error('Image couldn\'t be downloaded', res.statusCode, res.message);
         danger('Couldn\'t download image');
         cb('Status code was not 200', null);
       }

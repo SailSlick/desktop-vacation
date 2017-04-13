@@ -36,6 +36,14 @@ const storage = multer.diskStorage({
   }
 });
 
+function incrementImageRef(id, cb) {
+  db.updateRaw({ _id: db.getId(id) }, { $inc: { refs: 1 } }, (success) => {
+    if (!success) {
+      cb('Updating ref counter failed');
+    } else cb();
+  });
+}
+
 function fileFilter(req, file, cb) {
   if (!req.body.hashes || !req.body.metadatas) {
     cb(null, false);
@@ -110,16 +118,16 @@ function fileFilter(req, file, cb) {
 module.exports = {
   uploadMiddleware: multer({ storage, fileFilter }).array('images'),
 
+  incrementRef: (id, cb) => incrementImageRef(id, cb),
+
   addMany(images, cb) {
     db.insertMany(images, cb);
   },
 
-  get(uid, id, next) {
+  get(id, next) {
     db.findOne({ _id: db.getId(id) }, (doc) => {
       if (!doc) {
         next(404, null);
-      } else if (doc.uid !== uid && !doc.shared) {
-        next(401, null);
       } else {
         next(null, doc);
       }
@@ -137,7 +145,7 @@ module.exports = {
   },
 
   remove(uid, id, next) {
-    module.exports.get(uid, id, (err, file) => {
+    module.exports.get(id, (err, file) => {
       if (err) {
         return next('cannot find image, or invalid permissions');
       }

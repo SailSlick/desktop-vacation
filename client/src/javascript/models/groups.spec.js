@@ -126,7 +126,7 @@ describe('Group model', () => {
   it('can get all a users groups', (done) => {
     Nock(domain)
       .get('/group/')
-      .reply(200, { status: 200, message: 'if you want to go far, book a flight', data: 'scary' }, headers);
+      .reply(200, { status: 200, message: 'if you want to go far, book a flight', data: {} }, headers);
     Groups.get(null, (err, msg, data) => {
       should.not.exist(err);
       msg.should.be.ok;
@@ -138,7 +138,7 @@ describe('Group model', () => {
   it('can get a specific group', (done) => {
     Nock(domain)
       .get(`/group/${testGallery.$loki}`)
-      .reply(200, { status: 200, message: 'you don\'t get to 1 billion friends without a hoodie', data: 'scary' }, headers);
+      .reply(200, { status: 200, message: 'you don\'t get to 1 billion friends without a hoodie', data: {} }, headers);
     Groups.get(testGallery.$loki, (err, msg, data) => {
       should.not.exist(err);
       msg.should.be.ok;

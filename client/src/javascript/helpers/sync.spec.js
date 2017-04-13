@@ -71,9 +71,9 @@ describe('Sync helper', () => {
     it('should be able to download an image', (done) => {
       Nock(Host.server_uri)
         .log(console.log)
-        .get(`/image/${fakeRemote}`)
+        .get(`/image/${fakeRemote}/`)
         .replyWithFile(200, testImagePath, { 'content-type': 'image/png' });
-      Sync.downloadImage(fakeRemote, (err, filePath) => {
+      Sync.downloadImage(fakeRemote, null, (err, filePath) => {
         should.not.exist(err);
         filePath.should.exist;
         done();

@@ -16,8 +16,6 @@ describe('Image API', () => {
   const testImage2Path = 'tests/test_image2.jpg';
   let imageId = '';
   let imageId2 = '';
-  let uid = '';
-  let uid2 = '';
 
   before((done) => {
     agent
@@ -25,13 +23,11 @@ describe('Image API', () => {
       .send({ username, password })
       .end((_err, res) => {
         res.body.status.should.equal(200);
-        uid = res.body.uid;
         agent2
           .post('/user/create')
           .send({ username: username2, password })
           .end((_err2, res2) => {
             res2.status.should.equal(200);
-            uid2 = res2.body.uid;
             done();
           });
       });
@@ -125,8 +121,8 @@ describe('Image API', () => {
           res.body.message.should.equal('images uploaded');
           res.body['image-ids'].should.have.lengthOf(1);
           imageId2 = res.body['image-ids'][0];
-          images.get(uid, imageId, (findErr, image1) => {
-            images.get(uid2, imageId2, (findErr2, image2) => {
+          images.get(imageId, (findErr, image1) => {
+            images.get(imageId2, (findErr2, image2) => {
               image1.location.should.equal(image2.location);
               done();
             });

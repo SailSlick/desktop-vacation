@@ -41,7 +41,7 @@ class Group extends React.Component {
     this.props.filter.rating !== nextProps.filter.rating ||
     this.props.filter.name !== nextProps.filter.name ||
     this.props.filter.tag !== nextProps.filter.tag) {
-      this.refresh(nextProps.dbId, nextProps.filter);
+      this.refresh(nextProps.groupId, nextProps.filter);
     }
     if (!nextProps.multiSelect) {
       this.setState({ selection: [] });
@@ -60,9 +60,9 @@ class Group extends React.Component {
     // Null the group ID if we're looking at the base group
     if (groupId === '1') groupId = null;
     if (Host.isAuthed()) {
-      Groups.get(groupId, (err, res, gallery) => {
-        if (err) danger(`${err}: ${res}`);
-        return Groups.expand(gallery, filter, (subgalleries, images) => {
+      Groups.get(groupId, (err, res, group) => {
+        if (err) console.error(`group get ${err}: ${res}`);
+        return Groups.expand(group, filter, (subgalleries, images) => {
           this.setState({
             subgalleries,
             images,
@@ -123,7 +123,7 @@ class Group extends React.Component {
       />
     );
 
-    const items = this.state.subgalleries.map(subgallery =>
+    let items = this.state.subgalleries.map(subgallery =>
       <GalleryCard
         group
         key={`g${subgallery._id}`}
@@ -133,23 +133,28 @@ class Group extends React.Component {
         uid={subgallery.uid}
         users={subgallery.users}
         thumbnail={subgallery.thumbnail}
-        onClick={_ => this.props.onChange(subgallery._id, subgallery.$loki)}
+        onClick={_ => this.props.onChange(subgallery.$loki, subgallery._id)}
         onRemove={_ => true}
+        simple={this.props.simple}
         tags={subgallery.metadata.tags}
         rating={subgallery.metadata.rating}
       />
-    ).concat(this.state.images.map(image =>
-      <Image
-        key={image.$loki}
-        dbId={image.$loki}
-        src={image.location}
-        onRemove={this.removeItem}
-        tags={image.metadata.tags}
-        rating={image.metadata.rating}
-      />
+    );
 
-    // Limit number of items to show
-    )).slice(0, this.state.itemsLimit);
+    if (!this.props.simple) {
+      items = items.concat(this.state.images.map(image =>
+        <Image
+          key={image.$loki}
+          dbId={image.$loki}
+          src={image.location}
+          onRemove={this.removeItem}
+          onUpload={() => true}
+          tags={image.metadata.tags}
+          rating={image.metadata.rating}
+        />
+        // Limit number of items to show
+      )).slice(0, this.state.itemsLimit);
+    }
 
     return (
       <Row>
@@ -164,6 +169,7 @@ class Group extends React.Component {
             removeAll={() => {}}
             tagAll={() => {}}
             rateAll={() => {}}
+            syncAll={() => {}}
           />
         </Col>
         <br />
@@ -176,16 +182,18 @@ class Group extends React.Component {
         <Col xs={4}>
           {items.map((item, i) => ((i + 1) % 3 === 0 && item) || null)}
         </Col>
-        <Col xs={12}>
-          <Waypoint onEnter={this.loadMore}>
-            <div>
-              <InfiniteScrollInfo
-                itemsLimit={this.state.itemsLimit}
-                itemsTotal={this.state.itemsTotal}
-              />
-            </div>
-          </Waypoint>
-        </Col>
+        { (this.props.simple) ? <Col /> : (
+          <Col xs={12}>
+            <Waypoint onEnter={this.loadMore}>
+              <div>
+                <InfiniteScrollInfo
+                  itemsLimit={this.state.itemsLimit}
+                  itemsTotal={this.state.itemsTotal}
+                />
+              </div>
+            </Waypoint>
+          </Col>
+        )}
       </Row>
     );
   }
@@ -195,6 +203,7 @@ Group.propTypes = {
   groupId: React.PropTypes.string.isRequired,
   dbId: React.PropTypes.number.isRequired,
   onChange: React.PropTypes.func.isRequired,
+  simple: React.PropTypes.bool,
   infoBar: React.PropTypes.bool,
   multiSelect: React.PropTypes.bool,
   filter: React.PropTypes.shape({
@@ -210,6 +219,7 @@ Group.defaultProps = {
     rating: 0,
     tag: ''
   },
+  simple: false,
   multiSelect: false,
   infoBar: false,
 };
