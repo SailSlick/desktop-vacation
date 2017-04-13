@@ -27,7 +27,7 @@ describe('Gallery Component', () => {
 
   before((done) => {
     hostAuthStub = stub(Host, 'isAuthed').returns(true);
-    uploadStub = stub(Sync, 'uploadImages');
+    uploadStub = stub(Sync, 'uploadImages', (ids, cb) => cb());
     galleriesUpdateMetadataStub = stub(Galleries, 'updateMetadata');
     imagesUpdateStub = stub(Images, 'update').callsArgWith(2, 'lets pretend :)');
     // Create test image
@@ -144,6 +144,14 @@ describe('Gallery Component', () => {
     });
   });
 
+  it('can sync all selected images', (done) => {
+    uploadStub.reset();
+    test_component.instance().syncAll();
+    uploadStub.called.should.be.ok;
+    uploadStub.firstCall.args[0].should.deep.equal(test_component.state().selection);
+    done();
+  });
+
   it('errors when an unsupported operaton is used to tag images', (done) => {
     imagesUpdateStub.reset();
     test_component.instance().tagAll('USE THE KAZOO TIMMY', 'bunnz', (err) => {
@@ -176,10 +184,13 @@ describe('Gallery Component', () => {
 
   it('can remove all selected images', (done) => {
     const removeStub = stub(Galleries, 'removeItem', (dbId, id, next) => next());
+    const dispatchStub = stub(document, 'dispatchEvent');
     test_component.instance().removeAll(() => {
       removeStub.callCount.should.be.equal(test_component.state().selection.length);
+      dispatchStub.called.should.be.ok;
       Galleries.should_save.should.be.ok;
       removeStub.restore();
+      dispatchStub.restore();
       done();
     });
   });
@@ -198,15 +209,6 @@ describe('Gallery Component', () => {
       test_component.state().selection.should.be.empty;
       done();
     });
-  });
-
-  it('can upload item', (done) => {
-    hostAuthStub.reset();
-    uploadStub.reset();
-    test_component.instance().uploadItem(test_image.$loki);
-    uploadStub.called.should.be.ok;
-    hostAuthStub.called.should.be.ok;
-    done();
   });
 
   it('can delete item from gallery and filesystem', (done) => {
@@ -234,17 +236,5 @@ describe('Gallery Component', () => {
     };
     document.addEventListener('gallery_updated', update_props, false);
     test_component.find('.img-menu a').at(4).simulate('click');
-  });
-
-  it('can\'t upload item when theres no remote id', (done) => {
-    Galleries.update(test_gallery.$loki, { remoteId: null }, (doc) => {
-      should.not.exist(doc.remoteId);
-      hostAuthStub.reset();
-      uploadStub.reset();
-      test_component.instance().uploadItem(test_image.$loki);
-      hostAuthStub.called.should.be.ok;
-      uploadStub.called.should.not.be.ok;
-      done();
-    });
   });
 });

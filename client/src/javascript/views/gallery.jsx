@@ -13,7 +13,6 @@ import { success, warning, danger } from '../helpers/notifier';
 import Sync from '../helpers/sync';
 import Galleries from '../models/galleries';
 import Images from '../models/images';
-import Host from '../models/host';
 
 const append_gallery_event_name = 'append_gallery';
 
@@ -37,8 +36,8 @@ class Gallery extends React.Component {
     this.removeSubgallery = this.removeSubgallery.bind(this);
     this.addAllToGallery = this.addAllToGallery.bind(this);
     this.removeItem = this.removeItem.bind(this);
-    this.uploadItem = this.uploadItem.bind(this);
     this.removeAll = this.removeAll.bind(this);
+    this.syncAll = this.syncAll.bind(this);
     this.tagAll = this.tagAll.bind(this);
     this.rateAll = this.rateAll.bind(this);
     this.selectItem = this.selectItem.bind(this);
@@ -141,38 +140,24 @@ class Gallery extends React.Component {
     }
   }
 
-  uploadItem(id) {
-    if (Host.isAuthed()) {
-      Galleries.get(this.props.dbId, (gallery) => {
-        if (!gallery) {
-          console.error(`Couldn't find gallery: ${this.props.dbId}`);
-          return;
-        }
-        console.log(`syncing, gallery: ${gallery.remoteId}`);
-        if (gallery.remoteId) {
-          Sync.uploadImages(gallery.remoteId, id, () => {});
-        } else {
-          danger('Can\'t sync from subgallery.');
-        }
-      });
-    } else {
-      danger('Can\'t sync, try signing in!');
-    }
-  }
-
   removeAll(cb) {
     Galleries.should_save = false;
     const num_items = this.state.selection.length;
     eachOf(this.state.selection, (id, index, next) => {
-      if (index === num_items - 1) Galleries.should_save = true;
       Galleries.removeItem(this.props.dbId, id, (update, err_msg) => next(err_msg));
     },
     (err_msg) => {
+      Galleries.should_save = true;
+      document.dispatchEvent(Galleries.gallery_update_event);
       if (err_msg) danger(err_msg);
       else if (num_items === 1) success('Image removed');
       else success(`${num_items} images removed`);
       if (typeof cb === 'function') cb();
     });
+  }
+
+  syncAll() {
+    Sync.uploadImages(this.state.selection, () => true);
   }
 
   tagAll(op, value, cb) {
@@ -308,7 +293,6 @@ class Gallery extends React.Component {
           src={image.location}
           url={image.sharedUrl}
           remoteId={image.remoteId}
-          onUpload={this.uploadItem}
           tags={image.metadata.tags}
           rating={image.metadata.rating}
           onRemove={this.removeItem}
@@ -332,6 +316,7 @@ class Gallery extends React.Component {
             addAllToGallery={this.addAllToGallery}
             selectAll={this.selectAll}
             removeAll={this.removeAll}
+            syncAll={this.syncAll}
             tagAll={this.tagAll}
             rateAll={this.rateAll}
           />
