@@ -2,37 +2,63 @@ import request from 'request';
 import fs from 'fs';
 import path from 'path';
 import mime from 'mime-types';
+import { eachOf } from 'async';
 import DbConn from './db';
 import Images from '../models/images';
+import Galleries from '../models/galleries';
 import Host from '../models/host';
 import { danger, warning, success } from './notifier';
 
 function errorHandler(reqErr, response, body, cb) {
   if (reqErr) {
-    cb(reqErr, null);
+    danger(reqErr);
+    cb(reqErr);
   } else if (response.statusCode !== 200) {
-    cb(body.error, null);
+    danger(body.error);
+    cb(body.error);
   } else {
-    cb(null, body);
+    cb();
   }
 }
 
 export default {
-  uploadImages: (galleryRemoteId, imageId, cb) => {
-    Images.get(imageId, (file) => {
-      if (!file) {
-        danger('Invalid image ID');
+  uploadImages: (imageIds, cb) => {
+    if (!Host.isAuthed()) {
+      danger('Can\'t sync, try signing in!');
+      return cb();
+    }
+    const formData = {
+      hashes: [],
+      metadatas: [],
+      images: []
+    };
+    const submittedIds = [];
+    const existingIds = [];
+    return Images.getMany(imageIds, (images) => {
+      if (!images) {
+        danger('Error retrieving image(s)');
         return cb();
       }
-      if (file.remoteId) {
-        warning('Item is already synced');
-        return cb();
+
+      // Put all images into formData
+      images.forEach((image) => {
+        // Only those that need syncing
+        if (!image.remoteId) {
+          formData.hashes.push(image.hash);
+          formData.metadatas.push(image.metadata);
+          formData.images.push(fs.createReadStream(image.location));
+          submittedIds.push(image.$loki);
+        } else {
+          existingIds.push(image.remoteId);
+        }
+      });
+
+      // Check if there is anything to sync
+      if (formData.hashes.length === 0) {
+        warning('Image(s) already synced');
+        return cb(existingIds);
       }
-      const formData = {
-        hashes: JSON.stringify([file.hash]),
-        metadatas: JSON.stringify([file.metadata]),
-        images: [fs.createReadStream(file.location)]
-      };
+
       const options = {
         formData,
         uri: Host.server_uri.concat('/image/upload'),
@@ -40,23 +66,27 @@ export default {
         jar: Host.cookie_jar,
         json: true
       };
-      return request(options, (reqErr, res, body) => {
-        errorHandler(reqErr, res, body, (err, result) => {
-          if (err) {
-            danger(err);
-            return cb();
-          }
-          return Images.update(imageId, { remoteId: result['image-ids'][0] }, (updateErr) => {
-            if (err) {
-              danger(updateErr);
-              cb();
-            } else {
-              success('Images uploaded');
-              cb(result);
-            }
+
+      // JSON encode the data arrays
+      formData.hashes = JSON.stringify(formData.hashes);
+      formData.metadatas = JSON.stringify(formData.metadatas);
+
+      // Upload the images
+      return request(options, (reqErr, res, body) =>
+        errorHandler(reqErr, res, body, (err) => {
+          if (err) return cb();
+          Galleries.should_save = false;
+
+          // Map each remoteId to the respective image
+          return eachOf(body['image-ids'], (remoteId, index, next) => {
+            Galleries.should_save = (index === body['image-ids'].length - 1);
+            Images.update(submittedIds[index], { remoteId }, () => next());
+          }, () => {
+            success(`${formData.images.length} image(s) uploaded`);
+            cb(existingIds.concat(body['image-ids']));
           });
-        });
-      });
+        })
+      );
     });
   },
 
@@ -102,12 +132,9 @@ export default {
       method: 'POST',
       json: true
     };
-    request(options, (reqErr, response, body) => {
-      errorHandler(reqErr, response, body, (err, _) => {
-        if (err) return cb(err);
-        return cb(null);
-      });
-    });
+    request(options, (reqErr, response, body) =>
+      errorHandler(reqErr, response, body, cb)
+    );
   },
 
   shareImage: (remoteId, cb) => {
@@ -119,12 +146,9 @@ export default {
       method: 'POST',
       json: true
     };
-    return request(options, (reqErr, response, body) => {
-      errorHandler(reqErr, response, body, (err, _) => {
-        if (err) return cb(err, null);
-        return cb(null, uri);
-      });
-    });
+    return request(options, (reqErr, response, body) =>
+      errorHandler(reqErr, response, body, err => cb(err, uri))
+    );
   },
 
   unshareImage: (remoteId, cb) => {
@@ -136,10 +160,7 @@ export default {
       json: true
     };
     return request(options, (reqErr, response, body) => {
-      errorHandler(reqErr, response, body, (err, _) => {
-        if (err) return cb(err);
-        return cb(null);
-      });
+      errorHandler(reqErr, response, body, cb);
     });
   }
 };

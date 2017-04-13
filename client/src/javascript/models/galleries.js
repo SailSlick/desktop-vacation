@@ -14,6 +14,7 @@ const gallery_update_event = new Event('gallery_updated');
 
 const Galleries = {
   should_save: true,
+  gallery_update_event,
 
   addBase: (name, remoteId, cb) => {
     gallery_db.findOne({ name }, (found_gallery) => {

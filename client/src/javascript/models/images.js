@@ -16,6 +16,8 @@ const Images = {
 
   getRemoteId: (remoteId, cb) => image_db.findOne({ remoteId }, cb),
 
+  getMany: (ids, cb) => image_db.findMany({ $loki: { $in: ids } }, cb),
+
   add: (path, cb) => {
     // make the hash
     jetpack.inspectAsync(path, { checksum: 'sha1', times: true }).then((fileDetails) => {

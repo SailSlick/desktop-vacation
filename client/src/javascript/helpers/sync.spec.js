@@ -19,22 +19,18 @@ describe('Sync helper', () => {
   const badRemote = 'EZpzlemonsqEZ';
   const testImagePath = path.join(__dirname, '../build/icons/512x512.png');
   let testImage;
-  let remoteGalleryId;
   let fsWriteStub;
 
   before((done) => {
     fsWriteStub = stub(fs, 'createWriteStream').returns(new Readable());
     Images.add(testImagePath, (inserted_image) => {
       testImage = inserted_image;
-      Host.getBaseRemote((remoteId) => {
-        remoteGalleryId = remoteId;
-        // NOTE logging in so that Host.isAuthed() returns true
-        Nock(Host.server_uri)
-          .post('/user/login')
-          .reply(200, { status: 200 }, headers);
-        Host.login('Sully', 'MyPlumbusMyPlumbusMyVacaForAPlumbus', () => {
-          done();
-        });
+      // NOTE logging in so that Host.isAuthed() returns true
+      Nock(Host.server_uri)
+        .post('/user/login')
+        .reply(200, { status: 200 }, headers);
+      Host.login('Sully', 'MyPlumbusMyPlumbusMyVacaForAPlumbus', () => {
+        done();
       });
     });
   });
@@ -54,17 +50,18 @@ describe('Sync helper', () => {
       .post('/image/upload')
       .reply(200, { 'image-ids': [fakeRemote], message: 'its ALIVEEE' });
 
-      Sync.uploadImages(remoteGalleryId, testImage.$loki, () => {
+      Sync.uploadImages([testImage.$loki], () => {
         Images.get(testImage.$loki, (image) => {
           image.remoteId.should.equal(fakeRemote);
+          testImage.remoteId = image.remoteId;
           done();
         });
       });
     });
 
     it('should not be able to sync an already synced image', (done) => {
-      Sync.uploadImages(remoteGalleryId, testImage.$loki, (res) => {
-        should.not.exist(res);
+      Sync.uploadImages([testImage.$loki], (res) => {
+        res.should.deep.equal([testImage.remoteId]);
         done();
       });
     });
@@ -90,9 +87,8 @@ describe('Sync helper', () => {
         .post(`/image/${badRemote}/share`)
         .reply(400, { error: 'invalid something or other !?' }, headers);
 
-      Sync.shareImage(badRemote, (err, uri) => {
+      Sync.shareImage(badRemote, (err) => {
         err.should.exist;
-        should.not.exist(uri);
         done();
       });
     });
