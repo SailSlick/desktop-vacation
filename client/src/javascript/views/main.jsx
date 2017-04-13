@@ -34,6 +34,8 @@ const PrimaryContent = ({ page, parent }) =>
       dbId={parent.state.galleryId}
       onChange={parent.changeGroup}
       multiSelect={parent.state.multiSelect}
+      filterToggle={parent.state.filterToggle}
+      changeFilter={parent.changeFilter}
       filter={parent.state.filter}
       infoBar={parent.state.infoBar}
     />),
@@ -274,6 +276,7 @@ class Main extends React.Component {
   toggleSelectMode() {
     this.setState({
       multiSelect: !this.state.multiSelect,
+      infoBar: false,
       filterToggle: false
     });
   }
@@ -281,6 +284,7 @@ class Main extends React.Component {
   toggleFilterMode() {
     this.setState({
       filterToggle: !this.state.filterToggle,
+      infoBar: false,
       multiSelect: false
     });
   }
@@ -288,7 +292,9 @@ class Main extends React.Component {
 
   toggleInfoBarMode() {
     this.setState({
-      infoBar: !this.state.infoBar
+      infoBar: !this.state.infoBar,
+      filterToggle: false,
+      multiSelect: false
     });
   }
 

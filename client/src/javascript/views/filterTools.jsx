@@ -19,7 +19,7 @@ export default class FilterTools extends React.Component {
   }
 
   filter() {
-    const tags = this.state.tagInput.split(' ');
+    const tags = this.state.tagInput.split(',');
     const filter = {
       tags,
       name: this.state.name,
@@ -29,6 +29,11 @@ export default class FilterTools extends React.Component {
   }
 
   clearFilter() {
+    this.setState({
+      name: '',
+      tagInput: '',
+      rating: 0
+    });
     this.props.changeFilter({
       tags: [],
       name: '',
@@ -67,7 +72,11 @@ export default class FilterTools extends React.Component {
               {[1, 2, 3, 4, 5].map((val) => {
                 if (val === this.state.rating) {
                   // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-                  return (<a key={val} onClick={() => this.stateState({ rating: 0 })}>
+                  return (<a
+                    key={val}
+                    id="deselect-star"
+                    onClick={() => this.setState({ rating: 0 })}
+                  >
                     <Glyphicon glyph={'star'} />
                   </a>);
                 }
@@ -85,7 +94,7 @@ export default class FilterTools extends React.Component {
                 name="tagInput"
                 type="text"
                 placeholder="tags"
-                value={this.state.tags}
+                value={this.state.tagInput}
                 onChange={this.handleChange}
               />
               <FormControl

@@ -8,7 +8,7 @@ import FilterTools from './filterTools.jsx';
 use(chaiEnzyme());
 chaiShould();
 
-describe('Selection Toolbar Component', () => {
+describe('Filter Tootbar Component', () => {
   let changeFilterStub;
   let test_component;
 
@@ -36,8 +36,8 @@ describe('Selection Toolbar Component', () => {
   });
 
   it('can use handleChange', (done) => {
-    test_component.instance().handleChange({ target: { name: 'tagInput', value: 'nice maymay' } });
-    test_component.instance().state.tagInput.should.equal('nice maymay');
+    test_component.instance().handleChange({ target: { name: 'tagInput', value: 'nice,maymay' } });
+    test_component.instance().state.tagInput.should.equal('nice,maymay');
     done();
   });
 
@@ -63,6 +63,12 @@ describe('Selection Toolbar Component', () => {
       name: 'gr8.jpg',
       rating: 5
     }).should.be.ok;
+    done();
+  });
+
+  it('can handle clicking the selected rating', (done) => {
+    test_component.find('#deselect-star').at(0).simulate('click');
+    test_component.instance().state.rating.should.equal(0);
     done();
   });
 

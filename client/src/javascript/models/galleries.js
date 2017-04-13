@@ -140,8 +140,7 @@ const Galleries = {
           if (tag.length === 0) {
             return true;
           }
-          tag = tag.toLowerCase();
-          return item.metadata.tags.indexOf(tag) !== -1;
+          return item.metadata.tags.indexOf(tag.toLowerCase().trim()) !== -1;
         }).length === filter.tags.length;
     }
     if (filter.rating && filter.rating !== 0) {
