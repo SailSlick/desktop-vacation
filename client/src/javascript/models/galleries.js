@@ -125,6 +125,8 @@ const Galleries = {
 
   getName: (name, cb) => gallery_db.findOne({ name }, cb),
 
+  getMany: (ids, cb) => gallery_db.findMany({ $loki: { $in: ids } }, cb),
+
   filterSingle: (item, filter, cb) => {
     let filterThrough = true;
     if (filter.name) {
