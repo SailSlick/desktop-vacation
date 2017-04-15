@@ -24,7 +24,7 @@ function errorHandler(cb) {
 }
 
 const Sync = {
-  uploadImages: (imageIds, cb) => {
+  uploadImages: (imageIds, cb, controlSaving) => {
     if (!Host.isAuthed()) {
       danger('Can\'t sync, try signing in!');
       return cb();
@@ -76,11 +76,11 @@ const Sync = {
       // Upload the images
       return request(options, errorHandler((err, body) => {
         if (err) return cb();
-        Galleries.should_save = false;
+        if (!controlSaving) Galleries.should_save = false;
 
         // Map each remoteId to the respective image
         return eachOf(body['image-ids'], (remoteId, index, next) => {
-          Galleries.should_save = (index === body['image-ids'].length - 1);
+          if (!controlSaving) Galleries.should_save = (index === body['image-ids'].length - 1);
           Images.update(submittedIds[index], { remoteId }, () => next());
         }, () => {
           success(`${formData.images.length} image(s) uploaded`);
@@ -165,13 +165,13 @@ const Sync = {
     // Get remoteIds for images and galleries
     Galleries.getMany(gallery.subgalleries, subgalleriesFull =>
       Images.getMany(gallery.images, (imagesFull) => {
-        // Make sure that arrays are sent (the need for || [])
-        const subgalleries = subgalleriesFull.map(x => x.remoteId) || [];
-        const images = imagesFull.map(x => x.remoteId) || [];
+        const subgalleries = subgalleriesFull.map(x => x.remoteId);
+        const images = imagesFull.map(x => x.remoteId);
         const options = {
           form: {
             gallery: {
               uid: Host.uid,
+              remoteId: gallery.remoteId,
               name: gallery.name,
               images,
               subgalleries,
@@ -210,6 +210,8 @@ const Sync = {
             return cb(err);
           }
           return Sync.upsertRemoteGallery(gallery, (errUp) => {
+            if (isSaveController) Galleries.should_save = true;
+            document.dispatchEvent(Galleries.gallery_update_event);
             if (errUp) {
               danger(errUp);
               return cb(errUp);
@@ -235,6 +237,8 @@ const Sync = {
 
           // UPLOAD THIS GALLERY \o/
           return Sync.upsertRemoteGallery(gallery, (errUp) => {
+            if (isSaveController) Galleries.should_save = true;
+            document.dispatchEvent(Galleries.gallery_update_event);
             if (errUp) {
               danger(errUp);
               return cb(errUp);

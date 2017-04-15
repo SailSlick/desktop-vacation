@@ -56,6 +56,10 @@ module.exports = {
     const gid = gallery.remoteId;
     delete gallery.remoteId;
 
+    // Ensure images and galleries are arrays
+    gallery.images = gallery.images || [];
+    gallery.subgalleries = gallery.subgalleries || [];
+
     // Update if remoteId was defined
     if (gid) {
       // Check owner first
@@ -65,12 +69,16 @@ module.exports = {
         } else if (existingGallery.uid !== uid) {
           next({ status: 403, error: 'incorrect permissions' });
         } else {
+          // Ensure existing images and galleries are arrays
+          existingGallery.images = existingGallery.images || [];
+          existingGallery.subgalleries = existingGallery.subgalleries || [];
+
           // Remove the images and galleries deleted from the client
           const removedImages = existingGallery.images.filter(oldImage =>
-            gallery.images.some(newImage => oldImage === newImage)
+            !gallery.images.some(newImage => oldImage === newImage)
           );
           const removedSubgalleries = existingGallery.subgalleries.filter(oldGallery =>
-            gallery.galleries.some(newGallery => oldGallery === newGallery)
+            !gallery.galleries.some(newGallery => oldGallery === newGallery)
           );
           async.each(removedImages,
             (id, nextId) => imageModel.remove(uid, id, nextId),

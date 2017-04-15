@@ -228,7 +228,7 @@ Upload/update a gallery on the server
 
 ### Request
 
-*MIME Type*: `application/json`
+*MIME Type*: `application/json` or `application/x-www-form-urlencoded`
 
 #### JSON Parameters
 
