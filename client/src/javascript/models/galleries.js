@@ -5,6 +5,7 @@ import Host from './host';
 import DbConn from '../helpers/db';
 import Images from './images';
 import { success, warning } from '../helpers/notifier';
+import Sync from '../helpers/sync';
 
 let gallery_db;
 
@@ -224,9 +225,12 @@ const Galleries = {
           }
         );
       }, () =>
-        gallery_db.removeOne({ $loki: id }, () => {
-          if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
-          cb();
+        Sync.unsyncGallery(id, (err) => {
+          if (err) return cb(err);
+          return gallery_db.removeOne({ $loki: id }, () => {
+            if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
+            cb();
+          });
         })
       )
     );

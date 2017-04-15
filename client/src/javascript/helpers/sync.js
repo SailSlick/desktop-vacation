@@ -250,6 +250,18 @@ const Sync = {
     });
   },
 
+  unsyncGallery: (gid, cb) => {
+    Galleries.get(gid, (gallery) => {
+      const options = {
+        uri: Host.server_uri.concat(`/gallery/${gallery.remoteId}/remove`),
+        jar: Host.cookie_jar,
+        method: 'POST',
+        json: true
+      };
+      request(options, errorHandler(cb));
+    });
+  },
+
   downloadImage: (id, gid, cb) => {
     if (gid === null) gid = '';
     const imageUrl = Host.server_uri.concat(`/image/${id}/${gid || ''}`);

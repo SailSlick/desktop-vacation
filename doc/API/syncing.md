@@ -387,7 +387,7 @@ is invisible to the client.
 ## Gallery Unsyncing
 
 - Send remove request to server
-  - Server will handle removing images
+  - Server will handle removing images and subgalleries
 - If it's successful:
   - Remove from client & remove subgallery ties
 - Inform user of the outcome
