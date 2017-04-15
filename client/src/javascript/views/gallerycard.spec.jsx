@@ -86,7 +86,7 @@ describe('GalleryCard Component', () => {
 
   it('can request conversion to group of element', (done) => {
     groupConvertStub.called.should.not.be.ok;
-    test_component.find('.img-menu a').at(2).simulate('click');
+    test_component.find('.img-menu a').at(3).simulate('click');
     groupConvertStub.called.should.be.ok;
     done();
   });

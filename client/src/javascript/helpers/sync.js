@@ -23,7 +23,7 @@ function errorHandler(cb) {
   };
 }
 
-export default {
+const Sync = {
   uploadImages: (imageIds, cb) => {
     if (!Host.isAuthed()) {
       danger('Can\'t sync, try signing in!');
@@ -106,15 +106,9 @@ export default {
         Images.remove(img.$loki, () => next()),
 
       // Upload the new ones
-      () => module.exports.uploadImages(unsyncedImages.map(img => img.$loki), (remoteIds) => {
-        if (!remoteIds) return cb('Remote ids not sent by server');
-
-        // Set the remoteId of all these images
-        return eachOf(unsyncedImages, (img, index, next) =>
-          Images.update(img.$loki, { remoteId: remoteIds[index] }, doc =>
-            next((!doc && `Failed to update remoteId of image ${img.$loki}`) || null)
-          ),
-        cb);
+      () => Sync.uploadImages(unsyncedImages.map(img => img.$loki), (remoteIds) => {
+        if (!remoteIds) cb('Remote ids not sent by server');
+        else cb();
       }));
     });
   },
@@ -133,7 +127,7 @@ export default {
 
       // Sync the images
       // eslint-disable-next-line padded-blocks
-      return module.exports.syncGalleryImages(gallery, remoteGallery, (err) => {
+      return Sync.syncGalleryImages(gallery, remoteGallery, (err) => {
         if (err) return cb(err);
 
         // Get all the subgalleries
@@ -152,7 +146,7 @@ export default {
 
           // Upload the new ones
           () => each(unsyncedGalleries.map(gal => gal.$loki), (gid, next) =>
-            module.exports.uploadGallery(gid, (remoteId) => {
+            Sync.uploadGallery(gid, (remoteId) => {
               if (!remoteId) return next('Remote id not sent by server');
 
               // Set the remoteId of all these subgalleries
@@ -167,38 +161,72 @@ export default {
     }));
   },
 
+  upsertRemoteGallery: (gallery, cb) => {
+    // Get remoteIds for images and galleries
+    Galleries.getMany(gallery.subgalleries, subgalleriesFull =>
+      Images.getMany(gallery.images, (imagesFull) => {
+        // Make sure that arrays are sent (the need for || [])
+        const subgalleries = subgalleriesFull.map(x => x.remoteId) || [];
+        const images = imagesFull.map(x => x.remoteId) || [];
+        const options = {
+          form: {
+            gallery: {
+              uid: Host.uid,
+              name: gallery.name,
+              images,
+              subgalleries,
+              metadata: gallery.metadata,
+              users: []
+            }
+          },
+          uri: Host.server_uri.concat('/gallery/upload'),
+          jar: Host.cookie_jar,
+          method: 'POST',
+          json: true
+        };
+        request(options, errorHandler((errUp, body) => {
+          if (errUp) return cb(errUp);
+
+          // Set the remoteId of this gallery
+          return Galleries.update(gallery.$loki, { remoteId: body.gid }, (doc) => {
+            if (!doc) cb(`Failed to update remoteId of gallery ${gallery.$loki}`);
+            else cb();
+          });
+        }));
+      })
+    );
+  },
+
   uploadGallery: (gid, cb) => {
     const isSaveController = Galleries.should_save;
     if (isSaveController) Galleries.should_save = false;
 
-    Galleries.getGid(gid, (getErr, gallery) => {
-      if (getErr) {
-        danger(getErr);
-        return cb(getErr);
-      }
-
+    Galleries.get(gid, (gallery) => {
       // Has this gallery been synced already?
       if (gallery.remoteId) {
-        return module.exports.syncGallery(gallery, (err) => {
+        return Sync.syncGallery(gallery, (err) => {
           if (err) {
             danger(err);
             return cb(err);
           }
-          return cb();
+          return Sync.upsertRemoteGallery(gallery, (errUp) => {
+            if (errUp) {
+              danger(errUp);
+              return cb(errUp);
+            }
+            return cb();
+          });
         });
       }
 
       // Is this a new gallery?
       // Upload the images
-      return module.exports.uploadImages(gallery.images, (err) => {
-        if (err) {
-          danger(err);
-          return cb(err);
-        }
+      return Sync.uploadImages(gallery.images, (remoteIds) => {
+        if (!remoteIds) return cb('Remote ids not sent by server');
 
         // Upload the subgalleries
         return each(gallery.subgalleries, (galId, next) =>
-          module.exports.uploadGallery(galId, next),
+          Sync.uploadGallery(galId, next),
         (errGal) => {
           if (errGal) {
             danger(errGal);
@@ -206,30 +234,13 @@ export default {
           }
 
           // UPLOAD THIS GALLERY \o/
-          delete gallery.$loki;
-          const options = {
-            formData: { gallery },
-            uri: Host.server_uri.concat('/gallery/upload'),
-            jar: Host.cookie_jar,
-            method: 'POST',
-            json: true
-          };
-          return request(options, errorHandler((errUp, body) => {
+          return Sync.upsertRemoteGallery(gallery, (errUp) => {
             if (errUp) {
               danger(errUp);
               return cb(errUp);
             }
-
-            // Set the remoteId of this gallery
-            return Galleries.update(gid, { remoteId: body.gid }, (doc) => {
-              if (!doc) {
-                const msg = `Failed to update remoteId of gallery ${gid}`;
-                danger(msg);
-                return cb(msg);
-              }
-              return cb();
-            });
-          }));
+            return cb();
+          });
         });
       });
     });
@@ -303,3 +314,5 @@ export default {
     return request(options, errorHandler(cb));
   }
 };
+
+export default Sync;
