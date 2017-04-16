@@ -1,6 +1,5 @@
 import { map, each, eachOf, filter as asyncFilter } from 'async';
 import { ipcRenderer as ipc } from 'electron';
-import request from 'request';
 import Host from './host';
 import DbConn from '../helpers/db';
 import Images from './images';
@@ -59,13 +58,17 @@ const Galleries = {
           tags: []
         }
       };
-      return gallery_db.insert(doc, (inserted_gallery) => {
-        const id = inserted_gallery.$loki;
-        // addSubgallery will dispatch the event
-        Galleries.addSubGallery(BASE_GALLERY_ID, id, () =>
-          cb(inserted_gallery)
-        );
-      });
+      return Galleries.insert(doc, cb);
+    });
+  },
+
+  insert: (gallery, cb) => {
+    gallery_db.insert(gallery, (inserted_gallery) => {
+      // addSubgallery will dispatch the event
+      const id = inserted_gallery.$loki;
+      Galleries.addSubGallery(BASE_GALLERY_ID, id, () =>
+        cb(inserted_gallery)
+      );
     });
   },
 
@@ -127,6 +130,8 @@ const Galleries = {
   getName: (name, cb) => gallery_db.findOne({ name }, cb),
 
   getMany: (ids, cb) => gallery_db.findMany({ $loki: { $in: ids } }, cb),
+
+  getManyRemote: (remoteIds, cb) => gallery_db.findOne({ remoteId: { $in: remoteIds } }, cb),
 
   filterSingle: (item, filter, cb) => {
     let filterThrough = true;
@@ -313,45 +318,23 @@ const Galleries = {
   },
 
   syncRoot: (cb) => {
-    const next = cb || (() => {});
+    cb = cb || (() => {});
     Host.getIndex(Host.userId, (userData) => {
       if (!userData) {
         console.error('User data doesn\'t exist.');
-        return next();
+        return cb();
       }
-      const options = {
-        uri: Host.server_uri.concat(`/gallery/${userData.remoteGallery}`),
-        jar: Host.cookie_jar,
-        method: 'GET',
-        json: true
-      };
-      return request(options, (err, response, body) => {
-        if (response.statusCode !== 200) {
-          console.error(`Failure to sync, code: ${response.statusCode}`);
-          console.error(body.error);
-          return next();
-        } else if (!body.data.images || body.data.images.length === 0) {
-          console.log('No images to sync');
-          return next();
+      // Get contents of the base gallery
+      return Sync.downloadGallery(userData.remoteGallery, (err, gallery) => {
+        if (err) {
+          console.error(err);
+          return cb(err);
         }
-        return map(body.data.images,
-          (id, nextIm) => Images.download(id, null, nextIm),
-          (downloadErr, imageIds) => {
-            if (downloadErr) console.error(downloadErr);
-            each(imageIds,
-              (id, mapcb) => {
-                Galleries.addItem(BASE_GALLERY_ID, id, (addErr, _res) => {
-                  if (addErr) mapcb(err);
-                  else mapcb();
-                });
-              },
-              (addErr) => {
-                if (addErr) console.error(addErr);
-                next();
-              }
-            );
-          });
-      });
+        return Galleries.update(BASE_GALLERY_ID, {
+          images: gallery.images,
+          subgalleries: gallery.subgalleries
+        }, cb);
+      }, true);
     });
   }
 };

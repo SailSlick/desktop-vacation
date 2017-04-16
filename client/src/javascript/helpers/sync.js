@@ -297,6 +297,103 @@ const Sync = {
     .on('end', () => cb(null, newFilePath));
   },
 
+  downloadImageData: (remoteId, cb) => {
+    const options = {
+      uri: Host.server_uri.concat(`/gallery/${remoteId}/data`),
+      jar: Host.cookie_jar,
+      method: 'GET',
+      json: true
+    };
+    request(options, errorHandler((errDl, body) => {
+      if (errDl) return cb(errDl);
+
+      // Add to database
+      const image = body.image;
+      return Images.insert(image, newImg => cb(null, newImg.$loki));
+    }));
+  },
+
+  downloadGalleryImages: (gallery, cb) => {
+    // Determine what images need downloading
+    Images.getManyRemote(gallery.images, (imagesFull) => {
+      // Filter for the missing ones
+      const missingImages = gallery.images.filter(remoteId =>
+        !imagesFull.some(image => image.remoteId === remoteId)
+      );
+
+      // Get ids of ones we have
+      const imageIds = imagesFull.map(image => image.$loki);
+
+      // Download the missing ones
+      each(missingImages, (remoteId, next) => {
+        Sync.downloadImageData(remoteId, (errDl, id) => {
+          if (errDl) return next(errDl);
+
+          // Append new ID to imageIds
+          imageIds.push(id);
+          return next();
+        });
+      }, (errDl) => {
+        if (errDl) cb(errDl);
+
+        // Return complete list of local ids
+        return cb(null, imageIds);
+      });
+    });
+  },
+
+  downloadGallery: (remoteId, cb, doNotInsert) => {
+    // Get the remote gallery data
+    const options = {
+      uri: Host.server_uri.concat(`/gallery/${remoteId}`),
+      jar: Host.cookie_jar,
+      method: 'GET',
+      json: true
+    };
+    request(options, errorHandler((errGet, body) => {
+      if (errGet) return cb(errGet);
+      const gallery = body.data;
+      gallery.images = gallery.images || [];
+      gallery.subgalleries = gallery.subgalleries || [];
+
+      // Download the images
+      return Sync.downloadGalleryImages(gallery, (errImgs, imageIds) => {
+        if (errImgs) return cb(errImgs);
+
+        // Determine what subgalleries need downloading
+        return Galleries.getManyRemote(gallery.subgalleries, (subgalleriesFull) => {
+          // Filter for the missing ones
+          const missingGalleries = gallery.subgalleries.filter(remoteSubId =>
+            !subgalleriesFull.some(subgal => subgal.remoteId === remoteSubId)
+          );
+
+          // Get ids of ones we have
+          const subgalleryIds = subgalleriesFull.map(subgal => subgal.$loki);
+
+          // Download the missing ones
+          each(missingGalleries, (remoteSubId, next) => {
+            Sync.downloadGallery(remoteSubId, (errDl, id) => {
+              if (errDl) return next(errDl);
+
+              // Append new ID to subgalleryIds
+              subgalleryIds.push(id);
+              return next();
+            });
+          }, (errDl) => {
+            if (errDl) return cb(errDl);
+
+            // Save the gallery
+            gallery.uid = Host.uid;
+            gallery.images = imageIds;
+            gallery.subgalleries = subgalleryIds;
+            if (doNotInsert) return cb(null, gallery);
+            return Galleries.insert(gallery, newGal => cb(null, newGal.$loki));
+          });
+        });
+      });
+    }));
+  },
+
   removeSynced: (remoteId, cb) => {
     const options = {
       uri: Host.server_uri.concat(`/image/${remoteId}/remove`),
