@@ -221,6 +221,34 @@ class Image extends React.Component {
         </MenuItem>
       ]);
     }
+    let galleryImage;
+    let removeDelete;
+    let groupImage;
+    if (!this.props.group) {
+      galleryImage = ([
+        <MenuItem onClick={this.addToGallery} key="add">
+          <Glyphicon glyph="th" />
+          Add to ...
+        </MenuItem>,
+        <MenuItem onClick={this.upload} key="upload">
+          <Glyphicon glyph="upload" />
+          Sync
+        </MenuItem>
+      ]);
+      removeDelete = (
+        <MenuItem onClick={this.deleteConfirmation}>
+          <Glyphicon glyph="trash" />
+          Remove &amp; Delete
+        </MenuItem>
+      );
+    } else {
+      groupImage = (
+        <MenuItem onClick={this.props.save}>
+          <Glyphicon glyph="download" />
+          Save
+        </MenuItem>
+      );
+    }
 
     return (
       <figure className={classes}>
@@ -232,24 +260,15 @@ class Image extends React.Component {
               <Glyphicon glyph="picture" />
               Set as Wallpaper
             </MenuItem>
-            <MenuItem onClick={this.addToGallery}>
-              <Glyphicon glyph="th" />
-              Add to ...
-            </MenuItem>
-            <MenuItem onClick={this.upload}>
-              <Glyphicon glyph="upload" />
-              Sync
-            </MenuItem>
-            {shareButtons}
-            <MenuItem divider />
+            {galleryImage}
+            {groupImage}
             <MenuItem onClick={this.remove}>
               <Glyphicon glyph="remove" />
               Remove
             </MenuItem>
-            <MenuItem onClick={this.deleteConfirmation}>
-              <Glyphicon glyph="trash" />
-              Remove &amp; Delete
-            </MenuItem>
+            {removeDelete}
+            <MenuItem divider />
+            {shareButtons}
           </div>
         </figcaption>
 
@@ -297,16 +316,20 @@ Image.propTypes = {
   tags: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
   onRemove: React.PropTypes.func.isRequired,
   onSelect: React.PropTypes.func,
+  save: React.PropTypes.func,
   url: React.PropTypes.string,
   remoteId: React.PropTypes.string,
   multiSelect: React.PropTypes.bool,
-  selected: React.PropTypes.bool
+  selected: React.PropTypes.bool,
+  group: React.PropTypes.bool
 };
 
 Image.defaultProps = {
   onSelect: _ => true,
+  save: _ => true,
   multiSelect: false,
   selected: false,
+  group: false,
   url: null,
   remoteId: null
 };

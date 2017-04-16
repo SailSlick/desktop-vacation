@@ -117,7 +117,7 @@ const galleryModel = {
   removeImages: (gid, imageIds, cb) => {
     db.updateRaw(
       { _id: db.getId(gid) },
-      { $pull: { images: { $each: imageIds } } },
+      { $pullAll: { images: imageIds } },
       (success) => {
         if (!success) cb('invalid update');
         else cb();

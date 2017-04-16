@@ -465,23 +465,23 @@ module.exports = {
       return async.each(imageIds,
         (id, nextId) => {
           imageModel.get(id, (getErr, image) => {
-            if (getErr) nextId(400, 'data is invalid');
+            if (getErr) nextId('data is invalid');
             else if (uid !== image.uid) {
-              nextId(401, 'incorrect permissions for image');
+              nextId('incorrect permissions for image');
             }
             galleryModel.addImages(gid, [id], (failure) => {
-              if (failure) nextId(500, failure);
+              if (failure) nextId(failure);
               else {
                 imageModel.incrementRef(id, (incErr) => {
                   if (incErr) console.error('AddtoGroup failed to increment image ref', incErr);
-                  nextId(null, 'data added to group');
+                  nextId(null);
                 });
               }
             });
           });
-        }, (error, result) => {
-          if (error) return next({ status: error, error: result[result.length - 1] });
-          return next({ status: 200, message: result[0] });
+        }, (error) => {
+          if (error) return next({ status: error, error });
+          return next({ status: 200, message: 'Images added to Group' });
         });
     });
   },
@@ -502,25 +502,25 @@ module.exports = {
       return async.each(imageIds,
         (id, nextId) => {
           imageModel.get(id, (getErr, image) => {
-            if (getErr) nextId(400, 'data is invalid');
+            if (getErr) nextId('data is invalid');
             else if (uid !== image.uid || uid !== doc.uid) {
-              nextId(401, 'incorrect permissions to remove image');
+              nextId('incorrect permissions to remove image');
             }
             galleryModel.removeImages(gid, [id], (galDelErr) => {
               if (galDelErr) {
                 console.error('error in removeGroupItem', galDelErr);
-                nextId(500, 'remove failed');
+                nextId('remove failed');
               } else {
                 imageModel.remove(id, image, (delErr) => {
                   if (delErr) console.error('error in removeGroupItem image remove', delErr);
-                  nextId(null, 'data removed from group');
+                  nextId(null);
                 });
               }
             });
           });
-        }, (error, result) => {
-          if (error) return next({ status: error, error: result[result.length - 1] });
-          return next({ status: 200, message: result[0] });
+        }, (error) => {
+          if (error) return next({ status: error, error });
+          return next({ status: 200, message: 'Images removed from Group' });
         });
     });
   }

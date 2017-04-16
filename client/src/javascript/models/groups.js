@@ -1,5 +1,5 @@
 import request from 'request';
-import { map } from 'async';
+import { map, eachOf } from 'async';
 import Host from './host';
 import Galleries from './galleries';
 import Images from './images';
@@ -93,6 +93,38 @@ const Groups = {
     });
   },
 
+  getGroupImages: (group, error, msg, cb) => {
+    let downloads = false;
+    Galleries.should_save = false;
+
+    map(group.subgalleries, (subgal, galNext) => {
+      subgal.thumbnail = null;
+      // get thumbnail
+      if (subgal.images && subgal.images.length !== 0) {
+        Images.getOrDownload(subgal.images[0], group._id, (thumbErr, image) => {
+          if (image) {
+            subgal.thumbnail = image.location;
+            galNext(null, subgal);
+          }
+        });
+      } else galNext(null, subgal);
+    }, (galMapErr, galResults) => {
+      group.subgalleries = galResults;
+      map(group.images, (id, next) => {
+        Images.getOrDownload(id, group._id, (getErr, image, download) => {
+          if (download) downloads = true;
+          next(getErr, image);
+        });
+      }, (mapErr, result) => {
+        if (mapErr) warning(error);
+        group.images = result;
+        Galleries.should_save = true;
+        if (downloads) document.dispatchEvent(Galleries.gallery_update_event);
+        cb(error, msg, group);
+      });
+    });
+  },
+
   get: (gid, cb) => {
     const options = {
       uri: server_uri.concat(`/group/${gid || ''}`),
@@ -102,37 +134,23 @@ const Groups = {
     };
     return request(options, (err, res, body) => {
       requestHandler(err, body, (error, msg) => {
-        if (error) return cb(error, msg);
-        const gallery = body.data;
-        let downloads = false;
-
-        return map(gallery.subgalleries, (subgal, galNext) => {
-          subgal.thumbnail = null;
-          // get thumbnail
-          if (subgal.images && subgal.images.length !== 0) {
-            Images.getOrDownload(subgal.images[0], gid, (thumbErr, image) => {
-              if (image) {
-                subgal.thumbnail = image.location;
-                galNext(null, subgal);
-              }
-            });
-          } else galNext(null, subgal);
-        }, (galMapErr, galResults) => {
-          gallery.subgalleries = galResults;
-          map(gallery.images, (id, next) => {
-            Images.getOrDownload(id, gid, (getErr, image, download) => {
-              if (download) downloads = true;
-              next(getErr, image);
-            });
-          }, (mapErr, result) => {
-            if (mapErr) warning(err);
-            gallery.images = result;
-            if (downloads && Galleries.should_save) {
-              document.dispatchEvent(Galleries.gallery_update_event);
+        if (error) cb(error, msg);
+        else {
+          const group = body.data;
+          Galleries.getMongo(group._id, (cliGroup) => {
+            if (!cliGroup) {
+              Galleries.add(group.name, (addedGallery) => {
+                Galleries.convertToGroup(addedGallery.$loki, group._id, (convertedGroup) => {
+                  group.$loki = convertedGroup.$loki;
+                  Groups.getGroupImages(group, error, msg, cb);
+                });
+              });
+            } else {
+              group.$loki = cliGroup.$loki;
+              Groups.getGroupImages(group, error, msg, cb);
             }
-            return cb(error, msg, gallery);
           });
-        });
+        }
       });
     });
   },
@@ -237,6 +255,20 @@ const Groups = {
     });
   },
 
+  save: (imageIds, cb) => {
+    Galleries.should_save = false;
+    eachOf(imageIds, (id, key, next) => {
+      if (key === imageIds.length - 1) Galleries.should_save = true;
+      Galleries.addItem(1, id, (success, errMsg) => {
+        if (!success) next(errMsg);
+        else next();
+      });
+    }, (err) => {
+      if (err) cb(err);
+      else cb(null, 'All images saved');
+    });
+  },
+
   addToGroup: (gid, imageIds, cb) => {
     Galleries.getMongo(gid, (group) => {
       imageIds = imageIds.filter(id => group.images.indexOf(id) === -1);
@@ -259,18 +291,57 @@ const Groups = {
   },
 
   removeFromGroup: (gid, imageIds, cb) => {
-    const options = {
-      uri: server_uri.concat(`/group/${gid || ''}/remove`),
-      method: 'POST',
-      jar: cookie_jar,
-      json: {
-        imageIds
-      }
-    };
-    return request(options, (err, res, body) => {
-      requestHandler(err, body, (error, msg) => {
-        cb(error, msg);
+    map(imageIds, (id, next) => {
+      Images.get(id, (image) => {
+        if (!image) next('image not found');
+        else next(null, image.remoteId);
       });
+    }, (err, result) => {
+      if (err) cb(err, 'remove failed');
+      else {
+        Galleries.getMongo(gid, (group) => {
+          imageIds = imageIds.filter(id => group.images.indexOf(id) === -1);
+          const options = {
+            uri: server_uri.concat(`/group/${gid || ''}/remove`),
+            method: 'POST',
+            jar: cookie_jar,
+            json: {
+              'image-ids': JSON.stringify(result)
+            }
+          };
+          request(options, (reqErr, res, body) => {
+            requestHandler(reqErr, body, (error, msg) => {
+              if (error) cb(error, msg);
+              else {
+                // check if in base gallery, If not remove from fs
+                Galleries.get(1, (gallery) => {
+                  Galleries.should_save = false;
+                  map(imageIds, (rmId, next) => {
+                    if (gallery.images.indexOf(rmId) === -1) {
+                      Galleries.deleteGroupItem(group.$loki, rmId, (delErr) => {
+                        if (delErr) next(delErr);
+                        else next();
+                      });
+                    } else {
+                      Galleries.removeItem(group.$loki, rmId, (data, rmErr) => {
+                        if (err) next(rmErr);
+                        else next();
+                      });
+                    }
+                  }, (mapErr) => {
+                    Galleries.should_save = true;
+                    if (mapErr) cb(mapErr, 'removed from server but not client');
+                    else {
+                      document.dispatchEvent(Galleries.gallery_update_event);
+                      cb(null, msg);
+                    }
+                  });
+                });
+              }
+            });
+          });
+        });
+      }
     });
   },
 

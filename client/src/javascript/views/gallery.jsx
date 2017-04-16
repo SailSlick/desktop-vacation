@@ -208,17 +208,14 @@ class Gallery extends React.Component {
   }
 
   selectItem(id) {
-    // Avoid calling setState by making in-place changes
-    const pos = this.state.selection.indexOf(id);
+    const selection = this.state.selection;
+    const pos = selection.indexOf(id);
     if (pos === -1) {
-      this.state.selection.push(id);
+      selection.push(id);
     } else {
-      this.state.selection.splice(pos, 1);
+      selection.splice(pos, 1);
     }
-    // Dummy argument, really we just want to trigger a render
-    this.setState({
-      selection: this.state.selection
-    });
+    this.setState({ selection });
   }
 
   selectAll(should_select, cb) {

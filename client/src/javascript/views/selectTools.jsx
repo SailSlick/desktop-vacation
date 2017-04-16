@@ -42,6 +42,27 @@ export default class SelectTools extends React.Component {
     if (!this.props.multiSelect) {
       return null;
     }
+    let gallerySelect;
+    let groupSelect;
+    if (!this.props.group) {
+      gallerySelect = [
+        <NavItem onClick={this.props.syncAll} key="sync">
+          <Glyphicon glyph="upload" />
+          Sync
+        </NavItem>,
+        <NavItem onClick={this.props.addAllToGallery} key="add">
+          <Glyphicon glyph="th" />
+          Add To ...
+        </NavItem>
+      ];
+    } else {
+      groupSelect = (
+        <NavItem onClick={this.props.saveAll}>
+          <Glyphicon glyph="download" />
+          Save
+        </NavItem>
+      );
+    }
     return (
       <div>
         <Waypoint
@@ -69,14 +90,8 @@ export default class SelectTools extends React.Component {
               <Glyphicon glyph="minus" />
               Deselect All
             </NavItem>
-            <NavItem onClick={this.props.syncAll}>
-              <Glyphicon glyph="upload" />
-              Sync
-            </NavItem>
-            <NavItem onClick={this.props.addAllToGallery}>
-              <Glyphicon glyph="th" />
-              Add To ...
-            </NavItem>
+            {groupSelect}
+            {gallerySelect}
             <NavItem onClick={this.props.removeAll}>
               <Glyphicon glyph="remove" />
               Remove
@@ -126,5 +141,12 @@ SelectTools.propTypes = {
   removeAll: React.PropTypes.func.isRequired,
   syncAll: React.PropTypes.func.isRequired,
   tagAll: React.PropTypes.func.isRequired,
-  rateAll: React.PropTypes.func.isRequired
+  rateAll: React.PropTypes.func.isRequired,
+  saveAll: React.PropTypes.func,
+  group: React.PropTypes.bool
+};
+
+SelectTools.defaultProps = {
+  group: false,
+  saveAll: () => true
 };
