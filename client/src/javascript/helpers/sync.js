@@ -95,11 +95,14 @@ const Sync = {
     // eslint-disable-next-line padded-blocks
     Images.getMany(gallery.images, (imagesFull) => {
 
-      // Split them into removed and unsynced
+      // Split them into removed, unsynced and new
       const removedImages = imagesFull.filter(img =>
         img.remoteId && !remoteGallery.images.some(imgId => imgId === img.remoteId)
       );
       const unsyncedImages = imagesFull.filter(img => !img.remoteId);
+      const newImages = remoteGallery.images.filter(remoteId =>
+        !imagesFull.some(img => img.remoteId === remoteId)
+      );
 
       // Remove the removed ones
       each(removedImages, (img, next) =>
@@ -107,8 +110,18 @@ const Sync = {
 
       // Upload the new ones
       () => Sync.uploadImages(unsyncedImages.map(img => img.$loki), (remoteIds) => {
-        if (!remoteIds) cb('Remote ids not sent by server');
-        else cb();
+        if (!remoteIds) return cb('Remote ids not sent by server');
+
+        // Download the new remote ones
+        return each(newImages, (remoteId, next) =>
+          Sync.downloadImageData(remoteId, (errDl, id) => {
+            if (errDl) return next(errDl);
+            // Documents in LokiJS can be mutated without calling its db functions
+            gallery.images.push(id);
+            return next();
+          }),
+          cb
+        );
       }));
     });
   },
@@ -134,11 +147,14 @@ const Sync = {
         // eslint-disable-next-line padded-blocks
         return Galleries.getMany(gallery.subgalleries, (subgalleriesFull) => {
 
-          // Split them into removed and unsynced
+          // Split them into removed, unsynced and new
           const removedGalleries = subgalleriesFull.filter(gal =>
             gal.remoteId && !remoteGallery.subgalleries.some(galId => galId === gal.remoteId)
           );
           const unsyncedGalleries = subgalleriesFull.filter(gal => !gal.remoteId);
+          const newGalleries = remoteGallery.subgalleries.filter(remoteGid =>
+            !subgalleriesFull.some(gal => gal.remoteId === remoteGid)
+          );
 
           // Remove the removed ones
           each(removedGalleries, (gal, next) =>
@@ -154,8 +170,17 @@ const Sync = {
                 next((!doc && `Failed to update remoteId of gallery ${gid}`) || null)
               );
             }),
-          cb
-          ));
+
+          // Download the new remote ones
+          () => each(newGalleries, (remoteGid, next) =>
+            Sync.downloadGallery(remoteGid, (errDl, id) => {
+              if (errDl) return next(errDl);
+              // Documents in LokiJS can be mutated without calling its db functions
+              gallery.subgalleries.push(id);
+              return next();
+            }),
+            cb
+          )));
         });
       });
     }));
