@@ -11,7 +11,7 @@ let gallery_db;
 let BASE_GALLERY_ID = 1;
 
 const gallery_update_event = new Event('gallery_updated');
-
+const progress_finished_event = new Event('progress_finished');
 const Galleries = {
   should_save: true,
   gallery_update_event,
@@ -368,6 +368,12 @@ ipc.on('selected-directory', (event, files) => {
   eachOf(files, (file, index, next) => {
     Images.add(file, (image, dup) => {
       if (dup) dups += 1;
+      else {
+        document.dispatchEvent(new CustomEvent(
+          'progress_update',
+          { detail: files.length - dups }
+        ));
+      }
       Galleries.addItem(BASE_GALLERY_ID, image.$loki, () => {
         console.log(`Opened image ${file}`);
         next();
@@ -377,6 +383,7 @@ ipc.on('selected-directory', (event, files) => {
   () => {
     Galleries.should_save = true;
     document.dispatchEvent(gallery_update_event);
+    document.dispatchEvent(progress_finished_event);
     success(`Added ${files.length - dups} images`);
     if (dups > 0) warning(`${dups} duplicated images in add`);
     console.log('Finished opening images');
