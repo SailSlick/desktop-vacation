@@ -16,9 +16,8 @@ if (process.env.NODE_ENV !== 'dev') {
 
 function createClientAccount(username, res, cb) {
   // insert users
-  const galname = username.concat('_all');
-  Galleries.addBase(galname, res['root-remote-id'], (rootLokiId) => {
-    if (!rootLokiId) return cb(500, "gallery couldn't be made on client");
+  Galleries.downloadRoot(res['root-remote-id'], (err, rootLokiId) => {
+    if (err) return cb(500, err);
     // insert users
     const userData = {
       username,
@@ -82,14 +81,16 @@ const Host = {
             cb(body.status, body.error);
           });
         }
-        if (!host_doc) {
+        Host.uid = body.uid;
+        if (host_doc) {
+          Galleries.setBaseId(host_doc.gallery);
+        } else {
           console.log('Create client side account for prev account.');
           return createClientAccount(username, body, (msg_err, msg) => {
             cb(msg_err, msg);
           });
         }
 
-        Host.uid = body.uid;
         return cb(null, body.message);
       });
     });
@@ -139,8 +140,8 @@ const Host = {
             cb(body.status, body.error);
           });
         }
+        Host.uid = body.uid;
         return createClientAccount(username, body, (msg_err, msg) => {
-          Host.uid = body.uid;
           cb(msg_err, msg);
         });
       });
@@ -234,6 +235,10 @@ const Host = {
 // Events
 document.addEventListener('vacation_loaded', () => {
   host_db = new DbConn('host');
+  // Taken from profile.jsx componentDidMount
+  Host.get({ $gt: 0 }, (doc) => {
+    if (doc) Galleries.BASE_GALLERY_ID = doc.gallery;
+  });
 }, false);
 
 document.addEventListener('host_updated', () => {

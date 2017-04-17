@@ -1,6 +1,5 @@
 import { map, each, eachOf, filter as asyncFilter } from 'async';
 import { ipcRenderer as ipc } from 'electron';
-import Host from './host';
 import DbConn from '../helpers/db';
 import Images from './images';
 import { success, warning } from '../helpers/notifier';
@@ -8,37 +7,24 @@ import Sync from '../helpers/sync';
 
 let gallery_db;
 
-let BASE_GALLERY_ID = 1;
-
 const gallery_update_event = new Event('gallery_updated');
 
 const Galleries = {
   should_save: true,
   gallery_update_event,
+  BASE_GALLERY_ID: 1,
 
-  addBase: (name, remoteId, cb) => {
-    gallery_db.findOne({ name }, (found_gallery) => {
-      if (found_gallery) {
-        console.error(`Gallery ${name} already exists`);
-        return cb(found_gallery);
-      }
-      const doc = {
-        name,
-        remoteId,
-        tags: [],
-        subgalleries: [],
-        images: [],
-        metadata: {
-          rating: 0,
-          tags: []
-        }
-      };
-      return gallery_db.insert(doc, (inserted_gallery) => {
-        BASE_GALLERY_ID = inserted_gallery.$loki;
-        return cb(inserted_gallery.$loki);
+  downloadRoot: (remoteId, cb) =>
+    Sync.downloadGallery(remoteId, (err, gallery) => {
+      if (err) return cb(err);
+      return gallery_db.insert(gallery, (root_gallery) => {
+        Galleries.BASE_GALLERY_ID = root_gallery.$loki;
+        cb(null, root_gallery.$loki);
       });
-    });
-  },
+    }, true),
+
+  syncRoot: cb =>
+    Sync.uploadGallery(Galleries.BASE_GALLERY_ID, cb),
 
   add: (name, cb) => {
     if (!name || typeof name !== 'string' || name.trim() === '') {
@@ -66,7 +52,7 @@ const Galleries = {
     gallery_db.insert(gallery, (inserted_gallery) => {
       // addSubgallery will dispatch the event
       const id = inserted_gallery.$loki;
-      Galleries.addSubGallery(BASE_GALLERY_ID, id, () =>
+      Galleries.addSubGallery(Galleries.BASE_GALLERY_ID, id, () =>
         cb(inserted_gallery)
       );
     });
@@ -86,7 +72,7 @@ const Galleries = {
     if (id === subgallery_id) {
       return cb(null, `Tried to add gallery ${id} to itself`);
     }
-    if (subgallery_id === BASE_GALLERY_ID) {
+    if (subgallery_id === Galleries.BASE_GALLERY_ID) {
       return cb(null, `Tried to add base gallery to ${id}`);
     }
     return Galleries.get(id, (base_gallery) => {
@@ -131,7 +117,7 @@ const Galleries = {
 
   getMany: (ids, cb) => gallery_db.findMany({ $loki: { $in: ids } }, cb),
 
-  getManyRemote: (remoteIds, cb) => gallery_db.findOne({ remoteId: { $in: remoteIds } }, cb),
+  getManyRemote: (remoteIds, cb) => gallery_db.findMany({ remoteId: { $in: remoteIds } }, cb),
 
   filterSingle: (item, filter, cb) => {
     let filterThrough = true;
@@ -214,7 +200,7 @@ const Galleries = {
 
   remove: (id, cb) => {
     console.log('Removing gallery:', id);
-    if (id === BASE_GALLERY_ID) {
+    if (id === Galleries.BASE_GALLERY_ID) {
       return cb('Tried to delete base gallery');
     }
 
@@ -261,7 +247,7 @@ const Galleries = {
 
   removeItem: (id, item_id, cb) => {
     console.log(`Attempting to remove ${item_id} from ${id}`);
-    if (id === BASE_GALLERY_ID) {
+    if (id === Galleries.BASE_GALLERY_ID) {
       return Galleries.removeItemGlobal(item_id, cb);
     }
     return Galleries.get(id, (gallery) => {
@@ -317,25 +303,8 @@ const Galleries = {
     gallery_db.updateOne({ $loki: gid }, { remoteId }, cb);
   },
 
-  syncRoot: (cb) => {
-    cb = cb || (() => {});
-    Host.getIndex(Host.userId, (userData) => {
-      if (!userData) {
-        console.error('User data doesn\'t exist.');
-        return cb();
-      }
-      // Get contents of the base gallery
-      return Sync.downloadGallery(userData.remoteGallery, (err, gallery) => {
-        if (err) {
-          console.error(err);
-          return cb(err);
-        }
-        return Galleries.update(BASE_GALLERY_ID, {
-          images: gallery.images,
-          subgalleries: gallery.subgalleries
-        }, cb);
-      }, true);
-    });
+  setBaseId: (id) => {
+    Galleries.BASE_GALLERY_ID = id;
   }
 };
 
@@ -348,7 +317,7 @@ document.addEventListener('gallery_updated', () =>
   gallery_db.save(_ => console.log('Database saved')),
 false);
 
-document.addEventListener('sync_root', () => Galleries.syncRoot(), false);
+document.addEventListener('sync_root', () => Galleries.syncRoot(() => {}), false);
 
 // IPC Calls
 ipc.on('selected-directory', (event, files) => {
@@ -357,7 +326,7 @@ ipc.on('selected-directory', (event, files) => {
   eachOf(files, (file, index, next) => {
     Images.add(file, (image, dup) => {
       if (dup) dups += 1;
-      Galleries.addItem(BASE_GALLERY_ID, image.$loki, () => {
+      Galleries.addItem(Galleries.BASE_GALLERY_ID, image.$loki, () => {
         console.log(`Opened image ${file}`);
         next();
       });

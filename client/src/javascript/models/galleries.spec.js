@@ -296,7 +296,8 @@ describe('Galleries model', () => {
         data: { images: ['APERATUREscience'] },
         message: 'Hoo-Wee! I\'m Mr Poopy Butthole'
       });
-    Galleries.syncRoot(() => {
+    Galleries.syncRoot((err) => {
+      should.not.exist(err);
       req.isDone().should.be.ok;
       imageDownloadStub.called.should.be.ok;
       Galleries.get(base_gallery_id, (gallery) => {

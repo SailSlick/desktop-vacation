@@ -78,7 +78,7 @@ module.exports = {
             !gallery.images.some(newImage => oldImage === newImage)
           );
           const removedSubgalleries = existingGallery.subgalleries.filter(oldGallery =>
-            !gallery.galleries.some(newGallery => oldGallery === newGallery)
+            !gallery.subgalleries.some(newGallery => oldGallery === newGallery)
           );
           async.each(removedImages,
             (id, nextId) => imageModel.remove(uid, id, nextId),

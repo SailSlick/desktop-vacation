@@ -92,17 +92,18 @@ const Sync = {
 
   syncGalleryImages(gallery, remoteGallery, cb) {
     // Get all the images
-    // eslint-disable-next-line padded-blocks
     Images.getMany(gallery.images, (imagesFull) => {
-
       // Split them into removed, unsynced and new
       const removedImages = imagesFull.filter(img =>
         img.remoteId && !remoteGallery.images.some(imgId => imgId === img.remoteId)
       );
-      const unsyncedImages = imagesFull.filter(img => !img.remoteId);
+      let unsyncedImages = imagesFull.filter(img => !img.remoteId);
       const newImages = remoteGallery.images.filter(remoteId =>
         !imagesFull.some(img => img.remoteId === remoteId)
       );
+
+      // Don't upload everything if syncing base
+      if (gallery.$loki === Galleries.BASE_GALLERY_ID) unsyncedImages = [];
 
       // Remove the removed ones
       each(removedImages, (img, next) =>
@@ -139,22 +140,22 @@ const Sync = {
       const remoteGallery = body.data;
 
       // Sync the images
-      // eslint-disable-next-line padded-blocks
       return Sync.syncGalleryImages(gallery, remoteGallery, (err) => {
         if (err) return cb(err);
 
         // Get all the subgalleries
-        // eslint-disable-next-line padded-blocks
         return Galleries.getMany(gallery.subgalleries, (subgalleriesFull) => {
-
           // Split them into removed, unsynced and new
           const removedGalleries = subgalleriesFull.filter(gal =>
             gal.remoteId && !remoteGallery.subgalleries.some(galId => galId === gal.remoteId)
           );
-          const unsyncedGalleries = subgalleriesFull.filter(gal => !gal.remoteId);
+          let unsyncedGalleries = subgalleriesFull.filter(gal => !gal.remoteId);
           const newGalleries = remoteGallery.subgalleries.filter(remoteGid =>
             !subgalleriesFull.some(gal => gal.remoteId === remoteGid)
           );
+
+          // Don't upload everything if syncing base
+          if (gallery.$loki === Galleries.BASE_GALLERY_ID) unsyncedGalleries = [];
 
           // Remove the removed ones
           each(removedGalleries, (gal, next) =>
@@ -288,8 +289,8 @@ const Sync = {
   },
 
   downloadImage: (id, gid, cb) => {
-    if (gid === null) gid = '';
-    const imageUrl = Host.server_uri.concat(`/image/${id}/${gid || ''}`);
+    if (!gid) gid = '';
+    const imageUrl = Host.server_uri.concat(`/image/${id}/${gid}`);
     console.log('Downloading image to disk');
     const options = {
       uri: imageUrl,
@@ -324,7 +325,7 @@ const Sync = {
 
   downloadImageData: (remoteId, cb) => {
     const options = {
-      uri: Host.server_uri.concat(`/gallery/${remoteId}/data`),
+      uri: Host.server_uri.concat(`/image/${remoteId}/data`),
       jar: Host.cookie_jar,
       method: 'GET',
       json: true
@@ -333,7 +334,7 @@ const Sync = {
       if (errDl) return cb(errDl);
 
       // Add to database
-      const image = body.image;
+      const image = body.data;
       return Images.insert(image, newImg => cb(null, newImg.$loki));
     }));
   },
@@ -411,6 +412,8 @@ const Sync = {
             gallery.uid = Host.uid;
             gallery.images = imageIds;
             gallery.subgalleries = subgalleryIds;
+            gallery.metadata.rating = +gallery.metadata.rating || 0;
+            gallery.metadata.tags = gallery.metadata.tags || [];
             if (doNotInsert) return cb(null, gallery);
             return Galleries.insert(gallery, newGal => cb(null, newGal.$loki));
           });

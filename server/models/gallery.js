@@ -106,7 +106,8 @@ const galleryModel = {
   addImages: (gid, imageIds, cb) => {
     db.updateRaw(
       { _id: db.getId(gid) },
-      { $addToSet: { images: { $each: imageIds } } },
+      // eslint-disable-next-line prefer-template
+      { $addToSet: { images: { $each: imageIds.map(x => x + '') } } },
       (success) => {
         if (!success) cb('invalid update');
         else cb();
@@ -115,10 +116,9 @@ const galleryModel = {
   },
 
   removeImageGlobal: (imageId, uid, next) => {
-    const id = db.getId(imageId);
     db.updateMany(
-      { uid, images: id },
-      { $pull: { images: id } },
+      { uid, images: imageId },
+      { $pull: { images: imageId } },
       (success) => {
         if (!success) return next('invalid request, or invalid permissions');
         return next();

@@ -4,6 +4,7 @@ import { Modal, MenuItem, Button, Glyphicon, Image as BsImage, Grid, Col, Row, T
 import { success, danger, warning } from '../helpers/notifier';
 import Wallpaper from '../helpers/wallpaper-client';
 import Sync from '../helpers/sync';
+import Host from '../models/host';
 import Images from '../models/images';
 
 const append_gallery_event_name = 'append_gallery';
@@ -14,7 +15,8 @@ class Image extends React.Component {
 
     this.state = {
       expanded: false,
-      deleteConfirmation: false
+      deleteConfirmation: false,
+      src: this.props.src
     };
 
     this.onClick = this.onClick.bind(this);
@@ -29,6 +31,17 @@ class Image extends React.Component {
     this.share = this.share.bind(this);
     this.unshare = this.unshare.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
+
+    // Download image now if necessary
+    if (!this.state.src && Host.isAuthed()) {
+      Sync.downloadImage(this.props.remoteId, null, (err, src) => {
+        if (err) return danger(err);
+
+        // Update state and database
+        this.setState({ src });
+        return Images.update(this.props.dbId, { location: src }, () => {});
+      });
+    }
   }
 
   onClick() {
@@ -40,7 +53,7 @@ class Image extends React.Component {
   }
 
   setAsWallpaper() {
-    Wallpaper.set(this.props.src);
+    Wallpaper.set(this.state.src);
   }
 
   addToGallery() {
@@ -224,7 +237,7 @@ class Image extends React.Component {
 
     return (
       <figure className={classes}>
-        <BsImage responsive src={this.props.src} alt="MISSING" onClick={this.onClick} />
+        <BsImage responsive src={this.state.src} alt="MISSING" onClick={this.onClick} />
         <figcaption className="figure-caption rounded-circle">
           ...
           <div className="dropdown-menu img-menu">
@@ -255,13 +268,13 @@ class Image extends React.Component {
 
         <Modal className="big-modal" show={this.state.expanded} onHide={this.hideModals}>
           <Modal.Header closeButton>
-            <Modal.Title>{this.props.src}</Modal.Title>
+            <Modal.Title>{this.state.src}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Grid fluid>
               <Row>
                 <Col xs={9} md={10}>
-                  <BsImage responsive src={this.props.src} alt="MISSING" />
+                  <BsImage responsive src={this.state.src} alt="MISSING" />
                 </Col>
                 <Col xs={3} md={2}>
                   {metadataRow}
@@ -276,8 +289,8 @@ class Image extends React.Component {
             <Modal.Title>Confirm Deletion</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <p>Are you sure you want to delete <code>{this.props.src}</code>?</p>
-            <BsImage className="small-preview" src={this.props.src} alt="MISSING" />
+            <p>Are you sure you want to delete <code>{this.state.src}</code>?</p>
+            <BsImage className="small-preview" src={this.state.src} alt="MISSING" />
           </Modal.Body>
           <Modal.Footer>
             <Button onClick={this.hideModals}>Cancel</Button>
@@ -292,7 +305,7 @@ class Image extends React.Component {
 
 Image.propTypes = {
   dbId: React.PropTypes.number.isRequired,
-  src: React.PropTypes.string.isRequired,
+  src: React.PropTypes.string,
   rating: React.PropTypes.number.isRequired,
   tags: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
   onRemove: React.PropTypes.func.isRequired,
