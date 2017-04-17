@@ -42,21 +42,18 @@ export default class SelectTools extends React.Component {
     if (!this.props.multiSelect) {
       return null;
     }
-    let gallerySelect;
-    let groupSelect;
-    if (!this.props.group) {
-      gallerySelect = [
-        <NavItem onClick={this.props.syncAll} key="sync">
-          <Glyphicon glyph="upload" />
-          Sync
-        </NavItem>,
-        <NavItem onClick={this.props.addAllToGallery} key="add">
-          <Glyphicon glyph="th" />
-          Add To ...
-        </NavItem>
-      ];
-    } else {
-      groupSelect = (
+    let typeSelect = [
+      <NavItem onClick={this.props.syncAll} key="sync">
+        <Glyphicon glyph="upload" />
+        Sync
+      </NavItem>,
+      <NavItem onClick={this.props.addAllToGallery} key="add">
+        <Glyphicon glyph="th" />
+        Add To ...
+      </NavItem>
+    ];
+    if (this.props.group) {
+      typeSelect = (
         <NavItem onClick={this.props.saveAll}>
           <Glyphicon glyph="download" />
           Save
@@ -90,8 +87,7 @@ export default class SelectTools extends React.Component {
               <Glyphicon glyph="minus" />
               Deselect All
             </NavItem>
-            {groupSelect}
-            {gallerySelect}
+            {typeSelect}
             <NavItem onClick={this.props.removeAll}>
               <Glyphicon glyph="remove" />
               Remove

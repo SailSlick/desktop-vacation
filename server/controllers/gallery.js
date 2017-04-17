@@ -255,6 +255,8 @@ module.exports = {
         if (doc.users.indexOf(toAddName) !== -1) {
           return next({ status: 400, error: 'user is already member of group' });
         }
+        const invited = result.invites.filter(x => x.groupname === doc.name);
+        if (invited.length !== 0) return next({ status: 400, error: 'user has already been invited' });
         // add invite to user list
         result.invites.push({ groupname: doc.name, gid: doc._id.toHexString() });
         return userModel.update(toAddName, result, (check) => {
@@ -386,6 +388,11 @@ module.exports = {
       if (doc.uid !== uid && doc.users.indexOf(username) === -1) {
         return next({ status: 400, error: 'user isn\'t member of group' });
       }
+
+      // Rename _id to remoteId
+      doc.remoteId = doc._id;
+      delete doc._id;
+
       return next({
         status: 200,
         message: 'group found',
@@ -412,7 +419,7 @@ module.exports = {
           let images = [];
           if (gallery.images && gallery.images.length > 0) images = [gallery.images[0]];
           return cb(null, {
-            _id: gallery._id,
+            remoteId: gallery._id,
             name: gallery.name,
             uid: gallery.uid,
             users: gallery.users,
@@ -468,19 +475,20 @@ module.exports = {
             if (getErr) nextId('data is invalid');
             else if (uid !== image.uid) {
               nextId('incorrect permissions for image');
+            } else {
+              galleryModel.addImages(gid, [id], (failure) => {
+                if (failure) nextId(failure);
+                else {
+                  imageModel.incrementRef(id, (incErr) => {
+                    if (incErr) console.error('AddtoGroup failed to increment image ref', incErr);
+                    nextId(null);
+                  });
+                }
+              });
             }
-            galleryModel.addImages(gid, [id], (failure) => {
-              if (failure) nextId(failure);
-              else {
-                imageModel.incrementRef(id, (incErr) => {
-                  if (incErr) console.error('AddtoGroup failed to increment image ref', incErr);
-                  nextId(null);
-                });
-              }
-            });
           });
         }, (error) => {
-          if (error) return next({ status: error, error });
+          if (error) return next({ status: 400, error });
           return next({ status: 200, message: 'Images added to Group' });
         });
     });
@@ -505,21 +513,22 @@ module.exports = {
             if (getErr) nextId('data is invalid');
             else if (uid !== image.uid || uid !== doc.uid) {
               nextId('incorrect permissions to remove image');
+            } else {
+              galleryModel.removeImages(gid, [id], (galDelErr) => {
+                if (galDelErr) {
+                  console.error('error in removeGroupItem', galDelErr);
+                  nextId('remove failed');
+                } else {
+                  imageModel.remove(id, image, (delErr) => {
+                    if (delErr) console.error('error in removeGroupItem image remove', delErr);
+                    nextId(null);
+                  });
+                }
+              });
             }
-            galleryModel.removeImages(gid, [id], (galDelErr) => {
-              if (galDelErr) {
-                console.error('error in removeGroupItem', galDelErr);
-                nextId('remove failed');
-              } else {
-                imageModel.remove(id, image, (delErr) => {
-                  if (delErr) console.error('error in removeGroupItem image remove', delErr);
-                  nextId(null);
-                });
-              }
-            });
           });
         }, (error) => {
-          if (error) return next({ status: error, error });
+          if (error) return next({ status: 400, error });
           return next({ status: 200, message: 'Images removed from Group' });
         });
     });

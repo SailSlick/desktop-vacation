@@ -203,29 +203,16 @@ class Image extends React.Component {
       </row>
     );
 
-    let shareButtons = (
-      <MenuItem onClick={this.share}>
-        <Glyphicon glyph="share" />
-        Share
+    let shareButtons;
+    let removeDelete;
+    let typeImage = (
+      <MenuItem onClick={this.props.save}>
+        <Glyphicon glyph="download" />
+        Save
       </MenuItem>
     );
-    if (this.props.url) {
-      shareButtons = ([
-        <MenuItem key="copyurlButton" onClick={this.share}>
-          <Glyphicon glyph="copy" />
-          Copy URL
-        </MenuItem>,
-        <MenuItem key="unshareButton" onClick={this.unshare}>
-          <Glyphicon glyph="lock" />
-          Unshare
-        </MenuItem>
-      ]);
-    }
-    let galleryImage;
-    let removeDelete;
-    let groupImage;
     if (!this.props.group) {
-      galleryImage = ([
+      typeImage = ([
         <MenuItem onClick={this.addToGallery} key="add">
           <Glyphicon glyph="th" />
           Add to ...
@@ -241,13 +228,24 @@ class Image extends React.Component {
           Remove &amp; Delete
         </MenuItem>
       );
-    } else {
-      groupImage = (
-        <MenuItem onClick={this.props.save}>
-          <Glyphicon glyph="download" />
-          Save
+      shareButtons = (
+        <MenuItem onClick={this.share}>
+          <Glyphicon glyph="share" />
+          Share
         </MenuItem>
       );
+      if (this.props.url) {
+        shareButtons = ([
+          <MenuItem key="copyurlButton" onClick={this.share}>
+            <Glyphicon glyph="copy" />
+            Copy URL
+          </MenuItem>,
+          <MenuItem key="unshareButton" onClick={this.unshare}>
+            <Glyphicon glyph="lock" />
+            Unshare
+          </MenuItem>
+        ]);
+      }
     }
 
     return (
@@ -260,8 +258,7 @@ class Image extends React.Component {
               <Glyphicon glyph="picture" />
               Set as Wallpaper
             </MenuItem>
-            {galleryImage}
-            {groupImage}
+            {typeImage}
             <MenuItem onClick={this.remove}>
               <Glyphicon glyph="remove" />
               Remove

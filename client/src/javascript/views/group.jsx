@@ -139,7 +139,7 @@ class Group extends React.Component {
 
   removeAll(ids) {
     Groups.removeFromGroup(this.props.groupId, ids, (err, msg) => {
-      if (err) danger(err);
+      if (err) danger(msg);
       else success(msg);
     });
   }
@@ -167,14 +167,14 @@ class Group extends React.Component {
     let items = this.state.subgalleries.map(subgallery =>
       <GalleryCard
         group
-        key={`g${subgallery._id}`}
+        key={`g${subgallery.remoteId}`}
         dbId={subgallery.$loki || 0}
-        mongoId={subgallery._id}
+        mongoId={subgallery.remoteId}
         name={subgallery.name}
         uid={subgallery.uid}
         users={subgallery.users}
         thumbnail={subgallery.thumbnail}
-        onClick={_ => this.props.onChange(subgallery.$loki, subgallery._id)}
+        onClick={_ => this.props.onChange(subgallery.$loki, subgallery.remoteId)}
         onRemove={_ => true}
         simple={this.props.simple}
         tags={subgallery.metadata.tags}

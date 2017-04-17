@@ -7,8 +7,8 @@ import Sync from '../helpers/sync';
 import { warning } from '../helpers/notifier';
 
 const server_uri = Host.server_uri;
-
 const cookie_jar = Host.cookie_jar;
+const BASE_GALLERY_ID = 1;
 
 function requestHandler(err, body, cb) {
   if (!body || err) return cb(500, 'server down');
@@ -98,20 +98,22 @@ const Groups = {
     Galleries.should_save = false;
 
     map(group.subgalleries, (subgal, galNext) => {
-      subgal.thumbnail = null;
-      // get thumbnail
-      if (subgal.images && subgal.images.length !== 0) {
-        Images.getOrDownload(subgal.images[0], group._id, (thumbErr, image) => {
-          if (image) {
-            subgal.thumbnail = image.location;
-            galNext(null, subgal);
-          }
-        });
+      if (!subgal.thumbnail) {
+        subgal.thumbnail = null;
+        // get thumbnail
+        if (subgal.images && subgal.images.length !== 0) {
+          Images.getOrDownload(subgal.images[0], subgal.remoteId, (thumbErr, image) => {
+            if (image) {
+              subgal.thumbnail = image.location;
+              galNext(null, subgal);
+            }
+          });
+        } else galNext(null, subgal);
       } else galNext(null, subgal);
     }, (galMapErr, galResults) => {
       group.subgalleries = galResults;
       map(group.images, (id, next) => {
-        Images.getOrDownload(id, group._id, (getErr, image, download) => {
+        Images.getOrDownload(id, group.remoteId, (getErr, image, download) => {
           if (download) downloads = true;
           next(getErr, image);
         });
@@ -137,10 +139,10 @@ const Groups = {
         if (error) cb(error, msg);
         else {
           const group = body.data;
-          Galleries.getMongo(group._id, (cliGroup) => {
+          Galleries.getMongo(group.remoteId, (cliGroup) => {
             if (!cliGroup) {
               Galleries.add(group.name, (addedGallery) => {
-                Galleries.convertToGroup(addedGallery.$loki, group._id, (convertedGroup) => {
+                Galleries.convertToGroup(addedGallery.$loki, group.remoteId, (convertedGroup) => {
                   group.$loki = convertedGroup.$loki;
                   Groups.getGroupImages(group, error, msg, cb);
                 });
@@ -291,6 +293,7 @@ const Groups = {
   },
 
   removeFromGroup: (gid, imageIds, cb) => {
+    const clientIds = imageIds;
     map(imageIds, (id, next) => {
       Images.get(id, (image) => {
         if (!image) next('image not found');
@@ -314,9 +317,9 @@ const Groups = {
               if (error) cb(error, msg);
               else {
                 // check if in base gallery, If not remove from fs
-                Galleries.get(1, (gallery) => {
+                Galleries.get(BASE_GALLERY_ID, (gallery) => {
                   Galleries.should_save = false;
-                  map(imageIds, (rmId, next) => {
+                  map(clientIds, (rmId, next) => {
                     if (gallery.images.indexOf(rmId) === -1) {
                       Galleries.deleteGroupItem(group.$loki, rmId, (delErr) => {
                         if (delErr) next(delErr);
@@ -353,9 +356,9 @@ const Groups = {
       cb([], []);
     } else {
       let subgalleries = gallery.subgalleries;
-      subgalleries = subgalleries.filter(x => x._id);
+      subgalleries = subgalleries.filter(x => x.remoteId);
       subgalleries = subgalleries.map((x) => {
-        Galleries.getMongo(x._id, (subgallery) => {
+        Galleries.getMongo(x.remoteId, (subgallery) => {
           if (subgallery) {
             x.$loki = subgallery.$loki;
           } else {
