@@ -22,7 +22,7 @@ class GroupManager extends React.Component {
   }
 
   deleteGroup() {
-    Groups.delete(this.props.mongoId, this.props.dbId, (err, msg) => {
+    Groups.delete(this.props.remoteId, this.props.dbId, (err, msg) => {
       if (err) danger(msg);
       success(msg);
       this.props.onRemove('1');
@@ -30,7 +30,7 @@ class GroupManager extends React.Component {
   }
 
   leaveGroup() {
-    Groups.leaveGroup(this.props.mongoId, this.props.dbId, (err, msg) => {
+    Groups.leaveGroup(this.props.remoteId, this.props.dbId, (err, msg) => {
       if (err) danger(msg);
       else success(msg);
     });
@@ -39,14 +39,14 @@ class GroupManager extends React.Component {
   inviteUser(event) {
     event.preventDefault();
     const username = event.target.username.value;
-    return Groups.inviteUser(this.props.mongoId, username, (err, msg) => {
+    return Groups.inviteUser(this.props.remoteId, username, (err, msg) => {
       if (err) return danger(msg);
       return success(msg);
     });
   }
 
   removeUser(username) {
-    return Groups.removeUser(this.props.mongoId, username, (err, msg) => {
+    return Groups.removeUser(this.props.remoteId, username, (err, msg) => {
       if (err) return danger(msg);
       return success(msg);
     });
@@ -135,7 +135,7 @@ class GroupManager extends React.Component {
 
 GroupManager.propTypes = {
   dbId: React.PropTypes.number.isRequired,
-  mongoId: React.PropTypes.string.isRequired,
+  remoteId: React.PropTypes.string.isRequired,
   uid: React.PropTypes.string.isRequired,
   users: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
   onRemove: React.PropTypes.func.isRequired

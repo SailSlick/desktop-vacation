@@ -72,12 +72,12 @@ const Groups = {
     });
   },
 
-  delete: (mongoId, id, cb) => {
+  delete: (remoteId, id, cb) => {
     const options = {
       uri: server_uri.concat('/group/delete'),
       method: 'POST',
       jar: cookie_jar,
-      json: { gid: mongoId }
+      json: { gid: remoteId }
     };
     return request(options, (err, res, body) => {
       requestHandler(err, body, (error, msg) => {

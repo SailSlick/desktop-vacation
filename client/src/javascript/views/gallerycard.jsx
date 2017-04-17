@@ -134,7 +134,7 @@ class GalleryCard extends React.Component {
           <Modal.Body>
             <GroupManager
               dbId={this.props.dbId}
-              mongoId={this.props.mongoId}
+              remoteId={this.props.remoteId}
               uid={this.props.uid}
               users={this.props.users}
               rating={this.props.rating}
@@ -158,7 +158,7 @@ GalleryCard.propTypes = {
   onRemove: React.PropTypes.func.isRequired,
   group: React.PropTypes.bool,
   simple: React.PropTypes.bool,
-  mongoId: React.PropTypes.string,
+  remoteId: React.PropTypes.string,
   uid: React.PropTypes.string,
   users: React.PropTypes.arrayOf(React.PropTypes.string)
 };
@@ -167,7 +167,7 @@ GalleryCard.defaultProps = {
   thumbnail: '',
   simple: false,
   group: false,
-  mongoId: '',
+  remoteId: '',
   uid: '',
   users: [],
 };

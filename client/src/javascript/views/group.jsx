@@ -131,7 +131,7 @@ class Group extends React.Component {
         group
         key={`g${subgallery._id}`}
         dbId={subgallery.$loki || 0}
-        mongoId={subgallery._id}
+        remoteId={subgallery._id}
         name={subgallery.name}
         uid={subgallery.uid}
         users={subgallery.users}

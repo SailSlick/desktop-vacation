@@ -151,7 +151,7 @@ describe('Group model', () => {
     Nock(domain)
       .post('/group/user/invite')
       .reply(400, { status: 400, error }, headers);
-    Groups.inviteUser('fakeMongoId', 'Rully', (err, msg) => {
+    Groups.inviteUser('fakeRemoteId', 'Rully', (err, msg) => {
       err.should.be.ok;
       msg.should.be.ok;
       done();
@@ -253,7 +253,7 @@ describe('Group model', () => {
 
   it('can update rating metadata for a group', (done) => {
     const metadata = { rating: 4, tags: [] };
-    Groups.updateMetadata('fakeMongoId', testGallery.$loki, metadata, (updatedGallery) => {
+    Groups.updateMetadata('fakeRemoteId', testGallery.$loki, metadata, (updatedGallery) => {
       updatedGallery.metadata.rating.should.equal(4);
       done();
     });
@@ -261,7 +261,7 @@ describe('Group model', () => {
 
   it('can update tag metadata for a group', (done) => {
     const metadata = { rating: testGallery.metadata.rating, tags: ['test'] };
-    Groups.updateMetadata('fakeMongoId', testGallery.$loki, metadata, (updatedGallery) => {
+    Groups.updateMetadata('fakeRemoteId', testGallery.$loki, metadata, (updatedGallery) => {
       updatedGallery.metadata.tags.should.include('test');
       done();
     });
@@ -280,7 +280,7 @@ describe('Group model', () => {
     Nock(domain)
       .post('/group/delete')
       .reply(401, { status: 401, error }, headers);
-    Groups.delete('fakeMongoId', testGallery.$loki, (err, msg) => {
+    Groups.delete('fakeRemoteId', testGallery.$loki, (err, msg) => {
       err.should.be.ok;
       msg.should.be.ok;
       Galleries.get(testGallery.$loki, (foundGallery) => {
@@ -294,7 +294,7 @@ describe('Group model', () => {
     Nock(domain)
       .post('/group/delete')
       .reply(200, { status: 200, message: 'The rumors of my demise are not greatly exaggerated' }, headers);
-    Groups.delete('fakeMongoId', testGallery.$loki, (err, msg) => {
+    Groups.delete('fakeRemoteId', testGallery.$loki, (err, msg) => {
       should.not.exist(err);
       msg.should.be.ok;
       Galleries.get(testGallery.$loki, (foundGallery) => {

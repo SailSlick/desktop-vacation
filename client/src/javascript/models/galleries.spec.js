@@ -334,7 +334,7 @@ describe('Galleries model', () => {
   );
 
   it('can convert a gallery to a group', done =>
-    Galleries.convertToGroup(test_subgallery.$loki, 'fakeMongoId', (updated_gallery) => {
+    Galleries.convertToGroup(test_subgallery.$loki, 'fakeRemoteId', (updated_gallery) => {
       updated_gallery.group.should.be.ok;
       test_subgallery = updated_gallery;
       done();

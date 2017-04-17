@@ -39,7 +39,7 @@ describe('groupManager Component', () => {
     groupInviteStub = stub(Groups, 'inviteUser').returns(true);
     Nock(domain)
       .post('/group/create')
-      .reply(200, { status: 200, message: 'group created', data: 'fakeMongoId' }, headers);
+      .reply(200, { status: 200, message: 'group created', data: 'fakeRemoteId' }, headers);
     Groups.create(testGroupName, (err, msg) => {
       should.not.exist(err);
       msg.should.be.ok;
@@ -66,7 +66,7 @@ describe('groupManager Component', () => {
   it('can mount', (done) => {
     testComponent = mount(<GroupManager
       dbId={testGroup.$loki}
-      mongoId={testGroup.MongoId}
+      remoteId={testGroup.RemoteId}
       uid={'nahboy'}
       users={['Sully', 'Rully']}
       onRemove={removeSpy}
@@ -97,7 +97,7 @@ describe('groupManager Component', () => {
     testComponent.unmount();
     testComponent = mount(<GroupManager
       dbId={testGroup.$loki}
-      mongoId={testGroup.MongoId}
+      remoteId={testGroup.RemoteId}
       uid={'nahboy'}
       users={['Sully', 'Rully']}
       onRemove={removeSpy}

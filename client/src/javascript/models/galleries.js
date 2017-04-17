@@ -58,10 +58,10 @@ const Galleries = {
     });
   },
 
-  convertToGroup: (id, mongoId, cb) => {
+  convertToGroup: (id, remoteId, cb) => {
     gallery_db.updateOne({ $loki: id }, {
       group: true,
-      mongoId
+      remoteId
     }, (ret) => {
       if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
       cb(ret);
@@ -111,7 +111,7 @@ const Galleries = {
 
   get: (id, cb) => gallery_db.findOne({ $loki: id }, cb),
 
-  getMongo: (id, cb) => gallery_db.findOne({ mongoId: id }, cb),
+  getMongo: (id, cb) => gallery_db.findOne({ remoteId: id }, cb),
 
   getName: (name, cb) => gallery_db.findOne({ name }, cb),
 

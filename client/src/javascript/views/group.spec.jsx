@@ -33,7 +33,7 @@ describe('Group Component', () => {
     isAuthedStub = stub(Host, 'isAuthed').returns(true);
     Nock(domain)
       .post('/group/create')
-      .reply(200, { status: 200, message: 'group created', data: 'fakeMongoId' }, headers);
+      .reply(200, { status: 200, message: 'group created', data: 'fakeRemoteId' }, headers);
     Groups.create(testGroupName, (err, msg) => {
       should.not.exist(err);
       msg.should.be.ok;
@@ -56,7 +56,7 @@ describe('Group Component', () => {
   });
 
   it('can mount the base group', (done) => {
-    testGroup._id = 'fakeMongoId';
+    testGroup._id = 'fakeRemoteId';
     Nock(domain)
       .get('/group/')
       .reply(200, {
@@ -99,7 +99,7 @@ describe('Group Component', () => {
   it('can refresh the view', (done) => {
     isAuthedStub.reset();
     Nock(domain)
-      .get('/group/fakeMongoId')
+      .get('/group/fakeRemoteId')
       .reply(200, {
         status: 200,
         message: 'test',
