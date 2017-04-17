@@ -491,9 +491,9 @@ class Main extends React.Component {
             </Nav>
           </Navbar.Collapse>
         </Navbar>
+        <LoadingBar progress={this.state.loadingProgress} />
 
         <Grid fluid id="main-content">
-          <LoadingBar progress={this.state.loadingProgress} />
           <PrimaryContent page={this.state.page} parent={this} />
         </Grid>
 

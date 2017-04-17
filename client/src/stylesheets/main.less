@@ -68,6 +68,25 @@ button.btn {
 	z-index: 9999;
 }
 
+#progress-bar {
+  height: 25px;
+  width: 100%;
+  position: relative;
+  align-items: center;
+  background-color: #3c763d;
+  transition: opacity .5s;
+  span {
+    color: white;
+    background-color: #228B22;
+    height: 100%;
+    display: inline-block;
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    transition: width .33s;
+  }
+}
+
 /* BEGIN Navbars */
 
 .navbar { border-radius: 0; }
