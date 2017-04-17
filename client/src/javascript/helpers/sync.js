@@ -24,7 +24,7 @@ function errorHandler(cb) {
 }
 
 const Sync = {
-  uploadImages: (imageIds, cb, controlSaving) => {
+  uploadImages: (imageIds, cb, disableSaving) => {
     if (!Host.isAuthed()) {
       danger('Can\'t sync, try signing in!');
       return cb();
@@ -57,7 +57,8 @@ const Sync = {
 
       // Check if there is anything to sync
       if (formData.hashes.length === 0) {
-        warning('Image(s) already synced');
+        // Only show message if this function is not being called by sth else
+        if (!disableSaving) warning('Image(s) already synced');
         return cb(existingIds);
       }
 
@@ -76,11 +77,11 @@ const Sync = {
       // Upload the images
       return request(options, errorHandler((err, body) => {
         if (err) return cb();
-        if (!controlSaving) Galleries.should_save = false;
+        if (!disableSaving) Galleries.should_save = false;
 
         // Map each remoteId to the respective image
         return eachOf(body['image-ids'], (remoteId, index, next) => {
-          if (!controlSaving) Galleries.should_save = (index === body['image-ids'].length - 1);
+          if (!disableSaving) Galleries.should_save = (index === body['image-ids'].length - 1);
           Images.update(submittedIds[index], { remoteId }, () => next());
         }, () => {
           success(`${formData.images.length} image(s) uploaded`);
@@ -97,10 +98,11 @@ const Sync = {
       const removedImages = imagesFull.filter(img =>
         img.remoteId && !remoteGallery.images.some(imgId => imgId === img.remoteId)
       );
-      let unsyncedImages = imagesFull.filter(img => !img.remoteId);
       const newImages = remoteGallery.images.filter(remoteId =>
-        !imagesFull.some(img => img.remoteId === remoteId)
+        !imagesFull.some(img => img.remoteId === remoteId) &&
+        !gallery.removed.some(remoteRemId => remoteRemId === remoteId)
       );
+      let unsyncedImages = imagesFull.filter(img => !img.remoteId);
 
       // Don't upload everything if syncing base
       if (gallery.$loki === Galleries.BASE_GALLERY_ID) unsyncedImages = [];
@@ -149,10 +151,11 @@ const Sync = {
           const removedGalleries = subgalleriesFull.filter(gal =>
             gal.remoteId && !remoteGallery.subgalleries.some(galId => galId === gal.remoteId)
           );
-          let unsyncedGalleries = subgalleriesFull.filter(gal => !gal.remoteId);
           const newGalleries = remoteGallery.subgalleries.filter(remoteGid =>
-            !subgalleriesFull.some(gal => gal.remoteId === remoteGid)
+            !subgalleriesFull.some(gal => gal.remoteId === remoteGid) &&
+            !gallery.removed.some(remoteRemGid => remoteRemGid === remoteGid)
           );
+          let unsyncedGalleries = subgalleriesFull.filter(gal => !gal.remoteId);
 
           // Don't upload everything if syncing base
           if (gallery.$loki === Galleries.BASE_GALLERY_ID) unsyncedGalleries = [];
@@ -214,7 +217,8 @@ const Sync = {
           if (errUp) return cb(errUp);
 
           // Set the remoteId of this gallery
-          return Galleries.update(gallery.$loki, { remoteId: body.gid }, (doc) => {
+          // Purge the remove list whilst we're at it
+          return Galleries.update(gallery.$loki, { remoteId: body.gid, removed: [] }, (doc) => {
             if (!doc) cb(`Failed to update remoteId of gallery ${gallery.$loki}`);
             else cb();
           });
@@ -278,13 +282,14 @@ const Sync = {
 
   unsyncGallery: (gid, cb) => {
     Galleries.get(gid, (gallery) => {
+      if (!gallery.remoteId) return cb();
       const options = {
         uri: Host.server_uri.concat(`/gallery/${gallery.remoteId}/remove`),
         jar: Host.cookie_jar,
         method: 'POST',
         json: true
       };
-      request(options, errorHandler(cb));
+      return request(options, errorHandler(cb));
     });
   },
 
@@ -453,6 +458,27 @@ const Sync = {
       json: true
     };
     return request(options, errorHandler(cb));
+  },
+
+  appendRemoveListInternal: (gid, remoteId, cb) => {
+    if (!remoteId) return cb();
+    return Galleries.get(gid, (gallery) => {
+      gallery.removed = gallery.removed || [];
+      gallery.removed.push(remoteId);
+      Galleries.update(gid, { removed: gallery.removed }, cb);
+    });
+  },
+
+  appendRemoveList: (gid, id, isGallery, cb) => {
+    if (isGallery) {
+      Galleries.get(id, gallery =>
+        Sync.appendRemoveListInternal(gid, gallery.remoteId, cb)
+      );
+    } else {
+      Images.get(id, image =>
+        Sync.appendRemoveListInternal(gid, image.remoteId, cb)
+      );
+    }
   }
 };
 

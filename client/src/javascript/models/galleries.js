@@ -12,7 +12,7 @@ const gallery_update_event = new Event('gallery_updated');
 const Galleries = {
   should_save: true,
   gallery_update_event,
-  BASE_GALLERY_ID: 1,
+  BASE_GALLERY_ID: -1,
 
   downloadRoot: (remoteId, cb) =>
     Sync.downloadGallery(remoteId, (err, gallery) => {
@@ -74,6 +74,9 @@ const Galleries = {
     }
     if (subgallery_id === Galleries.BASE_GALLERY_ID) {
       return cb(null, `Tried to add base gallery to ${id}`);
+    }
+    if (Galleries.BASE_GALLERY_ID === -1) {
+      return cb(null, 'Base gallery not defined');
     }
     return Galleries.get(id, (base_gallery) => {
       if (!base_gallery) {
@@ -207,13 +210,15 @@ const Galleries = {
     return gallery_db.findMany({ subgalleries: { $contains: id } }, references =>
       each(references, (ref, next) => {
         ref.subgalleries = ref.subgalleries.filter(i => i !== id);
-        gallery_db.updateOne(
-          { $loki: ref.$loki },
-          ref.subgalleries,
-          () => {
-            console.log(`- ${ref.$loki} no longer contains reference to ${id}`);
-            next();
-          }
+        Sync.appendRemoveList(ref.$loki, id, true, () =>
+          gallery_db.updateOne(
+            { $loki: ref.$loki },
+            ref.subgalleries,
+            () => {
+              console.log(`- ${ref.$loki} no longer contains reference to ${id}`);
+              next();
+            }
+          )
         );
       }, () =>
         Sync.unsyncGallery(id, (err) => {
@@ -255,11 +260,19 @@ const Galleries = {
         return cb(null, `${id} not found`);
       }
       gallery.images = gallery.images.filter(i => i !== item_id);
-      return gallery_db.updateOne({ $loki: id }, gallery, (new_gallery) => {
-        console.log('Item removed');
-        if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
-        return cb(new_gallery);
-      });
+      return Sync.appendRemoveList(id, item_id, false, () =>
+        Images.get(item_id, (image) => {
+          if (image && image.remoteId) {
+            gallery.removed = gallery.removed || [];
+            gallery.removed.push(image.remoteId);
+          }
+          gallery_db.updateOne({ $loki: id }, gallery, (new_gallery) => {
+            console.log('Item removed');
+            if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
+            cb(new_gallery);
+          });
+        })
+      );
     });
   },
 
@@ -274,15 +287,17 @@ const Galleries = {
   // Removes an image from all the galleries it was in
   removeItemGlobal: (id, cb) => {
     console.log('Globally removing image:', id);
-    Images.remove(id, () =>
-      gallery_db.findMany({ images: { $contains: id } }, refs =>
-        each(refs, (gallery, next) => {
-          gallery.images = gallery.images.filter(i => i !== id);
+    gallery_db.findMany({ images: { $contains: id } }, refs =>
+      each(refs, (gallery, next) => {
+        gallery.images = gallery.images.filter(i => i !== id);
+        Sync.appendRemoveList(gallery.$loki, id, false, () =>
           gallery_db.updateOne({ $loki: gallery.$loki }, gallery, () => {
             console.log(`- ${gallery.$loki} no longer contains reference to ${id}`);
             next();
-          });
-        }, () => {
+          })
+        );
+      }, () =>
+        Images.remove(id, () => {
           console.log('Item removed globally');
           if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
           cb();
