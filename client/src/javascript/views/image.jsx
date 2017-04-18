@@ -313,7 +313,7 @@ Image.propTypes = {
   url: React.PropTypes.string,
   remoteId: React.PropTypes.string,
   multiSelect: React.PropTypes.bool,
-  selected: React.PropTypes.bool
+  selected: React.PropTypes.bool,
 };
 
 Image.defaultProps = {
@@ -321,7 +321,8 @@ Image.defaultProps = {
   multiSelect: false,
   selected: false,
   url: null,
-  remoteId: null
+  remoteId: null,
+  src: ''
 };
 
 export default Image;
