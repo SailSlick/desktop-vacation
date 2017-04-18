@@ -276,6 +276,19 @@ const Galleries = {
     });
   },
 
+  deleteGroupItem: (gid, id, cb) => {
+    console.log(`Deleting ${id} from group, db and fs`);
+    Galleries.removeItem(gid, id, (failure, errMsg) => {
+      if (failure) cb(errMsg);
+      else {
+        Images.delete(id, (delErrMsg) => {
+          if (delErrMsg) return cb(delErrMsg);
+          return Images.removeClient(id, cb);
+        });
+      }
+    });
+  },
+
   // Removes an image from all the galleries it was in
   removeItemGlobal: (id, cb) => {
     console.log('Globally removing image:', id);

@@ -84,7 +84,6 @@ class GroupManager extends React.Component {
         <Button onClick={this.leaveGroup} >Leave Group</Button>
       </Col>
     );
-
     if (this.props.uid === Host.uid) {
       management_buttons =
         (<Col sm={7} xs={12}>
