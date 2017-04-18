@@ -95,7 +95,6 @@ class Main extends React.Component {
       invites: [],
       account: false,
       infoBar: false,
-      loadingProgress: -1,
       filter: {
         name: '',
         tag: '',
@@ -107,7 +106,6 @@ class Main extends React.Component {
     this.onSelectGroup = this.onSelectGroup.bind(this);
     this.getNewGalleryName = this.getNewGalleryName.bind(this);
     this.showGallerySelector = this.showGallerySelector.bind(this);
-    this.addImages = this.addImages.bind(this);
     this.addNewGallery = this.addNewGallery.bind(this);
     this.changeGallery = this.changeGallery.bind(this);
     this.hideModals = this.hideModals.bind(this);
@@ -128,13 +126,10 @@ class Main extends React.Component {
     this.inviteRefresh = this.inviteRefresh.bind(this);
     this.syncImages = this.syncImages.bind(this);
     this.changeFilter = this.changeFilter.bind(this);
-    this.updateProgress = this.updateProgress.bind(this);
 
     // Events
     document.addEventListener('append_gallery', this.showGallerySelector, false);
     document.addEventListener('notify', this.showAlert, false);
-    document.addEventListener('progress_update', this.updateProgress, false);
-    document.addEventListener('progress_finished', () => this.setState({ loadingProgress: -1 }), false);
 
     mousetrap.bind('ctrl+f', this.toggleFilterMode);
     mousetrap.bind('shift+s', this.toggleSelectMode);
@@ -149,7 +144,6 @@ class Main extends React.Component {
     // Unhook all events
     document.removeEventListener('append_gallery', this.showGallerySelector, false);
     document.removeEventListener('notify', this.showAlert, false);
-    document.removeEventListener('progress-update', this.updateProgress, false);
     mousetrap.unbind('shift+s');
     mousetrap.unbind('ctrl+f');
   }
@@ -226,15 +220,6 @@ class Main extends React.Component {
       selectGalleryModal: true,
       imageSelection: evt.detail
     });
-  }
-
-  updateProgress(ev) {
-    this.setState({ loadingProgress: this.state.loadingProgress += 100 / ev.detail });
-  }
-
-  addImages() {
-    this.state.loadingProgress = 0;
-    ipc.send('open-file-dialog');
   }
 
   addNewGallery(event, cb) {
@@ -463,7 +448,7 @@ class Main extends React.Component {
           <Navbar.Collapse>
             <Nav onSelect={this.handleSelect}>
               <NavDropdown title="Images" id="images">
-                <MenuItem onClick={this.addImages}>Add</MenuItem>
+                <MenuItem onClick={() => ipc.send('open-file-dialog')}>Add</MenuItem>
                 <MenuItem onClick={this.syncImages}>Sync</MenuItem>
               </NavDropdown>
               <NavDropdown title="Galleries" id="galleries">
@@ -491,7 +476,7 @@ class Main extends React.Component {
             </Nav>
           </Navbar.Collapse>
         </Navbar>
-        <LoadingBar progress={this.state.loadingProgress} />
+        <LoadingBar />
 
         <Grid fluid id="main-content">
           <PrimaryContent page={this.state.page} parent={this} />
