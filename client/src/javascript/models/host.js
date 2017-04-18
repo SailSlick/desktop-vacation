@@ -82,14 +82,15 @@ const Host = {
             cb(body.status, body.error);
           });
         }
+
+        Host.uid = body.uid;
+
         if (!host_doc) {
           console.log('Create client side account for prev account.');
           return createClientAccount(username, body, (msg_err, msg) => {
             cb(msg_err, msg);
           });
         }
-
-        Host.uid = body.uid;
         return cb(null, body.message);
       });
     });

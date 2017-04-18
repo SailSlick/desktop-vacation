@@ -74,9 +74,9 @@ describe('User API', () => {
     });
 
     after((done) => {
-      userDB.findOne({ username }, (doc) => {
+      userDB.findOne({ username }, () => {
         userDB.removeOne({ username }, () => {
-          galleryDB.removeOne({ name: username.concat('_all'), uid: doc._id }, () => { done(); });
+          galleryDB.removeMany({ name: username.concat('_all') }, () => { done(); });
         });
       });
     });
@@ -143,9 +143,9 @@ describe('User API', () => {
     });
 
     after((done) => {
-      userDB.findOne({ username }, (doc) => {
+      userDB.findOne({ username }, () => {
         userDB.removeOne({ username }, () => {
-          galleryDB.removeOne({ name: username.concat('_all'), uid: doc._id }, () => { done(); });
+          galleryDB.removeMany({ name: username.concat('_all') }, () => { done(); });
         });
       });
     });
@@ -191,9 +191,9 @@ describe('User API', () => {
       agent
         .post(('/user/logout'))
         .end((_err, _res) => {
-          userDB.findOne({ username }, (doc) => {
+          userDB.findOne({ username }, () => {
             userDB.removeOne({ username }, () => {
-              galleryDB.removeOne({ name: username.concat('_all'), uid: doc._id }, () => { done(); });
+              galleryDB.removeMany({ name: username.concat('_all') }, () => { done(); });
             });
           });
         });
@@ -254,9 +254,9 @@ describe('User API', () => {
       agent
         .post(('/user/logout'))
         .end((_err, _res) => {
-          userDB.findOne({ username }, (doc) => {
+          userDB.findOne({ username }, () => {
             userDB.removeOne({ username }, () => {
-              galleryDB.removeOne({ name: username.concat('_all'), uid: doc._id }, () => { done(); });
+              galleryDB.removeMany({ name: username.concat('_all') }, () => { done(); });
             });
           });
         });

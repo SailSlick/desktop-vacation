@@ -148,7 +148,7 @@ describe('Gallery API', () => {
     it('should 404 safely on non-existant galleries', (done) => {
       agent
         // This is invalid (contains a 'g')
-        .get('/gallery/' + testBody.gallery.uid)
+        .get('/gallery/'.concat(testBody.gallery.uid))
         .end((err, res) => {
           res.status.should.equal(404);
           res.body.should.be.a('object');
@@ -159,7 +159,7 @@ describe('Gallery API', () => {
 
     it('should return the same gallery', (done) => {
       agent
-        .get('/gallery/' + testBody.gallery.remoteId)
+        .get('/gallery/'.concat(testBody.gallery.remoteId))
         .end((err, res) => {
           res.status.should.equal(200);
           res.body.should.be.a('object');
@@ -192,7 +192,7 @@ describe('Gallery API', () => {
     it('should 500 on non-existant galleries', (done) => {
       agent
         // This is invalid (contains a 'g')
-        .post('/gallery/' + testBody.gallery.uid + '/remove')
+        .post('/gallery/'.concat(testBody.gallery.uid, '/remove'))
         .end((err, res) => {
           res.status.should.equal(500);
           res.body.should.be.a('object');
@@ -203,7 +203,7 @@ describe('Gallery API', () => {
 
     it('should successfully remove gallery', (done) => {
       agent
-        .post('/gallery/' + testBody.gallery.remoteId + '/remove')
+        .post('/gallery/'.concat(testBody.gallery.remoteId, '/remove'))
         .end((err, res) => {
           res.status.should.equal(200);
           res.body.should.be.a('object');

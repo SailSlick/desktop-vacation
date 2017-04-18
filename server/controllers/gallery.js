@@ -10,7 +10,7 @@ function unsync(uid, gid, cb) {
     if (gallery.uid !== uid) return cb('incorrect permissions');
 
     return async.map(gallery.images,
-      (imageId, next) => imageModel.remove(uid, imageId, next),
+      (imageId, next) => imageModel.authRemove(uid, imageId, next),
       (errImg) => {
         // TODO maybe make this more error tolerant
         // ATM if any image/gallery fails to remove the whole process is deemed failed
@@ -73,7 +73,7 @@ module.exports = {
             gallery.galleries.some(newGallery => oldGallery === newGallery)
           );
           async.each(removedImages,
-            (id, nextId) => imageModel.remove(uid, id, nextId),
+            (id, nextId) => imageModel.authRemove(uid, id, nextId),
             (errImg) => {
               if (errImg) {
                 return next({ status: 500, error: errImg });
@@ -255,6 +255,8 @@ module.exports = {
         if (doc.users.indexOf(toAddName) !== -1) {
           return next({ status: 400, error: 'user is already member of group' });
         }
+        const invited = result.invites.filter(x => x.groupname === doc.name);
+        if (invited.length !== 0) return next({ status: 400, error: 'user has already been invited' });
         // add invite to user list
         result.invites.push({ groupname: doc.name, gid: doc._id.toHexString() });
         return userModel.update(toAddName, result, (check) => {
@@ -386,6 +388,11 @@ module.exports = {
       if (doc.uid !== uid && doc.users.indexOf(username) === -1) {
         return next({ status: 400, error: 'user isn\'t member of group' });
       }
+
+      // Rename _id to remoteId
+      doc.remoteId = doc._id;
+      delete doc._id;
+
       return next({
         status: 200,
         message: 'group found',
@@ -412,7 +419,7 @@ module.exports = {
           let images = [];
           if (gallery.images && gallery.images.length > 0) images = [gallery.images[0]];
           return cb(null, {
-            _id: gallery._id,
+            remoteId: gallery._id,
             name: gallery.name,
             uid: gallery.uid,
             users: gallery.users,
@@ -465,23 +472,24 @@ module.exports = {
       return async.each(imageIds,
         (id, nextId) => {
           imageModel.get(id, (getErr, image) => {
-            if (getErr) nextId(400, 'data is invalid');
+            if (getErr) nextId('data is invalid');
             else if (uid !== image.uid) {
-              nextId(401, 'incorrect permissions for image');
+              nextId('incorrect permissions for image');
+            } else {
+              galleryModel.addImages(gid, [id], (failure) => {
+                if (failure) nextId(failure);
+                else {
+                  imageModel.incrementRef(id, (incErr) => {
+                    if (incErr) console.error('AddtoGroup failed to increment image ref', incErr);
+                    nextId(null);
+                  });
+                }
+              });
             }
-            galleryModel.addImages(gid, [id], (failure) => {
-              if (failure) nextId(500, failure);
-              else {
-                imageModel.incrementRef(id, (incErr) => {
-                  if (incErr) console.error(incErr);
-                  nextId(null, 'data added to group');
-                });
-              }
-            });
           });
-        }, (error, message) => {
-          if (error) return next({ status: error, error: message });
-          return next({ status: 200, message });
+        }, (error) => {
+          if (error) return next({ status: 400, error });
+          return next({ status: 200, message: 'Images added to Group' });
         });
     });
   },
@@ -490,33 +498,38 @@ module.exports = {
     const username = req.session.username;
     const uid = req.session.uid;
     const gid = req.params.gid;
-    const imageIds = req.body['image-ids'];
+    let imageIds = req.body['image-ids'];
 
+    // Decode the imageIds
+    if (typeof imageIds === 'string') imageIds = JSON.parse(imageIds);
     galleryModel.getGid(gid, (err, doc) => {
       if (!doc) return next({ status: 404, error: 'group doesn\'t exist' });
-      if (!(doc.uid === uid || doc.user.indexOf(username) !== -1)) {
+      if (!(doc.uid === uid || doc.users.indexOf(username) !== -1)) {
         return next(400, 'user isn\'t member of group');
       }
       return async.each(imageIds,
         (id, nextId) => {
           imageModel.get(id, (getErr, image) => {
-            if (getErr) nextId(400, 'data is invalid');
-            else if (uid !== image.uid) {
-              nextId(401, 'incorrect permissions for image');
+            if (getErr) nextId('data is invalid');
+            else if (uid !== image.uid || uid !== doc.uid) {
+              nextId('incorrect permissions to remove image');
+            } else {
+              galleryModel.removeImages(gid, [id], (galDelErr) => {
+                if (galDelErr) {
+                  console.error('error in removeGroupItem', galDelErr);
+                  nextId('remove failed');
+                } else {
+                  imageModel.remove(id, image, (delErr) => {
+                    if (delErr) console.error('error in removeGroupItem image remove', delErr);
+                    nextId(null);
+                  });
+                }
+              });
             }
-            galleryModel.addImages(gid, id, (failure) => {
-              if (failure) nextId(500, failure);
-              else {
-                imageModel.incrementRef(id, (incErr) => {
-                  if (incErr) console.error(incErr);
-                  nextId(null, 'data added to group');
-                });
-              }
-            });
           });
-        }, (error, message) => {
-          if (error) return next({ status: error, error: message });
-          return next({ status: 200, message });
+        }, (error) => {
+          if (error) return next({ status: 400, error });
+          return next({ status: 200, message: 'Images removed from Group' });
         });
     });
   }

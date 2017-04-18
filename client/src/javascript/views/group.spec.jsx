@@ -56,7 +56,7 @@ describe('Group Component', () => {
   });
 
   it('can mount the base group', (done) => {
-    testGroup._id = 'fakeMongoId';
+    testGroup.remoteId = 'fakeMongoId';
     Nock(domain)
       .get('/group/')
       .reply(200, {
