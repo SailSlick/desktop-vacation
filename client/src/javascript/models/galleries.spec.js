@@ -1,6 +1,5 @@
 import jetpack from 'fs-jetpack';
 import path from 'path';
-import Nock from 'nock';
 import { use, should as chaiShould } from 'chai';
 import { stub } from 'sinon';
 import chaiThings from 'chai-things';
@@ -288,25 +287,6 @@ describe('Galleries model', () => {
     })
   );
 
-  it('can sync root', (done) => {
-    imageDownloadStub.reset();
-    const req = Nock(Host.server_uri)
-      .get(`/gallery/${fakeRemote}`)
-      .reply(200, {
-        data: { images: ['APERATUREscience'] },
-        message: 'Hoo-Wee! I\'m Mr Poopy Butthole'
-      });
-    Galleries.syncRoot((err) => {
-      should.not.exist(err);
-      req.isDone().should.be.ok;
-      imageDownloadStub.called.should.be.ok;
-      Galleries.get(base_gallery_id, (gallery) => {
-        gallery.images.should.contain(fakeImageId);
-        done();
-      });
-    });
-  });
-
   it('can add item to subgallery', done =>
     Galleries.addItem(test_subgallery.$loki, test_image.$loki, (updated_gallery) => {
       updated_gallery.images.should.contain(test_image.$loki);
@@ -342,6 +322,7 @@ describe('Galleries model', () => {
   );
 
   it('can remove a subgallery from a gallery', (done) => {
+    delete test_subgallery.remoteId;
     Galleries.remove(test_subgallery.$loki, () => {
       test_gallery.subgalleries.should.not.include(test_subgallery.$loki);
       Galleries.get(test_subgallery.$loki, (removed_gallery) => {
