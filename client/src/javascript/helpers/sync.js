@@ -23,6 +23,12 @@ function errorHandler(cb) {
   };
 }
 
+const thumbCache = path.join(
+  DbConn.getUserDataFolder(),
+  'thumbnails'
+);
+if (!fs.existsSync(thumbCache)) fs.mkdirSync(thumbCache);
+
 const Sync = {
   uploadImages: (imageIds, cb, disableSaving) => {
     if (!Host.isAuthed()) {
@@ -293,9 +299,59 @@ const Sync = {
     });
   },
 
+  getCachedThumbnail: (id) => {
+    const thumbPath = path.join(
+      thumbCache,
+      `${id}.jpeg`
+    );
+    if (fs.existsSync(thumbPath)) return thumbPath;
+    return null;
+  },
+
+  downloadThumbnail: (id, gid, cb) => {
+    const thumbPath = path.join(
+      thumbCache,
+      `${id}.jpeg`
+    );
+    if (fs.existsSync(thumbPath)) { return cb(null, thumbPath); }
+    gid = (gid && `/${gid}`) || '';
+    const imageUrl = Host.server_uri.concat(`/image/${id}${gid}/thumb`);
+    console.log('Downloading thumbnail to disk');
+    const options = {
+      uri: imageUrl,
+      jar: Host.cookie_jar
+    };
+    const req = request
+    .get(options)
+    .on('response', (res) => {
+      if (res.statusCode === 200) {
+        req.pipe(fs.createWriteStream(thumbPath));
+      } else {
+        console.error('Thumbnail couldn\'t be downloaded', res.statusCode, res.message);
+        cb('Couldn\'t download thumbnail', null);
+      }
+    })
+    .on('error', (err) => {
+      if (err) {
+        cb(err, null);
+      }
+    })
+    .on('end', () => cb(null, thumbPath));
+    return req;
+  },
+
+  clearThumbnail: (remoteId) => {
+    const thumbPath = path.join(
+      thumbCache,
+      `${remoteId}.jpeg`
+    );
+    if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
+  },
+
   downloadImage: (id, gid, cb) => {
     if (!gid) gid = '';
-    const imageUrl = Host.server_uri.concat(`/image/${id}/${gid}`);
+    else gid = `/${gid}`;
+    const imageUrl = Host.server_uri.concat(`/image/${id}${gid}`);
     console.log('Downloading image to disk');
     const options = {
       uri: imageUrl,
@@ -315,17 +371,23 @@ const Sync = {
         req.pipe(fs.createWriteStream(newFilePath));
       } else {
         console.error('Image couldn\'t be downloaded', res.statusCode, res.message);
-        danger('Couldn\'t download image');
-        cb('Status code was not 200', null);
+        cb('Couldn\'t download image', null);
       }
     })
     .on('error', (err) => {
       if (err) {
-        danger('Invalid image');
         cb(err, null);
       }
     })
-    .on('end', () => cb(null, newFilePath));
+    .on('end', () =>
+      // It can be assumed that an image doesn't have a location at this point
+      Images.getRemoteId(id, image =>
+        Images.update(image.$loki, { location: newFilePath }, () => {
+          Sync.clearThumbnail(id);
+          cb(null, newFilePath)
+        })
+      )
+    );
   },
 
   downloadImageData: (remoteId, cb) => {

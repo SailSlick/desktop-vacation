@@ -16,7 +16,7 @@ class Image extends React.Component {
     this.state = {
       expanded: false,
       deleteConfirmation: false,
-      src: this.props.src
+      src: this.props.src || Sync.getCachedThumbnail(this.props.remoteId)
     };
 
     this.onClick = this.onClick.bind(this);
@@ -31,16 +31,23 @@ class Image extends React.Component {
     this.share = this.share.bind(this);
     this.unshare = this.unshare.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
+  }
 
-    // Download image now if necessary
+  componentDidMount() {
+    // Download thumbnail now if necessary
     if (!this.state.src && Host.isAuthed()) {
-      Sync.downloadImage(this.props.remoteId, null, (err, src) => {
-        if (err) return danger(err);
+      Sync.downloadThumbnail(this.props.remoteId, null, (err, src) => {
+        if (err) danger(err);
 
-        // Update state and database
+        // Update state only
         this.setState({ src });
-        return Images.update(this.props.dbId, { location: src }, () => {});
       });
+    }
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.src) {
+      this.setState({ src: nextProps.src });
     }
   }
 
@@ -64,6 +71,13 @@ class Image extends React.Component {
   }
 
   expand() {
+    // Download full image if necessary
+    if (!this.props.src) {
+      Sync.downloadImage(this.props.remoteId, null, (err, src) => {
+        if (err) danger(err);
+        else this.setState({ src });
+      });
+    }
     this.setState({ expanded: true });
   }
 
