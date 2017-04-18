@@ -40,10 +40,27 @@ describe('Host model', () => {
   // Recreate account
   after((done) => {
     downloadStub.restore();
+    const replacementGallery = {
+      images: [],
+      subgalleries: [],
+      users: [],
+      name: 'hostafter_all',
+      uid: '',
+      metadata: {
+        rating: 0,
+        tags: []
+      }
+    };
+    downloadStub = stub(Sync, 'downloadGallery', (remoteId, cb) => cb(null, replacementGallery));
     Nock(domain)
       .post('/user/create')
       .reply(200, { status: 200, message, uid, domain, 'root-remote-id': remoteGallery }, headers);
-    Host.createAccount(username, password, () => done());
+    Host.createAccount(username, password, (status, msg) => {
+      downloadStub.restore();
+      should.not.exist(status);
+      msg.should.be.a('string');
+      done();
+    });
   });
 
   it('can get Host by index', (done) => {
