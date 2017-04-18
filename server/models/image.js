@@ -126,11 +126,15 @@ module.exports = {
 
   get(id, next) {
     db.findOne({ _id: db.getId(id) }, (doc) => {
-      if (!doc) {
-        next(404, null);
-      } else {
-        next(null, doc);
-      }
+      if (!doc) next(404, null);
+      else next(null, doc);
+    });
+  },
+
+  authGet(uid, id, next) {
+    db.findOne({ _id: db.getId(id), uid }, (doc) => {
+      if (!doc) next(404, null);
+      else next(null, doc);
     });
   },
 
@@ -144,53 +148,56 @@ module.exports = {
     });
   },
 
-  remove(uid, id, next) {
-    module.exports.get(id, (err, file) => {
-      if (err) {
-        return next('cannot find image, or invalid permissions');
-      }
-      if (file.refs - 1 === 0) {
-        return db.removeOne({ _id: db.getId(id), uid }, (removed) => {
-          if (!removed) {
-            return next('failed to remove image');
-          }
-          return fsDb.findOne({ _id: file.hash }, (fsDoc) => {
-            // User should recieve no errors about filesystem updates
-            if (fsDoc) {
-              if (fsDoc.refs - 1 === 0) {
-                fsDb.removeOne({ _id: file.hash }, (removedFs) => {
-                  if (!removedFs) {
-                    console.error('Failed to remove from images-fs db', file.hash);
-                  } else fs.unlinkSync(file.location);
-                });
-              } else {
-                fsDb.updateRaw(
-                  { _id: file.hash },
-                  { $inc: { refs: -1 } },
-                  (updated) => {
-                    if (!updated) {
-                      console.error('failed to update images-fs with lower ref', file.hash);
-                    }
-                  }
-                );
-              }
+  remove(id, file, next) {
+    if (file.refs - 1 === 0) {
+      return db.removeOne({ _id: db.getId(id) }, (removed) => {
+        if (!removed) {
+          return next('failed to remove image');
+        }
+        return fsDb.findOne({ _id: file.hash }, (fsDoc) => {
+          // User should recieve no errors about filesystem updates
+          if (fsDoc) {
+            if (fsDoc.refs - 1 === 0) {
+              fsDb.removeOne({ _id: file.hash }, (removedFs) => {
+                if (!removedFs) {
+                  console.error('Failed to remove from images-fs db', file.hash);
+                } else fs.unlinkSync(file.location);
+              });
             } else {
-              console.error('expected a doc to exist in images-fs', file.hash);
+              fsDb.updateRaw(
+                { _id: file.hash },
+                { $inc: { refs: -1 } },
+                (updated) => {
+                  if (!updated) {
+                    console.error('failed to update images-fs with lower ref', file.hash);
+                  }
+                }
+              );
             }
-            return next();
-          });
-        });
-      }
-      return db.updateRaw(
-        { _id: db.getId(id), uid },
-        { $inc: { refs: -1 } },
-        (updated) => {
-          if (!updated) {
-            return next('failed to remove image');
+          } else {
+            console.error('expected a doc to exist in images-fs', file.hash);
           }
           return next();
+        });
+      });
+    }
+    return db.updateRaw(
+      { _id: db.getId(id) },
+      { $inc: { refs: -1 } },
+      (updated) => {
+        if (!updated) {
+          return next('failed to remove image');
         }
-      );
+        return next();
+      }
+    );
+  },
+
+  authRemove(uid, id, next) {
+    module.exports.authGet(uid, id, (err, file) => {
+      if (err) {
+        next('cannot find image');
+      } else module.exports.remove(id, file, next);
     });
   },
 

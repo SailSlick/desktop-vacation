@@ -149,8 +149,8 @@ class Main extends React.Component {
     Groups.addToGroup(
       groupId,
       this.state.imageSelection,
-      (err, _msg) => {
-        if (err) danger('Group change failed');
+      (err, msg) => {
+        if (err) danger(msg);
         else {
           this.onSelectGallery(galleryId);
         }

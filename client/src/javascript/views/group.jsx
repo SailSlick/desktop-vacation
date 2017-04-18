@@ -22,13 +22,19 @@ class Group extends React.Component {
       rating: 0,
       tags: [],
       itemsLimit: 0,
-      itemsTotal: 0
+      itemsTotal: 0,
+      selection: []
     };
 
     // Bind functions
     this.refresh = this.refresh.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
     this.loadMore = this.loadMore.bind(this);
+    this.removeItem = this.removeItem.bind(this);
+    this.selectAll = this.selectAll.bind(this);
+    this.selectItem = this.selectItem.bind(this);
+    this.removeAll = this.removeAll.bind(this);
+    this.saveAll = this.saveAll.bind(this);
 
     document.addEventListener('gallery_updated', this.refresh, false);
   }
@@ -67,6 +73,7 @@ class Group extends React.Component {
           this.setState({
             subgalleries,
             images,
+            selection: [],
             itemsLimit: (db_update && this.state.itemsLimit >= 12) ? this.state.itemsLimit : 12,
             itemsTotal: subgalleries.length + images.length
           }, () => {
@@ -77,12 +84,11 @@ class Group extends React.Component {
     }
   }
 
-  removeItem(id, fsDelete) {
-    if (fsDelete) {
-      Groups.deleteItem(id, () => true);
-    } else {
-      Groups.removeItem(this.props.groupId, id, () => true);
-    }
+  removeItem(id) {
+    Groups.removeFromGroup(this.props.groupId, [id], (err, msg) => {
+      if (err) danger(msg);
+      else success(msg);
+    });
   }
 
   updateMetadata(field, toRemove) {
@@ -114,6 +120,38 @@ class Group extends React.Component {
     this.setState({ itemsLimit });
   }
 
+  selectItem(id) {
+    const selection = this.state.selection;
+    const pos = selection.indexOf(id);
+    if (pos === -1) {
+      selection.push(id);
+    } else {
+      selection.splice(pos, 1);
+    }
+    this.setState({ selection });
+  }
+
+  selectAll(should_select, cb) {
+    this.setState({
+      selection: (should_select) ? this.state.images.map(val => val.$loki) : []
+    }, cb);
+  }
+
+  removeAll(ids) {
+    Groups.removeFromGroup(this.props.groupId, ids, (err, msg) => {
+      if (err) danger(msg);
+      else success(msg);
+    });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  saveAll(ids) {
+    Groups.save(ids, (err, msg) => {
+      if (err) danger(err);
+      else success(msg);
+    });
+  }
+
   render() {
     const groupDetails = (
       <GalleryBar
@@ -129,14 +167,14 @@ class Group extends React.Component {
     let items = this.state.subgalleries.map(subgallery =>
       <GalleryCard
         group
-        key={`g${subgallery._id}`}
+        key={`g${subgallery.remoteId}`}
         dbId={subgallery.$loki || 0}
         remoteId={subgallery._id}
         name={subgallery.name}
         uid={subgallery.uid}
         users={subgallery.users}
         thumbnail={subgallery.thumbnail}
-        onClick={_ => this.props.onChange(subgallery.$loki, subgallery._id)}
+        onClick={_ => this.props.onChange(subgallery.$loki, subgallery.remoteId)}
         onRemove={_ => true}
         simple={this.props.simple}
         tags={subgallery.metadata.tags}
@@ -150,10 +188,15 @@ class Group extends React.Component {
           key={image.$loki}
           dbId={image.$loki}
           src={image.location}
-          onRemove={this.removeItem}
+          onRemove={() => this.removeAll([image.$loki])}
           onUpload={() => true}
+          save={() => this.saveAll([image.$loki])}
           tags={image.metadata.tags}
           rating={image.metadata.rating}
+          onSelect={this.selectItem}
+          multiSelect={this.props.multiSelect}
+          selected={this.state.selection.indexOf(image.$loki) !== -1}
+          group
         />
         // Limit number of items to show
       )).slice(0, this.state.itemsLimit);
@@ -168,11 +211,13 @@ class Group extends React.Component {
           <SelectTools
             multiSelect={this.props.multiSelect}
             addAllToGallery={() => {}}
-            selectAll={() => {}}
-            removeAll={() => {}}
+            selectAll={this.selectAll}
+            removeAll={() => this.removeAll(this.state.selection)}
             tagAll={() => {}}
             rateAll={() => {}}
             syncAll={() => {}}
+            saveAll={() => this.saveAll(this.state.selection)}
+            group
           />
           <FilterTools
             filterToggle={this.props.filterToggle}
@@ -232,7 +277,7 @@ Group.defaultProps = {
   multiSelect: false,
   filterToggle: false,
   changeFilter: () => true,
-  infoBar: false,
+  infoBar: false
 };
 
 export default Group;

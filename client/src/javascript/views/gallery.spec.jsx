@@ -235,6 +235,6 @@ describe('Gallery Component', () => {
       });
     };
     document.addEventListener('gallery_updated', update_props, false);
-    test_component.find('.img-menu a').at(4).simulate('click');
+    test_component.find('.img-menu a').at(3).simulate('click');
   });
 });

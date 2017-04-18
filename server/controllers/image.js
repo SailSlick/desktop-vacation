@@ -156,7 +156,7 @@ module.exports = {
       req.session.uid,
       (err) => {
         if (err) return next({ status: 400, error: err });
-        return images.remove(
+        return images.authRemove(
           req.session.uid,
           req.params.id,
           error => basicErrorHandler(error, next, 'image deleted')

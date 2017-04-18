@@ -216,23 +216,49 @@ class Image extends React.Component {
       </row>
     );
 
-    let shareButtons = (
-      <MenuItem onClick={this.share}>
-        <Glyphicon glyph="share" />
-        Share
+    let shareButtons;
+    let removeDelete;
+    let typeImage = (
+      <MenuItem onClick={this.props.save}>
+        <Glyphicon glyph="download" />
+        Save
       </MenuItem>
     );
-    if (this.props.url) {
-      shareButtons = ([
-        <MenuItem key="copyurlButton" onClick={this.share}>
-          <Glyphicon glyph="copy" />
-          Copy URL
+    if (!this.props.group) {
+      typeImage = ([
+        <MenuItem onClick={this.addToGallery} key="add">
+          <Glyphicon glyph="th" />
+          Add to ...
         </MenuItem>,
-        <MenuItem key="unshareButton" onClick={this.unshare}>
-          <Glyphicon glyph="lock" />
-          Unshare
+        <MenuItem onClick={this.upload} key="upload">
+          <Glyphicon glyph="upload" />
+          Sync
         </MenuItem>
       ]);
+      removeDelete = (
+        <MenuItem onClick={this.deleteConfirmation}>
+          <Glyphicon glyph="trash" />
+          Remove &amp; Delete
+        </MenuItem>
+      );
+      shareButtons = (
+        <MenuItem onClick={this.share}>
+          <Glyphicon glyph="share" />
+          Share
+        </MenuItem>
+      );
+      if (this.props.url) {
+        shareButtons = ([
+          <MenuItem key="copyurlButton" onClick={this.share}>
+            <Glyphicon glyph="copy" />
+            Copy URL
+          </MenuItem>,
+          <MenuItem key="unshareButton" onClick={this.unshare}>
+            <Glyphicon glyph="lock" />
+            Unshare
+          </MenuItem>
+        ]);
+      }
     }
 
     return (
@@ -245,24 +271,14 @@ class Image extends React.Component {
               <Glyphicon glyph="picture" />
               Set as Wallpaper
             </MenuItem>
-            <MenuItem onClick={this.addToGallery}>
-              <Glyphicon glyph="th" />
-              Add to ...
-            </MenuItem>
-            <MenuItem onClick={this.upload}>
-              <Glyphicon glyph="upload" />
-              Sync
-            </MenuItem>
-            {shareButtons}
-            <MenuItem divider />
+            {typeImage}
             <MenuItem onClick={this.remove}>
               <Glyphicon glyph="remove" />
               Remove
             </MenuItem>
-            <MenuItem onClick={this.deleteConfirmation}>
-              <Glyphicon glyph="trash" />
-              Remove &amp; Delete
-            </MenuItem>
+            {removeDelete}
+            <MenuItem divider />
+            {shareButtons}
           </div>
         </figcaption>
 
@@ -310,16 +326,20 @@ Image.propTypes = {
   tags: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
   onRemove: React.PropTypes.func.isRequired,
   onSelect: React.PropTypes.func,
+  save: React.PropTypes.func,
   url: React.PropTypes.string,
   remoteId: React.PropTypes.string,
   multiSelect: React.PropTypes.bool,
   selected: React.PropTypes.bool,
+  group: React.PropTypes.bool
 };
 
 Image.defaultProps = {
   onSelect: _ => true,
+  save: _ => true,
   multiSelect: false,
   selected: false,
+  group: false,
   url: null,
   remoteId: null,
   src: ''
