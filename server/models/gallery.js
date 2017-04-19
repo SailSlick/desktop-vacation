@@ -115,6 +115,17 @@ const galleryModel = {
     );
   },
 
+  removeImages: (gid, imageIds, cb) => {
+    db.updateRaw(
+      { _id: db.getId(gid) },
+      { $pullAll: { images: imageIds } },
+      (success) => {
+        if (!success) cb('invalid update');
+        else cb();
+      }
+    );
+  },
+
   removeImageGlobal: (imageId, uid, next) => {
     db.updateMany(
       { uid, images: imageId },

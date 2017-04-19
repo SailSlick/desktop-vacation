@@ -17,7 +17,7 @@ chaiShould();
 
 describe('Main Component', () => {
   const base_gallery_id = 1;
-  const test_gallery_name = 'Land Rovers';
+  const test_gallery_name = 'Land Rover Santana';
   const test_group_name = 'BLand Slowvers';
   const test_image_path = path.join(__dirname, '../build/icons/512x512.png');
   const domain = Host.server_uri;
@@ -66,7 +66,7 @@ describe('Main Component', () => {
     eventSpy.restore();
     Galleries.should_save = true;
     Images.remove(test_image.$loki, () => true);
-    Galleries.remove(test_gallery.$loki, _ => done());
+    Galleries.remove(test_gallery.$loki, done);
   });
 
   it('can mount', (done) => {

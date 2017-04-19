@@ -90,7 +90,6 @@ const Host = {
             cb(msg_err, msg);
           });
         }
-
         return cb(null, body.message);
       });
     });

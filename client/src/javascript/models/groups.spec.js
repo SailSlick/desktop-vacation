@@ -18,6 +18,7 @@ describe('Group model', () => {
   const domain = Host.server_uri;
   const error = 'Why on earth would you want to share Land Rover pics';
   let testGallery;
+  let testGroup;
 
   beforeEach(() => {
     Galleries.should_save = false;
@@ -35,7 +36,9 @@ describe('Group model', () => {
   after((done) => {
     Galleries.should_save = true;
     Galleries.getName(testGroupName, (group) => {
-      Galleries.remove(group.$loki, _ => done());
+      if (group) {
+        Galleries.remove(group.$loki, done);
+      } else done();
     });
   });
 
@@ -70,6 +73,7 @@ describe('Group model', () => {
       msg.should.be.ok;
       Galleries.getName(testGroupName, (group) => {
         group.should.be.ok;
+        testGroup = group;
         done();
       });
     });
@@ -184,7 +188,7 @@ describe('Group model', () => {
     Nock(domain)
       .post('/group/user/remove')
       .reply(200, { status: 200, message: 'I see fields of green and screens of white' }, headers);
-    Groups.leaveGroup('fakeButMeantToBeRealGid', testGroupName, (err, msg) => {
+    Groups.leaveGroup('fakeButMeantToBeRealGid', testGallery.$loki, (err, msg) => {
       should.not.exist(err);
       msg.should.be.ok;
       done();
@@ -225,7 +229,7 @@ describe('Group model', () => {
   });
 
   it('can expand a group', (done) => {
-    const groups = { subgalleries: [{ _id: 'not gonna be found' }], images: [] };
+    const groups = { subgalleries: [{ remoteId: 'not gonna be found' }], images: [] };
     Groups.expand(groups, {}, (subgalleries, images) => {
       subgalleries.length.should.equal(1);
       images.length.should.equal(0);
@@ -234,7 +238,7 @@ describe('Group model', () => {
   });
 
   it('can expand a group with name filter', (done) => {
-    const groups = { subgalleries: [{ _id: 'not gonna be found', name: 'huh' }], images: [] };
+    const groups = { subgalleries: [{ remoteId: 'not gonna be found', name: 'huh' }], images: [] };
     Groups.expand(groups, { name: 'huh' }, (subgalleries, images) => {
       subgalleries.length.should.equal(1);
       images.length.should.equal(0);
@@ -243,7 +247,7 @@ describe('Group model', () => {
   });
 
   it('can expand a group with rating filter', (done) => {
-    const groups = { subgalleries: [{ _id: 'not gonna be found', name: 'huh', metadata: { tags: [], rating: 3 } }], images: [] };
+    const groups = { subgalleries: [{ remoteId: 'not gonna be found', name: 'huh', metadata: { tags: [], rating: 3 } }], images: [] };
     Groups.expand(groups, { rating: 3 }, (subgalleries, images) => {
       subgalleries.length.should.equal(1);
       images.length.should.equal(0);
@@ -253,22 +257,22 @@ describe('Group model', () => {
 
   it('can update rating metadata for a group', (done) => {
     const metadata = { rating: 4, tags: [] };
-    Groups.updateMetadata('fakeRemoteId', testGallery.$loki, metadata, (updatedGallery) => {
+    Groups.updateMetadata('fakeRemoteId', testGroup.$loki, metadata, (updatedGallery) => {
       updatedGallery.metadata.rating.should.equal(4);
       done();
     });
   });
 
   it('can update tag metadata for a group', (done) => {
-    const metadata = { rating: testGallery.metadata.rating, tags: ['test'] };
-    Groups.updateMetadata('fakeRemoteId', testGallery.$loki, metadata, (updatedGallery) => {
+    const metadata = { rating: testGroup.metadata.rating, tags: ['test'] };
+    Groups.updateMetadata('fakeRemoteId', testGroup.$loki, metadata, (updatedGallery) => {
       updatedGallery.metadata.tags.should.include('test');
       done();
     });
   });
 
   it('can expand a group with tag filter', (done) => {
-    const groups = { subgalleries: [{ _id: 'not gonna be found', name: 'huh', metadata: { tags: ['test'], rating: 3 } }], images: [] };
+    const groups = { subgalleries: [{ remoteId: 'not gonna be found', name: 'huh', metadata: { tags: ['test'], rating: 3 } }], images: [] };
     Groups.expand(groups, { tag: 'test' }, (subgalleries, images) => {
       subgalleries.length.should.equal(1);
       images.length.should.equal(0);
@@ -280,10 +284,10 @@ describe('Group model', () => {
     Nock(domain)
       .post('/group/delete')
       .reply(401, { status: 401, error }, headers);
-    Groups.delete('fakeRemoteId', testGallery.$loki, (err, msg) => {
+    Groups.delete('fakeRemoteId', testGroup.$loki, (err, msg) => {
       err.should.be.ok;
       msg.should.be.ok;
-      Galleries.get(testGallery.$loki, (foundGallery) => {
+      Galleries.get(testGroup.$loki, (foundGallery) => {
         foundGallery.should.be.ok;
         done();
       });
@@ -294,10 +298,10 @@ describe('Group model', () => {
     Nock(domain)
       .post('/group/delete')
       .reply(200, { status: 200, message: 'The rumors of my demise are not greatly exaggerated' }, headers);
-    Groups.delete('fakeRemoteId', testGallery.$loki, (err, msg) => {
+    Groups.delete('fakeRemoteId', testGroup.$loki, (err, msg) => {
       should.not.exist(err);
       msg.should.be.ok;
-      Galleries.get(testGallery.$loki, (foundGallery) => {
+      Galleries.get(testGroup.$loki, (foundGallery) => {
         should.not.exist(foundGallery);
         done();
       });

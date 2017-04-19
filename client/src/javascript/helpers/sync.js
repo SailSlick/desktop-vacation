@@ -117,21 +117,22 @@ const Sync = {
       each(removedImages, (img, next) =>
         Images.remove(img.$loki, () => next()),
 
-      // Upload the new ones
-      () => Sync.uploadImages(unsyncedImages.map(img => img.$loki), (remoteIds) => {
-        if (!remoteIds) return cb('Remote ids not sent by server');
+        // Upload the new ones
+        () => Sync.uploadImages(unsyncedImages.map(img => img.$loki), (remoteIds) => {
+          if (!remoteIds) return cb('Remote ids not sent by server');
 
-        // Download the new remote ones
-        return each(newImages, (remoteId, next) =>
-          Sync.downloadImageData(remoteId, (errDl, id) => {
-            if (errDl) return next(errDl);
-            // Documents in LokiJS can be mutated without calling its db functions
-            gallery.images.push(id);
-            return next();
-          }),
-          cb
-        );
-      }));
+          // Download the new remote ones
+          return each(newImages, (remoteId, next) =>
+            Sync.downloadImageData(remoteId, (errDl, id) => {
+              if (errDl) return next(errDl);
+              // Documents in LokiJS can be mutated without calling its db functions
+              gallery.images.push(id);
+              return next();
+            }),
+            cb
+          );
+        })
+      );
     });
   },
 
@@ -168,29 +169,31 @@ const Sync = {
 
           // Remove the removed ones
           each(removedGalleries, (gal, next) =>
-            Galleries.remove(gal.$loki, () => next()),
+            Galleries.remove(gal.$loki, next),
 
-          // Upload the new ones
-          () => each(unsyncedGalleries.map(gal => gal.$loki), (gid, next) =>
-            Sync.uploadGallery(gid, (remoteId) => {
-              if (!remoteId) return next('Remote id not sent by server');
+            // Upload the new ones
+            () => each(unsyncedGalleries.map(gal => gal.$loki), (gid, next) =>
+              Sync.uploadGallery(gid, (remoteId) => {
+                if (!remoteId) return next('Remote id not sent by server');
 
-              // Set the remoteId of all these subgalleries
-              return Galleries.update(gid, { remoteId }, doc =>
-                next((!doc && `Failed to update remoteId of gallery ${gid}`) || null)
-              );
-            }),
+                // Set the remoteId of all these subgalleries
+                return Galleries.update(gid, { remoteId }, doc =>
+                  next((!doc && `Failed to update remoteId of gallery ${gid}`) || null)
+                );
+              }),
 
-          // Download the new remote ones
-          () => each(newGalleries, (remoteGid, next) =>
-            Sync.downloadGallery(remoteGid, (errDl, id) => {
-              if (errDl) return next(errDl);
-              // Documents in LokiJS can be mutated without calling its db functions
-              gallery.subgalleries.push(id);
-              return next();
-            }),
-            cb
-          )));
+              // Download the new remote ones
+              () => each(newGalleries, (remoteGid, next) =>
+                Sync.downloadGallery(remoteGid, (errDl, id) => {
+                  if (errDl) return next(errDl);
+                  // Documents in LokiJS can be mutated without calling its db functions
+                  gallery.subgalleries.push(id);
+                  return next();
+                }),
+                cb
+              )
+            )
+          );
         });
       });
     }));
@@ -246,8 +249,10 @@ const Sync = {
             return cb(err);
           }
           return Sync.upsertRemoteGallery(gallery, (errUp) => {
-            if (isSaveController) Galleries.should_save = true;
-            document.dispatchEvent(Galleries.gallery_update_event);
+            if (isSaveController) {
+              Galleries.should_save = true;
+              document.dispatchEvent(Galleries.gallery_update_event);
+            }
             if (errUp) {
               danger(errUp);
               return cb(errUp);
@@ -273,8 +278,10 @@ const Sync = {
 
           // UPLOAD THIS GALLERY \o/
           return Sync.upsertRemoteGallery(gallery, (errUp) => {
-            if (isSaveController) Galleries.should_save = true;
-            document.dispatchEvent(Galleries.gallery_update_event);
+            if (isSaveController) {
+              Galleries.should_save = true;
+              document.dispatchEvent(Galleries.gallery_update_event);
+            }
             if (errUp) {
               danger(errUp);
               return cb(errUp);
@@ -325,18 +332,15 @@ const Sync = {
     .get(options)
     .on('response', (res) => {
       if (res.statusCode === 200) {
-        req.pipe(fs.createWriteStream(thumbPath));
+        const writeStream = fs.createWriteStream(thumbPath);
+        writeStream.on('finish', () => cb(null, thumbPath));
+        req.pipe(writeStream);
       } else {
         console.error('Thumbnail couldn\'t be downloaded', res.statusCode, res.message);
         cb('Couldn\'t download thumbnail', null);
       }
     })
-    .on('error', (err) => {
-      if (err) {
-        cb(err, null);
-      }
-    })
-    .on('end', () => cb(null, thumbPath));
+    .on('error', cb);
     return req;
   },
 
@@ -368,26 +372,15 @@ const Sync = {
           DbConn.getUserDataFolder(),
           `${id}.${mime.extension(res.headers['content-type'])}`
         );
-        req.pipe(fs.createWriteStream(newFilePath));
+        const writeStream = fs.createWriteStream(newFilePath);
+        writeStream.on('finish', () => cb(null, newFilePath));
+        req.pipe(writeStream);
       } else {
         console.error('Image couldn\'t be downloaded', res.statusCode, res.message);
         cb('Couldn\'t download image', null);
       }
     })
-    .on('error', (err) => {
-      if (err) {
-        cb(err, null);
-      }
-    })
-    .on('end', () =>
-      // It can be assumed that an image doesn't have a location at this point
-      Images.getRemoteId(id, image =>
-        Images.update(image.$loki, { location: newFilePath }, () => {
-          Sync.clearThumbnail(id);
-          cb(null, newFilePath)
-        })
-      )
-    );
+    .on('error', cb);
   },
 
   downloadImageData: (remoteId, cb) => {
@@ -401,8 +394,7 @@ const Sync = {
       if (errDl) return cb(errDl);
 
       // Add to database
-      const image = body.data;
-      return Images.insert(image, newImg => cb(null, newImg.$loki));
+      return Images.insert(body.data, newImg => cb(null, newImg.$loki));
     }));
   },
 
@@ -520,27 +512,6 @@ const Sync = {
       json: true
     };
     return request(options, errorHandler(cb));
-  },
-
-  appendRemoveListInternal: (gid, remoteId, cb) => {
-    if (!remoteId) return cb();
-    return Galleries.get(gid, (gallery) => {
-      gallery.removed = gallery.removed || [];
-      gallery.removed.push(remoteId);
-      Galleries.update(gid, { removed: gallery.removed }, cb);
-    });
-  },
-
-  appendRemoveList: (gid, id, isGallery, cb) => {
-    if (isGallery) {
-      Galleries.get(id, gallery =>
-        Sync.appendRemoveListInternal(gid, gallery.remoteId, cb)
-      );
-    } else {
-      Images.get(id, image =>
-        Sync.appendRemoveListInternal(gid, image.remoteId, cb)
-      );
-    }
   }
 };
 

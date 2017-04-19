@@ -41,7 +41,7 @@ describe('Slideshow Helper (Client)', () => {
   after((done) => {
     ipc.send.restore();
     Images.remove(test_image.$loki, () => true);
-    Galleries.remove(test_gallery.$loki, () => done());
+    Galleries.remove(test_gallery.$loki, done);
   });
 
   it('can set the slideshow', (done) => {

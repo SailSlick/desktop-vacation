@@ -53,6 +53,8 @@ npm start
 ```
 
 # Shortcuts
+- `shift+i`: Toggle info bar
+- `shif+f`: Toggle filter bar
 - `shift+s`: Enter select mode
 - `ctrl+a`: Select all images
 - `ctrl+shift+a`: Deselect all images

@@ -50,13 +50,12 @@ describe('Group Component', () => {
     groupUpdateMetadataStub.restore();
     isAuthedStub.restore();
     testComponent.unmount();
-    Galleries.should_save = true;
-    Galleries.remove(testGroup.$loki, () => done());
-    Galleries.should_save = false;
+    delete testGroup.remoteId;
+    Galleries.remove(testGroup.$loki, done);
   });
 
   it('can mount the base group', (done) => {
-    testGroup._id = 'fakeRemoteId';
+    testGroup.remoteId = 'fakeMongoId';
     Nock(domain)
       .get('/group/')
       .reply(200, {

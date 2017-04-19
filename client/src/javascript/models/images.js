@@ -82,15 +82,15 @@ const Images = {
         if (doc.remoteId) Sync.clearThumbnail(doc.remoteId);
         if (doc && doc.remoteId && Host.isAuthed()) {
           Sync.removeSynced(doc.remoteId, (err) => {
-            if (err) {
-              console.error(err);
-              cb(err);
-            } else cb(res);
+            if (err) cb(err);
+            else cb(res);
           });
         } else cb(res);
       });
     });
   },
+
+  removeClient: (id, cb) => image_db.removeOne({ $loki: id }, cb),
 
   clear: (cb) => {
     image_db.emptyCol(() => {

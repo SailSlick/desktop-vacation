@@ -16,7 +16,7 @@ describe('groupManager Component', () => {
   const headers = {
     'set-cookie': ['connect.sid=s%3AoSOmSsKxRUsMYJV-HdXv-05NeXU7BVEe.n%2FHVO%2FKhZfaecG7DUx2afovn%2FW2MMdsV9q33AgaHqP8; Path=/; HttpOnly']
   };
-  const testGroupName = 'Foiling';
+  const testGroupName = 'Foiling2';
   const domain = Host.server_uri;
   const removeSpy = spy();
   const hostUid = Host.uid;
@@ -58,9 +58,7 @@ describe('groupManager Component', () => {
     groupLeaveStub.restore();
     groupInviteStub.restore();
     testComponent.unmount();
-    Galleries.should_save = true;
-    Galleries.remove(testGroup.$loki, () => done());
-    Galleries.should_save = false;
+    Galleries.remove(testGroup.$loki, done);
   });
 
   it('can mount', (done) => {

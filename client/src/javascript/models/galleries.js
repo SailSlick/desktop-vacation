@@ -210,7 +210,7 @@ const Galleries = {
     return gallery_db.findMany({ subgalleries: { $contains: id } }, references =>
       each(references, (ref, next) => {
         ref.subgalleries = ref.subgalleries.filter(i => i !== id);
-        Sync.appendRemoveList(ref.$loki, id, true, () =>
+        Galleries.appendRemoveList(ref.$loki, id, true, () =>
           gallery_db.updateOne(
             { $loki: ref.$loki },
             ref.subgalleries,
@@ -260,7 +260,7 @@ const Galleries = {
         return cb(null, `${id} not found`);
       }
       gallery.images = gallery.images.filter(i => i !== item_id);
-      return Sync.appendRemoveList(id, item_id, false, () =>
+      return Galleries.appendRemoveList(id, item_id, false, () =>
         Images.get(item_id, (image) => {
           if (image && image.remoteId) {
             gallery.removed = gallery.removed || [];
@@ -284,13 +284,26 @@ const Galleries = {
     });
   },
 
+  deleteGroupItem: (gid, id, cb) => {
+    console.log(`Deleting ${id} from group, db and fs`);
+    Galleries.removeItem(gid, id, (failure, errMsg) => {
+      if (failure) cb(errMsg);
+      else {
+        Images.delete(id, (delErrMsg) => {
+          if (delErrMsg) return cb(delErrMsg);
+          return Images.removeClient(id, cb);
+        });
+      }
+    });
+  },
+
   // Removes an image from all the galleries it was in
   removeItemGlobal: (id, cb) => {
     console.log('Globally removing image:', id);
     gallery_db.findMany({ images: { $contains: id } }, refs =>
       each(refs, (gallery, next) => {
         gallery.images = gallery.images.filter(i => i !== id);
-        Sync.appendRemoveList(gallery.$loki, id, false, () =>
+        Galleries.appendRemoveList(gallery.$loki, id, false, () =>
           gallery_db.updateOne({ $loki: gallery.$loki }, gallery, () => {
             console.log(`- ${gallery.$loki} no longer contains reference to ${id}`);
             next();
@@ -320,6 +333,27 @@ const Galleries = {
 
   setBaseId: (id) => {
     Galleries.BASE_GALLERY_ID = id;
+  },
+
+  appendRemoveListInternal: (gid, remoteId, cb) => {
+    if (!remoteId) return cb();
+    return Galleries.get(gid, (gallery) => {
+      gallery.removed = gallery.removed || [];
+      gallery.removed.push(remoteId);
+      Galleries.update(gid, { removed: gallery.removed }, cb);
+    });
+  },
+
+  appendRemoveList: (gid, id, isGallery, cb) => {
+    if (isGallery) {
+      Galleries.get(id, gallery =>
+        Galleries.appendRemoveListInternal(gid, gallery.remoteId, cb)
+      );
+    } else {
+      Images.get(id, image =>
+        Galleries.appendRemoveListInternal(gid, image.remoteId, cb)
+      );
+    }
   }
 };
 

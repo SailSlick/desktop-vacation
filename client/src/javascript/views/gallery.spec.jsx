@@ -60,7 +60,8 @@ describe('Gallery Component', () => {
     uploadStub.restore();
     test_component.unmount();
     Images.remove(test_image.$loki, () => true);
-    Galleries.remove(test_gallery.$loki, () => done());
+    delete test_gallery.remoteId;
+    Galleries.remove(test_gallery.$loki, done);
   });
 
   it('can add a tag', (done) => {
@@ -235,6 +236,6 @@ describe('Gallery Component', () => {
       });
     };
     document.addEventListener('gallery_updated', update_props, false);
-    test_component.find('.img-menu a').at(4).simulate('click');
+    test_component.find('.img-menu a').at(3).simulate('click');
   });
 });
