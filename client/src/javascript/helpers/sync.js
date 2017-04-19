@@ -321,6 +321,10 @@ const Sync = {
       `${id}.jpeg`
     );
     if (fs.existsSync(thumbPath)) { return cb(null, thumbPath); }
+
+    // Fail silently if not able to download because user isn't logged in
+    if (!Host.isAuthed()) return cb(null, '');
+
     gid = (gid && `/${gid}`) || '';
     const imageUrl = Host.server_uri.concat(`/image/${id}${gid}/thumb`);
     console.log('Downloading thumbnail to disk');
@@ -353,6 +357,9 @@ const Sync = {
   },
 
   downloadImage: (id, gid, cb) => {
+    if (!Host.isAuthed()) {
+      return cb('Can\'t sync, try signing in!', null);
+    }
     if (!gid) gid = '';
     else gid = `/${gid}`;
     const imageUrl = Host.server_uri.concat(`/image/${id}${gid}`);
@@ -381,6 +388,7 @@ const Sync = {
       }
     })
     .on('error', cb);
+    return req;
   },
 
   downloadImageData: (remoteId, cb) => {
