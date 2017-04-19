@@ -370,7 +370,7 @@ describe('Galleries model', () => {
       Galleries.get(base_gallery_id, (removed_gallery) => {
         should.exist(removed_gallery);
         done();
-      })
+      });
     });
   });
 });
