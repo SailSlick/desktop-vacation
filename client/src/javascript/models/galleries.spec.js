@@ -1,6 +1,5 @@
 import jetpack from 'fs-jetpack';
 import path from 'path';
-import Nock from 'nock';
 import { use, should as chaiShould } from 'chai';
 import { stub } from 'sinon';
 import chaiThings from 'chai-things';
@@ -288,24 +287,6 @@ describe('Galleries model', () => {
     })
   );
 
-  it('can sync root', (done) => {
-    imageDownloadStub.reset();
-    const req = Nock(Host.server_uri)
-      .get(`/gallery/${fakeRemote}`)
-      .reply(200, {
-        data: { images: ['APERATUREscience'] },
-        message: 'Hoo-Wee! I\'m Mr Poopy Butthole'
-      });
-    Galleries.syncRoot(() => {
-      req.isDone().should.be.ok;
-      imageDownloadStub.called.should.be.ok;
-      Galleries.get(base_gallery_id, (gallery) => {
-        gallery.images.should.contain(fakeImageId);
-        done();
-      });
-    });
-  });
-
   it('can add item to subgallery', done =>
     Galleries.addItem(test_subgallery.$loki, test_image.$loki, (updated_gallery) => {
       updated_gallery.images.should.contain(test_image.$loki);
@@ -333,7 +314,7 @@ describe('Galleries model', () => {
   );
 
   it('can convert a gallery to a group', done =>
-    Galleries.convertToGroup(test_subgallery.$loki, 'fakeMongoId', (updated_gallery) => {
+    Galleries.convertToGroup(test_subgallery.$loki, 'fakeRemoteId', (updated_gallery) => {
       updated_gallery.group.should.be.ok;
       test_subgallery = updated_gallery;
       done();
@@ -341,7 +322,9 @@ describe('Galleries model', () => {
   );
 
   it('can remove a subgallery from a gallery', (done) => {
-    Galleries.remove(test_subgallery.$loki, () => {
+    delete test_subgallery.remoteId;
+    Galleries.remove(test_subgallery.$loki, (err) => {
+      should.not.exist(err);
       test_gallery.subgalleries.should.not.include(test_subgallery.$loki);
       Galleries.get(test_subgallery.$loki, (removed_gallery) => {
         should.not.exist(removed_gallery);
@@ -372,20 +355,22 @@ describe('Galleries model', () => {
 
   it('can remove gallery', (done) => {
     const id = test_gallery.$loki;
-    Galleries.remove(id, () =>
+    Galleries.remove(id, (err) => {
+      should.not.exist(err);
       Galleries.get(id, (removed_gallery) => {
         should.not.exist(removed_gallery);
         done();
-      })
-    );
+      });
+    });
   });
 
   it('can\'t remove the base gallery', (done) => {
-    Galleries.remove(base_gallery_id, () =>
+    Galleries.remove(base_gallery_id, (err) => {
+      should.exist(err);
       Galleries.get(base_gallery_id, (removed_gallery) => {
         should.exist(removed_gallery);
         done();
-      })
-    );
+      });
+    });
   });
 });

@@ -72,12 +72,12 @@ const Groups = {
     });
   },
 
-  delete: (mongoId, id, cb) => {
+  delete: (remoteId, id, cb) => {
     const options = {
       uri: server_uri.concat('/group/delete'),
       method: 'POST',
       jar: cookie_jar,
-      json: { gid: mongoId }
+      json: { gid: remoteId }
     };
     return request(options, (err, res, body) => {
       requestHandler(err, body, (error, msg) => {
@@ -139,19 +139,23 @@ const Groups = {
         if (error) cb(error, msg);
         else {
           const group = body.data;
-          Galleries.getMongo(group.remoteId, (cliGroup) => {
-            if (!cliGroup) {
-              Galleries.add(group.name, (addedGallery) => {
-                Galleries.convertToGroup(addedGallery.$loki, group.remoteId, (convertedGroup) => {
-                  group.$loki = convertedGroup.$loki;
-                  Groups.getGroupImages(group, error, msg, cb);
+          if (gid) {
+            Galleries.getMongo(group.remoteId, (cliGroup) => {
+              if (!cliGroup) {
+                Galleries.add(group.name, (addedGallery) => {
+                  Galleries.convertToGroup(addedGallery.$loki, group.remoteId, (convertedGroup) => {
+                    group.$loki = convertedGroup.$loki;
+                    Groups.getGroupImages(group, error, msg, cb);
+                  });
                 });
-              });
-            } else {
-              group.$loki = cliGroup.$loki;
-              Groups.getGroupImages(group, error, msg, cb);
-            }
-          });
+              } else {
+                group.$loki = cliGroup.$loki;
+                Groups.getGroupImages(group, error, msg, cb);
+              }
+            });
+          } else {
+            Groups.getGroupImages(group, error, msg, cb);
+          }
         }
       });
     });
