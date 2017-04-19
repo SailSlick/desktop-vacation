@@ -19,6 +19,7 @@ whether the gallery is a group or not
 | users        | Array    | Usernames (strings) of all users authorised to view this gallery |
 | subgallaries | Array    | ObjectIds of galleries contained within this gallery             |
 | images       | Array    | ObjectIds of images contained within this gallery                |
+| removed      | Array    | List of galleries/images are removed                             |
 | metadata     | Object   | See below for structure                                          |
 
 ### Metadata Structure
