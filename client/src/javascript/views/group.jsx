@@ -7,7 +7,7 @@ import SelectTools from './selectTools.jsx';
 import FilterTools from './filterTools.jsx';
 import GalleryBar from './galleryBar.jsx';
 import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
-import { danger, success } from '../helpers/notifier';
+import { danger, success, warning } from '../helpers/notifier';
 import Groups from '../models/groups';
 import Host from '../models/host';
 
@@ -63,25 +63,29 @@ class Group extends React.Component {
     const db_update = (typeof groupId !== 'number');
     groupId = (typeof groupId === 'string') ? groupId : this.props.groupId;
     filter = filter || this.props.filter;
+    let offline = true;
 
     // Null the group ID if we're looking at the base group
     if (groupId === '1') groupId = null;
-    if (Host.isAuthed()) {
-      Groups.get(groupId, (err, res, group) => {
-        if (err) console.error(`group get ${err}: ${res}`);
-        return Groups.expand(group, filter, (subgalleries, images) => {
-          this.setState({
-            subgalleries,
-            images,
-            selection: [],
-            itemsLimit: (db_update && this.state.itemsLimit >= 12) ? this.state.itemsLimit : 12,
-            itemsTotal: subgalleries.length + images.length
-          }, () => {
-            console.log('Group refreshed', groupId);
-          });
+    if (Host.isAuthed()) offline = false;
+    Groups.get(groupId, offline, (err, res, group) => {
+      if (err) console.error(`group get ${err}: ${res}`);
+      if (!group) {
+        warning(err);
+        return '';
+      }
+      return Groups.expand(group, filter, (subgalleries, images) => {
+        this.setState({
+          subgalleries,
+          images,
+          selection: [],
+          itemsLimit: (db_update && this.state.itemsLimit >= 12) ? this.state.itemsLimit : 12,
+          itemsTotal: subgalleries.length + images.length
+        }, () => {
+          console.log('Group refreshed', groupId);
         });
       });
-    }
+    });
   }
 
   removeItem(id) {
@@ -179,6 +183,7 @@ class Group extends React.Component {
         simple={this.props.simple}
         tags={subgallery.metadata.tags}
         rating={subgallery.metadata.rating}
+        offline={subgallery.offline}
       />
     );
 

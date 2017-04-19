@@ -71,7 +71,8 @@ const Galleries = {
   convertToGroup: (id, mongoId, cb) => {
     gallery_db.updateOne({ $loki: id }, {
       group: true,
-      mongoId
+      mongoId,
+      offline: false
     }, (ret) => {
       if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
       cb(ret);
@@ -124,6 +125,8 @@ const Galleries = {
   getMongo: (id, cb) => gallery_db.findOne({ mongoId: id }, cb),
 
   getName: (name, cb) => gallery_db.findOne({ name }, cb),
+
+  groupOfflineGet: cb => gallery_db.findMany({ group: true, offline: true }, cb),
 
   filterSingle: (item, filter, cb) => {
     let filterThrough = true;

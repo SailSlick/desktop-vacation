@@ -20,6 +20,8 @@ whether the gallery is a group or not
 | subgallaries | Array    | ObjectIds of galleries contained within this gallery             |
 | images       | Array    | ObjectIds of images contained within this gallery                |
 | metadata     | Object   | See below for structure                                          |
+| group        | Boolean  | Whether or not the gallery is a group (clientside)               |
+| offline      | Boolean  | Whether or not the group is offline or not (clientside)          |
 
 ### Metadata Structure
 

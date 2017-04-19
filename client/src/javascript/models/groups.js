@@ -127,33 +127,47 @@ const Groups = {
     });
   },
 
-  get: (gid, cb) => {
-    const options = {
-      uri: server_uri.concat(`/group/${gid || ''}`),
-      method: 'GET',
-      jar: cookie_jar,
-      json: true
-    };
-    return request(options, (err, res, body) => {
-      requestHandler(err, body, (error, msg) => {
-        if (error) cb(error, msg);
-        else {
-          const group = body.data;
-          Galleries.getMongo(group.remoteId, (cliGroup) => {
-            if (!cliGroup) {
-              Galleries.add(group.name, (addedGallery) => {
-                Galleries.convertToGroup(addedGallery.$loki, group.remoteId, (convertedGroup) => {
-                  group.$loki = convertedGroup.$loki;
-                  Groups.getGroupImages(group, error, msg, cb);
+  get: (gid, offline, cb) => {
+    if (!offline) {
+      const options = {
+        uri: server_uri.concat(`/group/${gid || ''}`),
+        method: 'GET',
+        jar: cookie_jar,
+        json: true
+      };
+      return request(options, (err, res, body) => {
+        requestHandler(err, body, (error, msg) => {
+          if (error) cb(error, msg);
+          else {
+            const group = body.data;
+            Galleries.getMongo(group.remoteId, (cliGroup) => {
+              if (!cliGroup) {
+                Galleries.add(group.name, (addedGallery) => {
+                  Galleries.convertToGroup(addedGallery.$loki, group.remoteId, (convertedGroup) => {
+                    group.$loki = convertedGroup.$loki;
+                    Groups.getGroupImages(group, error, msg, cb);
+                  });
                 });
-              });
-            } else {
-              group.$loki = cliGroup.$loki;
-              Groups.getGroupImages(group, error, msg, cb);
-            }
-          });
-        }
+              } else {
+                group.$loki = cliGroup.$loki;
+                Groups.getGroupImages(group, error, msg, cb);
+              }
+            });
+          }
+        });
       });
+    }
+    // check if you want a specific offline group
+    if (gid) {
+      return Galleries.getMongo(gid, (group) => {
+        cb(null, null, group);
+      });
+    }
+    // go through the db and check for groups that are offline/downloaded
+    return Galleries.groupOfflineGet((groups) => {
+      if (!groups) cb('No offline groups', null, null);
+      const allGroups = { groups, images: [] };
+      cb(null, null, allGroups);
     });
   },
 
@@ -343,6 +357,39 @@ const Groups = {
               }
             });
           });
+        });
+      }
+    });
+  },
+
+  downloadGroup: (gid, cb) => {
+    // check what parts of the group are on the client
+    Galleries.getMongo(gid, (group) => {
+      // nothing on client, download everything in full quality
+      if (!group) {
+        Groups.get(gid, false, (err, res, dlGroup) => {
+          if (err) {
+            console.error(`group get ${err}: ${res}`);
+            cb('Download failed');
+          } else {
+            // group has been downloaded in full quality, change to offline
+            Galleries.updateOne(dlGroup.$loki, { offline: true }, (doc) => {
+              if (doc) cb();
+              else cb('Update to Offline failed');
+            });
+          }
+        });
+      } else {
+        // there is some sort of copy on the client, make sure all the images are full quality
+        Groups.getGroupImages(group, null, null, (error) => {
+          if (error) cb(error);
+          else {
+            // group full images downloaded. change to offline
+            Galleries.updateOne(group.$loki, { offline: true }, (doc) => {
+              if (doc) cb();
+              else cb('Update to Offline failed');
+            });
+          }
         });
       }
     });
