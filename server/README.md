@@ -22,6 +22,7 @@ All the following commands should be run from the `server` folder
 | mocha                  | dev         | Unit testing suite                 |
 | mocha-jenkins-reporter | dev         | Compiles Jenkins-friendly reports  |
 | nyc                    | dev         | Istanbul Coverage CLI              |
+| stdio-mock             | dev         | Fake read/write streams            |
 
 # Installation
 

@@ -33,11 +33,10 @@ class Image extends React.Component {
     this.updateMetadata = this.updateMetadata.bind(this);
   }
 
-  componentDidUpdate() {
+  componentDidMount() {
     // Download thumbnail now if necessary
     if (!this.state.src && Host.isAuthed()) {
       Sync.downloadThumbnail(this.props.remoteId, null, (err, src) => {
-        console.log('BOOP', err, src)
         if (err) danger(err);
 
         // Update state only
@@ -275,7 +274,6 @@ class Image extends React.Component {
         ]);
       }
     }
-    console.log('BAP', this.state.src)
     return (
       <figure className={classes}>
         <BsImage responsive src={this.state.src} alt="MISSING" onClick={this.onClick} />
