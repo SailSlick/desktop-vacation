@@ -66,7 +66,7 @@ describe('Main Component', () => {
     eventSpy.restore();
     Galleries.should_save = true;
     Images.remove(test_image.$loki, () => true);
-    Galleries.remove(test_gallery.$loki, _ => done());
+    Galleries.remove(test_gallery.$loki, done);
   });
 
   it('can mount', (done) => {

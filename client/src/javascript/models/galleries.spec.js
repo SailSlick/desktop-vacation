@@ -323,7 +323,8 @@ describe('Galleries model', () => {
 
   it('can remove a subgallery from a gallery', (done) => {
     delete test_subgallery.remoteId;
-    Galleries.remove(test_subgallery.$loki, () => {
+    Galleries.remove(test_subgallery.$loki, (err) => {
+      should.not.exist(err);
       test_gallery.subgalleries.should.not.include(test_subgallery.$loki);
       Galleries.get(test_subgallery.$loki, (removed_gallery) => {
         should.not.exist(removed_gallery);
@@ -354,20 +355,22 @@ describe('Galleries model', () => {
 
   it('can remove gallery', (done) => {
     const id = test_gallery.$loki;
-    Galleries.remove(id, () =>
+    Galleries.remove(id, (err) => {
+      should.not.exist(err);
       Galleries.get(id, (removed_gallery) => {
         should.not.exist(removed_gallery);
         done();
-      })
-    );
+      });
+    });
   });
 
   it('can\'t remove the base gallery', (done) => {
-    Galleries.remove(base_gallery_id, () =>
+    Galleries.remove(base_gallery_id, (err) => {
+      should.exist(err);
       Galleries.get(base_gallery_id, (removed_gallery) => {
         should.exist(removed_gallery);
         done();
       })
-    );
+    });
   });
 });

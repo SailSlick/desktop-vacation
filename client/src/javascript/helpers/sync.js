@@ -163,7 +163,7 @@ const Sync = {
 
           // Remove the removed ones
           each(removedGalleries, (gal, next) =>
-            Galleries.remove(gal.$loki, () => next()),
+            Galleries.remove(gal.$loki, next),
 
             // Upload the new ones
             () => each(unsyncedGalleries.map(gal => gal.$loki), (gid, next) =>

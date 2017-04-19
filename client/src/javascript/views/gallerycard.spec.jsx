@@ -61,7 +61,8 @@ describe('GalleryCard Component', () => {
   after((done) => {
     groupConvertStub.restore();
     Images.remove(test_image.$loki, () => true);
-    Galleries.remove(test_gallery.$loki, _ => done());
+    delete test_gallery.remoteId;
+    Galleries.remove(test_gallery.$loki, done);
   });
 
   it('can render gallery card element', (done) => {

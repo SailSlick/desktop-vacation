@@ -58,9 +58,7 @@ describe('groupManager Component', () => {
     groupLeaveStub.restore();
     groupInviteStub.restore();
     testComponent.unmount();
-    Galleries.should_save = true;
-    Galleries.remove(testGroup.$loki, () => done());
-    Galleries.should_save = false;
+    Galleries.remove(testGroup.$loki, done);
   });
 
   it('can mount', (done) => {

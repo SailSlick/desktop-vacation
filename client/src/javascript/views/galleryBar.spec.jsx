@@ -26,7 +26,7 @@ describe('GalleryBar Component', () => {
   // Remove test image and gallery
   after((done) => {
     test_component.unmount();
-    Galleries.remove(test_gallery.$loki, () => done());
+    Galleries.remove(test_gallery.$loki, done);
   });
 
   it('can mount', (done) => {

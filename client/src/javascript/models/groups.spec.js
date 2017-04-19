@@ -37,7 +37,7 @@ describe('Group model', () => {
     Galleries.should_save = true;
     Galleries.getName(testGroupName, (group) => {
       if (group) {
-        Galleries.remove(group.$loki, _ => done());
+        Galleries.remove(group.$loki, done);
       } else done();
     });
   });
