@@ -14,7 +14,6 @@ import LoadingBar from './loadingBar.jsx';
 import Groups from '../models/groups';
 import { success, danger } from '../helpers/notifier';
 
-const BASE_GALLERY_ID = 1;
 const BASE_GROUP_ID = '1';
 
 const sync_root_event = new Event('sync_root');
@@ -79,7 +78,7 @@ class Main extends React.Component {
     super(props);
 
     this.state = {
-      galleryId: BASE_GALLERY_ID,
+      galleryId: Galleries.BASE_GALLERY_ID,
       groupId: BASE_GROUP_ID,
       newGalleryModal: false,
       selectGalleryModal: false,
@@ -206,7 +205,7 @@ class Main extends React.Component {
   }
 
   accountCreated() {
-    Galleries.get(BASE_GALLERY_ID, (gallery) => {
+    Galleries.get(Galleries.BASE_GALLERY_ID, (gallery) => {
       if (!gallery) {
         this.setState({ page: 2, account: false });
         return;
@@ -235,7 +234,7 @@ class Main extends React.Component {
         danger(err_msg);
         return cb(err_msg);
       }
-      if (this.state.galleryId === BASE_GALLERY_ID) {
+      if (this.state.galleryId === Galleries.BASE_GALLERY_ID) {
         success(`Gallery ${galleryname} added`);
         this.state.galleryname = '';
         if (typeof cb === 'function') return cb();
@@ -440,7 +439,7 @@ class Main extends React.Component {
       <div>
         <Navbar inverse collapseOnSelect>
           <Navbar.Header>
-            <Navbar.Brand onClick={_ => this.changeGallery(BASE_GALLERY_ID)}>
+            <Navbar.Brand onClick={_ => this.changeGallery(Galleries.BASE_GALLERY_ID)}>
               Desktop Vacation
             </Navbar.Brand>
             <Navbar.Toggle />
@@ -452,12 +451,12 @@ class Main extends React.Component {
                 <MenuItem onClick={this.syncImages}>Sync</MenuItem>
               </NavDropdown>
               <NavDropdown title="Galleries" id="galleries">
-                <MenuItem onClick={_ => this.changeGallery(BASE_GALLERY_ID)}>View</MenuItem>
+                <MenuItem onClick={_ => this.changeGallery(Galleries.BASE_GALLERY_ID)}>View</MenuItem>
                 <MenuItem onClick={this.getNewGalleryName}>Add</MenuItem>
                 <MenuItem onClick={this.toggleInfoBarMode}>Info Bar</MenuItem>
               </NavDropdown>
               <NavDropdown title="Groups" id="groups">
-                <MenuItem onClick={_ => this.changeGroup(BASE_GALLERY_ID, BASE_GROUP_ID)}>
+                <MenuItem onClick={_ => this.changeGroup(Galleries.BASE_GALLERY_ID, BASE_GROUP_ID)}>
                   View
                 </MenuItem>
                 <MenuItem onClick={this.getNewGroupName}>Add</MenuItem>
@@ -553,13 +552,13 @@ class Main extends React.Component {
               <h1>Galleries</h1>
               <Gallery
                 simple
-                dbId={BASE_GALLERY_ID}
+                dbId={Galleries.BASE_GALLERY_ID}
                 onChange={this.onSelectGallery}
               />
               <h1>Groups</h1>
               <Group
                 simple
-                dbId={BASE_GALLERY_ID}
+                dbId={Galleries.BASE_GALLERY_ID}
                 groupId={BASE_GROUP_ID}
                 onChange={this.onSelectGroup}
               />

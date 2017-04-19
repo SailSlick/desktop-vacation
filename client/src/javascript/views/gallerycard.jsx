@@ -4,8 +4,9 @@ import Slideshow from '../helpers/slideshow-client';
 import GroupManager from './groupManager.jsx';
 import { success, danger } from '../helpers/notifier';
 import Groups from '../models/groups';
+import Sync from '../helpers/sync';
 
-const ActionMenu = ({ simple, group, setSlideshow, onRemove, groupConvert, groupMenu }) => {
+const ActionMenu = ({ simple, group, setSlideshow, upload, onRemove, groupConvert, groupMenu }) => {
   if (simple) {
     return <figcaption style={{ display: 'none' }} />;
   }
@@ -24,6 +25,10 @@ const ActionMenu = ({ simple, group, setSlideshow, onRemove, groupConvert, group
         <MenuItem onClick={onRemove}>
           <Glyphicon glyph="remove" />
           Remove
+        </MenuItem>
+        <MenuItem onClick={upload}>
+          <Glyphicon glyph="upload" />
+          Sync
         </MenuItem>
         <MenuItem onClick={groupConvert}>
           <Glyphicon glyph="transfer" />
@@ -53,6 +58,7 @@ ActionMenu.propTypes = {
   simple: React.PropTypes.bool.isRequired,
   group: React.PropTypes.bool.isRequired,
   setSlideshow: React.PropTypes.func.isRequired,
+  upload: React.PropTypes.func.isRequired,
   onRemove: React.PropTypes.func.isRequired,
   groupConvert: React.PropTypes.func.isRequired,
   groupMenu: React.PropTypes.func.isRequired
@@ -68,6 +74,7 @@ class GalleryCard extends React.Component {
 
     // Bind onClick to this object
     this.remove = this.remove.bind(this);
+    this.upload = this.upload.bind(this);
     this.setSlideshow = this.setSlideshow.bind(this);
     this.groupConvert = this.groupConvert.bind(this);
     this.groupMenu = this.groupMenu.bind(this);
@@ -90,6 +97,13 @@ class GalleryCard extends React.Component {
     this.props.onRemove(this.props.dbId);
   }
 
+  upload() {
+    Sync.uploadGallery(this.props.dbId, (err) => {
+      // Errors/danger notifier handled from uploadGallery
+      if (!err) success('Gallery synced!');
+    });
+  }
+
   groupMenu() {
     this.setState({ groupManagerModal: true });
   }
@@ -107,6 +121,7 @@ class GalleryCard extends React.Component {
           simple={this.props.simple}
           group={this.props.group}
           setSlideshow={this.setSlideshow}
+          upload={this.upload}
           onRemove={this.remove}
           groupConvert={this.groupConvert}
           groupMenu={this.groupMenu}
@@ -119,7 +134,7 @@ class GalleryCard extends React.Component {
           <Modal.Body>
             <GroupManager
               dbId={this.props.dbId}
-              mongoId={this.props.mongoId}
+              remoteId={this.props.remoteId}
               uid={this.props.uid}
               users={this.props.users}
               rating={this.props.rating}
@@ -143,7 +158,7 @@ GalleryCard.propTypes = {
   onRemove: React.PropTypes.func.isRequired,
   group: React.PropTypes.bool,
   simple: React.PropTypes.bool,
-  mongoId: React.PropTypes.string,
+  remoteId: React.PropTypes.string,
   uid: React.PropTypes.string,
   users: React.PropTypes.arrayOf(React.PropTypes.string)
 };
@@ -152,7 +167,7 @@ GalleryCard.defaultProps = {
   thumbnail: '',
   simple: false,
   group: false,
-  mongoId: '',
+  remoteId: '',
   uid: '',
   users: [],
 };

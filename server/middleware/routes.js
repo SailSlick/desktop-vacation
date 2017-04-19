@@ -19,6 +19,7 @@ const imageRouter = express.Router();
 routes.use('/image', imageRouter);
 imageRouter.use('/:id/', image.checkId);
 imageRouter.get('/:id/', image.download);
+imageRouter.get('/:id/data', image.getData);
 imageRouter.use(user.requireAuth);
 imageRouter.use('/upload', image.uploadMiddleware, image.upload);
 imageRouter.post('/:id/remove', image.remove);

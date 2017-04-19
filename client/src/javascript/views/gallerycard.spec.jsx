@@ -61,7 +61,8 @@ describe('GalleryCard Component', () => {
   after((done) => {
     groupConvertStub.restore();
     Images.remove(test_image.$loki, () => true);
-    Galleries.remove(test_gallery.$loki, _ => done());
+    delete test_gallery.remoteId;
+    Galleries.remove(test_gallery.$loki, done);
   });
 
   it('can render gallery card element', (done) => {
@@ -86,7 +87,7 @@ describe('GalleryCard Component', () => {
 
   it('can request conversion to group of element', (done) => {
     groupConvertStub.called.should.not.be.ok;
-    test_component.find('.img-menu a').at(2).simulate('click');
+    test_component.find('.img-menu a').at(3).simulate('click');
     groupConvertStub.called.should.be.ok;
     done();
   });

@@ -60,7 +60,8 @@ describe('Gallery Component', () => {
     uploadStub.restore();
     test_component.unmount();
     Images.remove(test_image.$loki, () => true);
-    Galleries.remove(test_gallery.$loki, () => done());
+    delete test_gallery.remoteId;
+    Galleries.remove(test_gallery.$loki, done);
   });
 
   it('can add a tag', (done) => {

@@ -1,7 +1,9 @@
 import { use, should as chaiShould } from 'chai';
 import Nock from 'nock';
 import chaiThings from 'chai-things';
+import { stub } from 'sinon';
 import Host from './host';
+import Sync from '../helpers/sync';
 
 // Use 'should' style chai testing
 const should = chaiShould();
@@ -20,13 +22,45 @@ describe('Host model', () => {
   const headers = {
     'set-cookie': ['connect.sid=s%3AoSOmSsKxRUsMYJV-HdXv-05NeXU7BVEe.n%2FHVO%2FKhZfaecG7DUx2afovn%2FW2MMdsV9q33AgaHqP8; Path=/; HttpOnly']
   };
+  let downloadStub;
+
+  before((done) => {
+    const fakeGallery = {
+      remoteId: 'FAKEREMOTEID',
+      images: [],
+      subgalleries: [],
+      users: [],
+      name: 'hah',
+      uid: ''
+    };
+    downloadStub = stub(Sync, 'downloadGallery', (remoteId, cb) => cb(null, fakeGallery));
+    done();
+  });
 
   // Recreate account
   after((done) => {
+    downloadStub.restore();
+    const replacementGallery = {
+      images: [],
+      subgalleries: [],
+      users: [],
+      name: 'hostafter_all',
+      uid: '',
+      metadata: {
+        rating: 0,
+        tags: []
+      }
+    };
+    downloadStub = stub(Sync, 'downloadGallery', (remoteId, cb) => cb(null, replacementGallery));
     Nock(domain)
       .post('/user/create')
       .reply(200, { status: 200, message, uid, domain, 'root-remote-id': remoteGallery }, headers);
-    Host.createAccount(username, password, () => done());
+    Host.createAccount(username, password, (status, msg) => {
+      downloadStub.restore();
+      should.not.exist(status);
+      msg.should.be.a('string');
+      done();
+    });
   });
 
   it('can get Host by index', (done) => {
@@ -74,8 +108,9 @@ describe('Host model', () => {
   it('can create an account', (done) => {
     Nock(domain)
       .post('/user/create')
-      .reply(200, { status: 200, message, uid, domain }, headers);
+      .reply(200, { status: 200, message, uid, domain, 'root-remote-id': 'FAKEREMOTEID' }, headers);
     Host.createAccount(username, password, (status, msg) => {
+      downloadStub.called.should.be.ok;
       should.not.exist(status);
       msg.should.be.a('string');
       done();

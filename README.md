@@ -1,6 +1,6 @@
 # Desktop Vacation
 
-[![Build Status](http://jenkins.m1cr0man.com/buildStatus/icon?job=Desktop Vacation/master)](http://jenkins.m1cr0man.com/job/Desktop%20Vacation/job/master/)
+[![Build Status](http://jenkins.m1cr0man.com/job/Desktop%20Vacation/job/master/badge/icon)](http://jenkins.m1cr0man.com/job/Desktop%20Vacation/job/master/)
 
 “Desktop Vacation is an application suite to manage your backgrounds with a cloud storage service and social options.”
 
@@ -13,12 +13,13 @@ Written by The Arduous Aaron, The Lucrative Lucas and The Rickety Ross
 - [x] Customisable slideshow feature
 - [x] Organise backgrounds into galleries
 - [x] Very portable client-side database
+- [x] Sync backgrounds to the cloud
+- [x] Sync galleries to the cloud
+- [x] Image comparison to not store duplicates on server
+- [x] Share backgrounds across social groups
+- [x] Share backgrounds using links
 
 ### Planned Features
-- [ ] Sync backgrounds to the cloud
-- [ ] Image comparison to not store duplicates on server
-- [ ] Image compression to save space on the server
-- [ ] Share backgrounds across social groups
 - [ ] Share backgrounds peer to peer
 
 ### Installation
