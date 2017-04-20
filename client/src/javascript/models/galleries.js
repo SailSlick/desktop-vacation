@@ -1,7 +1,9 @@
 import { map, each, eachOf, filter as asyncFilter } from 'async';
 import { ipcRenderer as ipc } from 'electron';
+import { basename } from 'path';
 import DbConn from '../helpers/db';
 import Images from './images';
+import { updateProgressBar, endProgressBar } from '../helpers/progress';
 import { success, warning } from '../helpers/notifier';
 import Sync from '../helpers/sync';
 
@@ -376,6 +378,7 @@ ipc.on('selected-directory', (event, files) => {
   eachOf(files, (file, index, next) => {
     Images.add(file, (image, dup) => {
       if (dup) dups += 1;
+      else updateProgressBar(files.length - dups, `Adding ${basename(image.location)}`);
       Galleries.addItem(Galleries.BASE_GALLERY_ID, image.$loki, () => {
         console.log(`Opened image ${file}`);
         next();
@@ -385,6 +388,7 @@ ipc.on('selected-directory', (event, files) => {
   () => {
     Galleries.should_save = true;
     document.dispatchEvent(gallery_update_event);
+    endProgressBar();
     success(`Added ${files.length - dups} images`);
     if (dups > 0) warning(`${dups} duplicated images in add`);
     console.log('Finished opening images');

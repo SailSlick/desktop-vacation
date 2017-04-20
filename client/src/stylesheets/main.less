@@ -42,9 +42,7 @@ button.btn {
 
 .rounded { border-radius: 4px; }
 
-.selected {
-	border: 3px solid lightblue !important;
-}
+.selected { border: 3px solid lightblue !important; }
 
 .glyphicon { margin-right: 1em; }
 
@@ -66,6 +64,24 @@ button.btn {
 	top: 0;
 	left: 0;
 	z-index: 9999;
+}
+
+.progress {
+	margin-bottom: 0px;
+	opacity: 1;
+	transition: opacity .512s ease;
+	.progress-bar {
+		-webkit-transition: none;
+		transition: none;
+	}
+}
+
+.progress-bar { text-align: left; }
+
+.progress span {
+	padding-left: 1em;
+	color: #101010;
+	font-weight: bold;
 }
 
 /* BEGIN Navbars */
