@@ -100,7 +100,7 @@ const Images = {
   download: (remoteId, gid, cb) => {
     image_db.findOne({ remoteId }, (existingDoc) => {
       if (existingDoc) {
-        cb(null, existingDoc.$loki);
+        cb(null, existingDoc);
       } else {
         Sync.downloadImage(remoteId, gid, (err, location) => {
           if (err) console.error(err);

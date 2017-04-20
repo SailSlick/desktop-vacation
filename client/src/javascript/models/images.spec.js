@@ -65,9 +65,9 @@ describe('Images model', () => {
 
   it('can download image', (done) => {
     syncDownloadStub.reset();
-    Images.download(fakeRemote, null, (err, id) => {
+    Images.download(fakeRemote, null, (err, doc) => {
       syncDownloadStub.called.should.be.ok;
-      Images.get(id, (image) => {
+      Images.get(doc.$loki, (image) => {
         image.remoteId.should.equal(fakeRemote);
         image.location.should.equal(fakeLocation);
         done();
@@ -77,8 +77,8 @@ describe('Images model', () => {
 
   it('won\'t redownload an image thats already there', (done) => {
     syncDownloadStub.reset();
-    Images.download(fakeRemote, null, (err, id) => {
-      Images.get(id, (image) => {
+    Images.download(fakeRemote, null, (err, doc) => {
+      Images.get(doc.$loki, (image) => {
         syncDownloadStub.called.should.not.be.ok;
         image.remoteId.should.equal(fakeRemote);
         image.location.should.equal(fakeLocation);
