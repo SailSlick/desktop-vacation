@@ -123,15 +123,9 @@ class GroupManager extends React.Component {
           <Col sm={5} xs={12}>
             <Table>
               <thead>
-                <tr>
-                  <td>
-                    <h4>Group Users:</h4>
-                  </td>
-                </tr>
+                <tr><td><h4>Group Users:</h4></td></tr>
               </thead>
-              <tbody>
-                {users}
-              </tbody>
+              <tbody>{users}</tbody>
             </Table>
           </Col>
           {management_buttons}

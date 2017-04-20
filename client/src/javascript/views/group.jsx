@@ -68,11 +68,11 @@ class Group extends React.Component {
     // Null the group ID if we're looking at the base group
     if (groupId === '1') groupId = null;
     Groups.get(groupId, offline, (err, res, group) => {
-      if (err) console.error(`group get ${err}: ${res}`);
       if (!group) {
         warning(err);
         return '';
       }
+      if (err) console.error(`group get ${err}: ${res}`);
       return Groups.expand(group, filter, (subgalleries, images) => {
         this.setState({
           subgalleries,
