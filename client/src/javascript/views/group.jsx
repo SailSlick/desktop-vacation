@@ -7,7 +7,7 @@ import SelectTools from './selectTools.jsx';
 import FilterTools from './filterTools.jsx';
 import GalleryBar from './galleryBar.jsx';
 import InfiniteScrollInfo from './infiniteScrollInfo.jsx';
-import { danger, success } from '../helpers/notifier';
+import { danger, success, warning } from '../helpers/notifier';
 import Groups from '../models/groups';
 import Host from '../models/host';
 
@@ -63,25 +63,28 @@ class Group extends React.Component {
     const db_update = (typeof groupId !== 'number');
     groupId = (typeof groupId === 'string') ? groupId : this.props.groupId;
     filter = filter || this.props.filter;
+    const offline = !Host.isAuthed();
 
     // Null the group ID if we're looking at the base group
     if (groupId === '1') groupId = null;
-    if (Host.isAuthed()) {
-      Groups.get(groupId, (err, res, group) => {
-        if (err) console.error(`group get ${err}: ${res}`);
-        return Groups.expand(group, filter, (subgalleries, images) => {
-          this.setState({
-            subgalleries,
-            images,
-            selection: [],
-            itemsLimit: (db_update && this.state.itemsLimit >= 12) ? this.state.itemsLimit : 12,
-            itemsTotal: subgalleries.length + images.length
-          }, () => {
-            console.log('Group refreshed', groupId);
-          });
+    Groups.get(groupId, offline, (err, res, group) => {
+      if (!group) {
+        warning(err);
+        return '';
+      }
+      if (err) console.error(`group get ${err}: ${res}`);
+      return Groups.expand(group, filter, (subgalleries, images) => {
+        this.setState({
+          subgalleries,
+          images,
+          selection: [],
+          itemsLimit: (db_update && this.state.itemsLimit >= 12) ? this.state.itemsLimit : 12,
+          itemsTotal: subgalleries.length + images.length
+        }, () => {
+          console.log('Group refreshed', groupId);
         });
       });
-    }
+    });
   }
 
   removeItem(id) {
@@ -95,7 +98,10 @@ class Group extends React.Component {
     let rating = this.state.rating;
     let tags = this.state.tags;
 
-    if (typeof field === 'number') rating = field;
+    if (typeof field === 'number') {
+      if (rating === field) rating = 0;
+      else rating = field;
+    }
     if (typeof field === 'object') tags = field;
     if (typeof field === 'string') {
       field = field.trim();
@@ -108,7 +114,8 @@ class Group extends React.Component {
     const metadata = { rating, tags };
     return Groups.updateMetadata(this.props.groupId, this.props.dbId, metadata, (doc) => {
       if (!doc) return danger('Updating metadata failed');
-      return success('Metadata updated');
+      success('Metadata updated');
+      return this.setState({ tags, rating });
     });
   }
 
@@ -146,7 +153,7 @@ class Group extends React.Component {
 
   // eslint-disable-next-line class-methods-use-this
   saveAll(ids) {
-    Groups.save(ids, (err, msg) => {
+    Groups.saveImages(ids, (err, msg) => {
       if (err) danger(err);
       else success(msg);
     });
@@ -179,6 +186,7 @@ class Group extends React.Component {
         simple={this.props.simple}
         tags={subgallery.metadata.tags}
         rating={subgallery.metadata.rating}
+        offline={subgallery.offline}
       />
     );
 

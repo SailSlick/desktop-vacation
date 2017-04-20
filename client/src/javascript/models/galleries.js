@@ -63,6 +63,7 @@ const Galleries = {
   convertToGroup: (id, remoteId, cb) => {
     gallery_db.updateOne({ $loki: id }, {
       group: true,
+      offline: false,
       remoteId
     }, (ret) => {
       if (Galleries.should_save) document.dispatchEvent(gallery_update_event);
@@ -119,6 +120,8 @@ const Galleries = {
   getMongo: (id, cb) => gallery_db.findOne({ remoteId: id }, cb),
 
   getName: (name, cb) => gallery_db.findOne({ name }, cb),
+
+  getOfflineGroups: cb => gallery_db.findMany({ offline: true }, cb),
 
   getMany: (ids, cb) => gallery_db.findMany({ $loki: { $in: ids } }, cb),
 
@@ -194,8 +197,7 @@ const Galleries = {
       }),
     (err_gal, subgalleries) =>
       // Expand Images
-      map(gallery.images, (image_id, next) =>
-          Images.get(image_id, image => next(null, image)),
+      map(gallery.images, (image_id, next) => Images.get(image_id, image => next(null, image)),
         (err_img, images) => {
           subgalleries = subgalleries.filter(x => !x.group);
           Galleries.filter(subgalleries, images, filter, cb);
@@ -341,9 +343,12 @@ const Galleries = {
   appendRemoveListInternal: (gid, remoteId, cb) => {
     if (!remoteId) return cb();
     return Galleries.get(gid, (gallery) => {
-      gallery.removed = gallery.removed || [];
-      gallery.removed.push(remoteId);
-      Galleries.update(gid, { removed: gallery.removed }, cb);
+      if (gallery.group) cb();
+      else {
+        gallery.removed = gallery.removed || [];
+        gallery.removed.push(remoteId);
+        Galleries.update(gid, { removed: gallery.removed }, cb);
+      }
     });
   },
 

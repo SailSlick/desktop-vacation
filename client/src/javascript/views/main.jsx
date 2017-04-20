@@ -179,7 +179,7 @@ class Main extends React.Component {
       page: 0,
       imageSelection: null,
       multiSelect: false,
-      filterToggle: false,
+      filterToggle: false
     });
   }
 

@@ -73,19 +73,19 @@ describe('groupManager Component', () => {
   });
 
   it('can render user list', (done) => {
-    testComponent.find('p').first().text().should.equal('Sully');
-    testComponent.find('p').at(1).text().should.equal('Rully');
+    testComponent.find('td').at(1).text().should.equal('Sully');
+    testComponent.find('td').at(3).text().should.equal('Rully');
     done();
   });
 
   it('can see correct things when normal user', (done) => {
-    testComponent.find('Button').at(0).text().should.equal('Leave Group');
+    testComponent.find('Button').at(2).text().should.equal('Leave Group');
     done();
   });
 
   it('can click leave group as a normal user', (done) => {
     groupLeaveStub.reset();
-    testComponent.find('Button').at(0).simulate('click');
+    testComponent.find('Button').at(2).simulate('click');
     groupLeaveStub.called.should.be.ok;
     done();
   });
@@ -143,14 +143,14 @@ describe('groupManager Component', () => {
 
   it('can call removeUser', (done) => {
     groupRemoveUserStub.reset();
-    testComponent.find('InputGroup').at(1).childAt(1).simulate('click');
+    testComponent.find('Button').at(0).simulate('click');
     groupRemoveUserStub.called.should.be.ok;
     done();
   });
 
   it('can call delete group', (done) => {
     groupDeleteStub.reset();
-    testComponent.find('Button').at(1).simulate('click');
+    testComponent.find('Button').at(3).simulate('click');
     groupDeleteStub.called.should.be.ok;
     done();
   });
