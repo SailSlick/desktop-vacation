@@ -364,8 +364,8 @@ const Sync = {
 
       // Download the missing ones
       each(missingImages, (remoteId, next) => {
-        updateProgressBar(missingImages.length, 'Downloading image');
         Sync.downloadImageData(remoteId, (errDl, id) => {
+          updateProgressBar(missingImages.length, 'Downloading images');
           if (errDl) return next(errDl);
 
           // Append new ID to imageIds
