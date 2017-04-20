@@ -69,7 +69,8 @@ class GalleryCard extends React.Component {
     super(props);
 
     this.state = {
-      groupManagerModal: false
+      groupManagerModal: false,
+      thumbnail: this.props.thumbnail || Sync.getCachedThumbnail(this.props.thumbRemoteId)
     };
 
     // Bind onClick to this object
@@ -79,6 +80,20 @@ class GalleryCard extends React.Component {
     this.groupConvert = this.groupConvert.bind(this);
     this.groupMenu = this.groupMenu.bind(this);
     this.hideModals = this.hideModals.bind(this);
+  }
+
+  componentDidMount() {
+    // Download thumbnail now if necessary
+    if (!this.state.thumbnail && this.props.thumbRemoteId) {
+      Sync.downloadThumbnail(this.props.thumbRemoteId, null, (err, thumbnail) => {
+        if (err) danger(err);
+        else this.setState({ thumbnail });
+      });
+    }
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.thumbnail) this.setState({ thumbnail: nextProps.thumbnail });
   }
 
   setSlideshow() {
@@ -115,7 +130,7 @@ class GalleryCard extends React.Component {
   render() {
     return (
       <figure className="figure img-card gallery-card rounded">
-        <BsImage responsive src={this.props.thumbnail} alt="" onClick={this.props.onClick} />
+        <BsImage responsive src={this.state.thumbnail} alt="" onClick={this.props.onClick} />
         <h2 className="rounded" onClick={this.props.onClick}>{this.props.name}</h2>
         <ActionMenu
           simple={this.props.simple}
@@ -152,6 +167,7 @@ GalleryCard.propTypes = {
   dbId: React.PropTypes.number.isRequired,
   name: React.PropTypes.string.isRequired,
   thumbnail: React.PropTypes.string,
+  thumbRemoteId: React.PropTypes.string,
   rating: React.PropTypes.number.isRequired,
   tags: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
   onClick: React.PropTypes.func.isRequired,
@@ -165,6 +181,7 @@ GalleryCard.propTypes = {
 
 GalleryCard.defaultProps = {
   thumbnail: '',
+  thumbRemoteId: '',
   simple: false,
   group: false,
   remoteId: '',

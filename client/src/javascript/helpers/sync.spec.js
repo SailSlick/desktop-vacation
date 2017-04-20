@@ -1,7 +1,7 @@
 import path from 'path';
 import Nock from 'nock';
 import fs from 'fs';
-import { Readable } from 'stream';
+import { MockWritable } from 'stdio-mock';
 import { stub } from 'sinon';
 import { should as chaiShould } from 'chai';
 import Sync from './sync';
@@ -22,7 +22,7 @@ describe('Sync helper', () => {
   let fsWriteStub;
 
   before((done) => {
-    fsWriteStub = stub(fs, 'createWriteStream').returns(new Readable());
+    fsWriteStub = stub(fs, 'createWriteStream').returns(new MockWritable());
     Images.add(testImagePath, (inserted_image) => {
       testImage = inserted_image;
       // NOTE logging in so that Host.isAuthed() returns true
@@ -69,9 +69,10 @@ describe('Sync helper', () => {
 
   describe('downloading images', () => {
     it('should be able to download an image', (done) => {
+      console.log(testImagePath);
       Nock(Host.server_uri)
         .log(console.log)
-        .get(`/image/${fakeRemote}/`)
+        .get(`/image/${fakeRemote}`)
         .replyWithFile(200, testImagePath, { 'content-type': 'image/png' });
       Sync.downloadImage(fakeRemote, null, (err, filePath) => {
         should.not.exist(err);

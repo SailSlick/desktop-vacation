@@ -182,6 +182,7 @@ const Galleries = {
             subgallery.images[0],
             (image) => {
               subgallery.thumbnail = image.location;
+              subgallery.thumbRemoteId = image.remoteId;
               next(null, subgallery);
             }
           );
