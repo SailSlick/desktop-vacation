@@ -8,6 +8,7 @@ import Images from '../models/images';
 import Galleries from '../models/galleries';
 import Host from '../models/host';
 import { danger, warning, success } from './notifier';
+import { updateProgressBar, endProgressBar } from './progress.js';
 
 function errorHandler(cb) {
   return (reqErr, response, body) => {
@@ -368,6 +369,7 @@ const Sync = {
       // Download the missing ones
       each(missingImages, (remoteId, next) => {
         Sync.downloadImageData(remoteId, (errDl, id) => {
+          updateProgressBar(missingImages.length, 'Downloading images');
           if (errDl) return next(errDl);
 
           // Append new ID to imageIds
@@ -375,8 +377,8 @@ const Sync = {
           return next();
         });
       }, (errDl) => {
-        if (errDl) cb(errDl);
-
+        endProgressBar();
+        if (errDl) return cb(errDl);
         // Return complete list of local ids
         return cb(null, imageIds);
       });

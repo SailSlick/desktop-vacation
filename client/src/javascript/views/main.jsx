@@ -10,6 +10,7 @@ import Host from '../models/host';
 import Slideshow from '../helpers/slideshow-client';
 import Profile from './profile.jsx';
 import Group from './group.jsx';
+import LoadingBar from './loadingBar.jsx';
 import Groups from '../models/groups';
 import { success, danger } from '../helpers/notifier';
 
@@ -128,6 +129,7 @@ class Main extends React.Component {
     // Events
     document.addEventListener('append_gallery', this.showGallerySelector, false);
     document.addEventListener('notify', this.showAlert, false);
+
     mousetrap.bind('ctrl+f', this.toggleFilterMode);
     mousetrap.bind('shift+s', this.toggleSelectMode);
     mousetrap.bind('shift+i', this.toggleInfoBarMode);
@@ -445,7 +447,7 @@ class Main extends React.Component {
           <Navbar.Collapse>
             <Nav onSelect={this.handleSelect}>
               <NavDropdown title="Images" id="images">
-                <MenuItem onClick={_ => ipc.send('open-file-dialog')}>Add</MenuItem>
+                <MenuItem onClick={() => ipc.send('open-file-dialog')}>Add</MenuItem>
                 <MenuItem onClick={this.syncImages}>Sync</MenuItem>
               </NavDropdown>
               <NavDropdown title="Galleries" id="galleries">
@@ -473,6 +475,7 @@ class Main extends React.Component {
             </Nav>
           </Navbar.Collapse>
         </Navbar>
+        <LoadingBar />
 
         <Grid fluid id="main-content">
           <PrimaryContent page={this.state.page} parent={this} />
