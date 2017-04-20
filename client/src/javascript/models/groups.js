@@ -115,7 +115,8 @@ const Groups = {
     }, (galMapErr, galResults) => {
       map(group.images, (id, next) => {
         Images.getOrDownload(id, group.remoteId, (getErr, image, download) => {
-          if (download) {
+          if (getErr) next(getErr);
+          else if (download) {
             downloads = true;
             Galleries.addItem(group.$loki, image.$loki, () => next(getErr, image));
           } else next(getErr, image);
@@ -375,15 +376,11 @@ const Groups = {
   },
 
   convertToOffline: (group, cb) => {
+    const thumbnail = group.images[0].location;
     const images = group.images.map(image => image.$loki);
-    Galleries.update(group.$loki, { offline: true, images, thumbnail: images[0] }, (doc) => {
+    Galleries.update(group.$loki, { offline: true, images, thumbnail }, (doc) => {
       if (!doc) cb('Update to Offline failed');
-      else {
-        Groups.saveImages(doc.images, (saveErr) => {
-          if (saveErr) cb(saveErr);
-          else cb();
-        });
-      }
+      else cb();
     });
   },
 

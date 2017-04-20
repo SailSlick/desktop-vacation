@@ -107,7 +107,6 @@ const Images = {
           else if (existingDoc) {
             Images.update(existingDoc.$loki, { location }, doc => cb(null, doc));
           } else {
-            console.log(`Adding image at ${location}`);
             Images.addRemoteId(location, remoteId, (doc) => {
               cb(null, doc);
             });
@@ -127,7 +126,8 @@ const Images = {
           if (err) {
             console.error(err);
             next(err);
-          } else next(null, doc, true);
+          }
+          next(null, doc, true);
         });
       }
     });
