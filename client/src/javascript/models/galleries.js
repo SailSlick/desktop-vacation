@@ -343,9 +343,12 @@ const Galleries = {
   appendRemoveListInternal: (gid, remoteId, cb) => {
     if (!remoteId) return cb();
     return Galleries.get(gid, (gallery) => {
-      gallery.removed = gallery.removed || [];
-      gallery.removed.push(remoteId);
-      Galleries.update(gid, { removed: gallery.removed }, cb);
+      if (gallery.group) cb();
+      else {
+        gallery.removed = gallery.removed || [];
+        gallery.removed.push(remoteId);
+        Galleries.update(gid, { removed: gallery.removed }, cb);
+      }
     });
   },
 

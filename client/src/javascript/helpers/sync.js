@@ -300,7 +300,7 @@ const Sync = {
 
   unsyncGallery: (gid, cb) => {
     Galleries.get(gid, (gallery) => {
-      if (!gallery.remoteId) return cb();
+      if (!gallery.remoteId || gallery.group) return cb();
       const options = {
         uri: Host.server_uri.concat(`/gallery/${gallery.remoteId}/remove`),
         jar: Host.cookie_jar,
@@ -386,9 +386,11 @@ const Sync = {
         const writeStream = fs.createWriteStream(newFilePath);
         writeStream.on('finish', () => {
           Images.getRemoteId(id, (image) => {
-            image.location = newFilePath;
-            if (Galleries.should_save) {
-              document.dispatchEvent(Galleries.gallery_update_event);
+            if (!image) {
+              Images.addRemoteId(newFilePath, id, () => cb(null, newFilePath));
+            } else {
+              image.location = newFilePath;
+              if (Galleries.should_save) document.dispatchEvent(Galleries.gallery_update_event);
             }
           });
           cb(null, newFilePath);

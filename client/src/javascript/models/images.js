@@ -129,8 +129,7 @@ const Images = {
           if (err) {
             console.error(err);
             next(err);
-          }
-          next(null, doc, true);
+          } else next(null, doc, true);
         });
       }
     });
