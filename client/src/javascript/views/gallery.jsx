@@ -277,6 +277,7 @@ class Gallery extends React.Component {
         remoteId={subgallery.remoteId}
         name={subgallery.name}
         thumbnail={subgallery.thumbnail}
+        thumbRemoteId={subgallery.thumbRemoteId}
         tags={subgallery.metadata.tags}
         rating={subgallery.metadata.rating}
         onClick={_ => this.props.onChange(subgallery.$loki)}

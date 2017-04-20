@@ -1,5 +1,6 @@
 const images = require('../models/image');
 const galleries = require('../models/gallery');
+const thumbnails = require('../middleware/thumbnails');
 const user = require('../models/user');
 
 function basicErrorHandler(error, next, message) {
@@ -122,6 +123,28 @@ module.exports = {
           headers: { 'Content-Type': image.mimeType },
           dotfiles: 'deny'
         });
+      }
+    });
+  },
+
+  downloadThumbnail: (req, res, next) => {
+    images.get(req.params.id, (err, image) => {
+      if (err) {
+        next({ status: 404, error: 'image not found' });
+      } else if (image.uid !== req.session.uid && !image.shared) {
+        next({ status: 401, error: 'invalid permissions' });
+      } else {
+        const size = req.params.size || 'lg';
+        const cropping = req.params.cropping || 'growy';
+        thumbnails.generate(
+          `${process.cwd()}/${image.location}`,
+          size,
+          cropping,
+          (errGen, buffer, info) => {
+            if (errGen) return next({ status: errGen, error: buffer });
+            return res.header({ 'Content-Type': `image/${info.format}` }).send(buffer);
+          }
+        );
       }
     });
   },

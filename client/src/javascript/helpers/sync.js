@@ -24,6 +24,12 @@ function errorHandler(cb) {
   };
 }
 
+const thumbCache = path.join(
+  DbConn.getUserDataFolder(),
+  'thumbnails'
+);
+if (!fs.existsSync(thumbCache)) fs.mkdirSync(thumbCache);
+
 const Sync = {
   uploadImages: (imageIds, cb, disableSaving) => {
     if (!Host.isAuthed()) {
@@ -305,9 +311,62 @@ const Sync = {
     });
   },
 
+  getCachedThumbnail: (id) => {
+    const thumbPath = path.join(
+      thumbCache,
+      `${id}.jpeg`
+    );
+    if (fs.existsSync(thumbPath)) return thumbPath;
+    return null;
+  },
+
+  downloadThumbnail: (id, gid, cb) => {
+    const thumbPath = path.join(
+      thumbCache,
+      `${id}.jpeg`
+    );
+    if (fs.existsSync(thumbPath)) return cb(null, thumbPath);
+
+    // Fail silently if not able to download because user isn't logged in
+    if (!Host.isAuthed()) return cb(null, '');
+
+    gid = (gid) ? `/${gid}` : '';
+    const imageUrl = Host.server_uri.concat(`/image/${id}${gid}/thumb`);
+    console.log('Downloading thumbnail to disk');
+    const options = {
+      uri: imageUrl,
+      jar: Host.cookie_jar
+    };
+    const req = request
+    .get(options)
+    .on('response', (res) => {
+      if (res.statusCode === 200) {
+        const writeStream = fs.createWriteStream(thumbPath);
+        writeStream.on('finish', () => cb(null, thumbPath));
+        req.pipe(writeStream);
+      } else {
+        console.error('Thumbnail couldn\'t be downloaded', res.statusCode, res.message);
+        cb('Couldn\'t download thumbnail', null);
+      }
+    })
+    .on('error', cb);
+    return req;
+  },
+
+  clearThumbnail: (id) => {
+    const thumbPath = path.join(
+      thumbCache,
+      `${id}.jpeg`
+    );
+    if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
+  },
+
   downloadImage: (id, gid, cb) => {
-    if (!gid) gid = '';
-    const imageUrl = Host.server_uri.concat(`/image/${id}/${gid}`);
+    if (!Host.isAuthed()) {
+      return cb('Can\'t sync, try signing in!', null);
+    }
+    gid = (gid) ? `/${gid}` : '';
+    const imageUrl = Host.server_uri.concat(`/image/${id}${gid}`);
     console.log('Downloading image to disk');
     const options = {
       uri: imageUrl,
@@ -324,20 +383,24 @@ const Sync = {
           DbConn.getUserDataFolder(),
           `${id}.${mime.extension(res.headers['content-type'])}`
         );
-        req.pipe(fs.createWriteStream(newFilePath));
+        const writeStream = fs.createWriteStream(newFilePath);
+        writeStream.on('finish', () => {
+          Images.getRemoteId(id, (image) => {
+            image.location = newFilePath;
+            if (Galleries.should_save) {
+              document.dispatchEvent(Galleries.gallery_update_event);
+            }
+          });
+          cb(null, newFilePath);
+        });
+        req.pipe(writeStream);
       } else {
         console.error('Image couldn\'t be downloaded', res.statusCode, res.message);
-        danger('Couldn\'t download image');
-        cb('Status code was not 200', null);
+        cb('Couldn\'t download image', null);
       }
     })
-    .on('error', (err) => {
-      if (err) {
-        danger('Invalid image');
-        cb(err, null);
-      }
-    })
-    .on('end', () => cb(null, newFilePath));
+    .on('error', cb);
+    return req;
   },
 
   downloadImageData: (remoteId, cb) => {

@@ -1,6 +1,9 @@
+import { map } from 'async';
 import { ipcRenderer as ipc } from 'electron';
 import Host from '../models/host';
 import Galleries from '../models/galleries';
+import Sync from './sync';
+import { danger } from './notifier';
 
 const hostIndex = 1;
 
@@ -29,16 +32,23 @@ export default {
       return Host.update({ $loki: oldHostData.$loki }, config, () => {
         // gets the named gallery from db
         Galleries.get(galleryId, gallery =>
-          Galleries.expand(gallery, {}, (subgalleries, images) => {
-            const image_paths = images.map(image => image.location);
-
-            if (image_paths.length === 0) {
-              console.error('The gallery has no images');
+          Galleries.expand(gallery, {}, (subgalleries, images) =>
+            map(images, (image, next) => {
+              if (image.location) return next(null, image.location);
+              return Sync.downloadImage(image.remoteId, gallery.remoteId, next);
+            }, (err, imagePaths) => {
+              if (err) {
+                danger(err);
+                return cb();
+              }
+              if (imagePaths.length === 0) {
+                danger('The gallery has no images');
+                return cb();
+              }
+              ipc.send('set-slideshow', imagePaths, timer);
               return cb();
-            }
-            ipc.send('set-slideshow', image_paths, timer);
-            return cb();
-          })
+            })
+          )
         );
       });
     });
