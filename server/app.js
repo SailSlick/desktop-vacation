@@ -8,6 +8,9 @@ const url = require('../script/db/mongo-url.js');
 const app = express();
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 app.use(session({
   secret: 'hunter7',
   resave: false,

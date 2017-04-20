@@ -3,7 +3,6 @@ import Host from '../models/host';
 import Galleries from '../models/galleries';
 
 const hostIndex = 1;
-const BASE_GALLERY_ID = 1;
 
 export default {
   set: (galleryId, cb) => {
@@ -48,7 +47,7 @@ export default {
   clear: (cb) => {
     Host.getIndex(hostIndex, (host) => {
       host.slideshowConfig.onstart = false;
-      host.slideshowConfig.galleryName = BASE_GALLERY_ID;
+      host.slideshowConfig.galleryName = Galleries.BASE_GALLERY_ID;
       // puts the config files into the host db
       Host.update({ $loki: host.$loki }, host, () => {
         ipc.send('clear-slideshow');

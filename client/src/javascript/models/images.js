@@ -18,6 +18,8 @@ const Images = {
 
   getMany: (ids, cb) => image_db.findMany({ $loki: { $in: ids } }, cb),
 
+  getManyRemote: (remoteIds, cb) => image_db.findMany({ remoteId: { $in: remoteIds } }, cb),
+
   add: (path, cb) => {
     // make the hash
     jetpack.inspectAsync(path, { checksum: 'sha1', times: true }).then((fileDetails) => {
@@ -29,14 +31,18 @@ const Images = {
         location: path
       };
 
-      // Check if it already exists
-      image_db.findOne({ hash: doc.hash }, (ex_doc) => {
-        // If it already existed, return the existing doc
-        if (ex_doc) return cb(ex_doc, true);
+      Images.insert(doc, cb);
+    });
+  },
 
-        // Otherwise insert and return the new doc
-        return image_db.insert(doc, cb);
-      });
+  insert: (image, cb) => {
+    // Check if it already exists
+    image_db.findOne({ hash: image.hash }, (ex_image) => {
+      // If it already existed, return the existing image
+      if (ex_image) return cb(ex_image, true);
+
+      // Otherwise insert and return the new image
+      return image_db.insert(image, cb);
     });
   },
 

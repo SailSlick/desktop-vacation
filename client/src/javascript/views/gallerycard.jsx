@@ -4,9 +4,10 @@ import Slideshow from '../helpers/slideshow-client';
 import GroupManager from './groupManager.jsx';
 import { success, danger } from '../helpers/notifier';
 import Groups from '../models/groups';
+import Sync from '../helpers/sync';
 
 const ActionMenu = (
-  { simple, group, offline, setSlideshow, onRemove, groupConvert, groupMenu, download }
+  { simple, group, offline, setSlideshow, upload, onRemove, groupConvert, groupMenu, download }
 ) => {
   if (simple) {
     return <figcaption style={{ display: 'none' }} />;
@@ -31,6 +32,10 @@ const ActionMenu = (
           Remove
         </MenuItem>
         <MenuItem divider />
+        <MenuItem onClick={upload}>
+          <Glyphicon glyph="upload" />
+          Sync
+        </MenuItem>
         <MenuItem onClick={groupConvert}>
           <Glyphicon glyph="transfer" />
           Switch to Group
@@ -60,6 +65,7 @@ ActionMenu.propTypes = {
   simple: React.PropTypes.bool.isRequired,
   group: React.PropTypes.bool.isRequired,
   setSlideshow: React.PropTypes.func.isRequired,
+  upload: React.PropTypes.func.isRequired,
   onRemove: React.PropTypes.func.isRequired,
   groupConvert: React.PropTypes.func.isRequired,
   groupMenu: React.PropTypes.func.isRequired,
@@ -77,6 +83,7 @@ class GalleryCard extends React.Component {
 
     // Bind onClick to this object
     this.remove = this.remove.bind(this);
+    this.upload = this.upload.bind(this);
     this.setSlideshow = this.setSlideshow.bind(this);
     this.groupConvert = this.groupConvert.bind(this);
     this.groupMenu = this.groupMenu.bind(this);
@@ -100,6 +107,13 @@ class GalleryCard extends React.Component {
     this.props.onRemove(this.props.dbId);
   }
 
+  upload() {
+    Sync.uploadGallery(this.props.dbId, (err) => {
+      // Errors/danger notifier handled from uploadGallery
+      if (!err) success('Gallery synced!');
+    });
+  }
+
   groupMenu() {
     this.setState({ groupManagerModal: true });
   }
@@ -110,7 +124,7 @@ class GalleryCard extends React.Component {
 
   // download a group for offline viewing.
   downloadGroup() {
-    Groups.downloadGroup(this.props.mongoId, (err) => {
+    Groups.downloadGroup(this.props.remoteId, (err) => {
       if (err) danger(err);
       else success('Group downloaded');
     });
@@ -125,6 +139,7 @@ class GalleryCard extends React.Component {
           simple={this.props.simple}
           group={this.props.group}
           setSlideshow={this.setSlideshow}
+          upload={this.upload}
           onRemove={this.remove}
           groupConvert={this.groupConvert}
           groupMenu={this.groupMenu}
@@ -139,7 +154,7 @@ class GalleryCard extends React.Component {
           <Modal.Body>
             <GroupManager
               dbId={this.props.dbId}
-              mongoId={this.props.mongoId}
+              remoteId={this.props.remoteId}
               uid={this.props.uid}
               users={this.props.users}
               rating={this.props.rating}
@@ -164,7 +179,7 @@ GalleryCard.propTypes = {
   group: React.PropTypes.bool,
   offline: React.PropTypes.bool,
   simple: React.PropTypes.bool,
-  mongoId: React.PropTypes.string,
+  remoteId: React.PropTypes.string,
   uid: React.PropTypes.string,
   users: React.PropTypes.arrayOf(React.PropTypes.string)
 };
@@ -174,7 +189,7 @@ GalleryCard.defaultProps = {
   simple: false,
   group: false,
   offline: false,
-  mongoId: '',
+  remoteId: '',
   uid: '',
   users: [],
 };

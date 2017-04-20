@@ -88,6 +88,29 @@ module.exports = {
     });
   },
 
+  getData: (req, res, next) => {
+    images.get(req.params.id, (err, image) => {
+      if (err) {
+        next({ status: 404, error: 'image not found' });
+      } else if (image.uid !== req.session.uid && !image.shared) {
+        next({ status: 401, error: 'invalid permissions' });
+      } else {
+        // Format the image for the client
+        image.remoteId = image._id;
+        delete image._id;
+        delete image.uid;
+        delete image.shared;
+        delete image.refs;
+        delete image.location;
+        delete image.mimeType;
+        res.status(200).json({
+          message: 'image found',
+          data: image
+        });
+      }
+    });
+  },
+
   download: (req, res, next) => {
     images.get(req.params.id, (err, image) => {
       if (err) {
