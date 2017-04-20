@@ -380,7 +380,15 @@ const Sync = {
           `${id}.${mime.extension(res.headers['content-type'])}`
         );
         const writeStream = fs.createWriteStream(newFilePath);
-        writeStream.on('finish', () => cb(null, newFilePath));
+        writeStream.on('finish', () => {
+          Images.getRemoteId(id, (image) => {
+            image.location = newFilePath;
+            if (Galleries.should_save) {
+              document.dispatchEvent(Galleries.gallery_update_event);
+            }
+          });
+          cb(null, newFilePath);
+        });
         req.pipe(writeStream);
       } else {
         console.error('Image couldn\'t be downloaded', res.statusCode, res.message);

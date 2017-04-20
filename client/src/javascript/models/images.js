@@ -59,14 +59,15 @@ const Images = {
   },
 
   delete: (id, cb) => {
-    Images.get(id, image =>
+    Images.get(id, (image) => {
       // Check file exists & we have write access
-      fs.access(image.location, fs.constants.W_OK, (err) => {
+      if (!image.location) return cb();
+      return fs.access(image.location, fs.constants.W_OK, (err) => {
         if (err) return cb(`Couldn't access ${image.location}: ${err}`);
         Sync.clearThumbnail(image.remoteId);
         return fs.unlink(image.location, cb);
-      })
-    );
+      });
+    });
   },
 
   update: (id, data, cb) => {
