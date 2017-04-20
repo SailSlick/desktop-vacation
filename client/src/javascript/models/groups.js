@@ -284,17 +284,21 @@ const Groups = {
 
   saveImages: (imageIds, cb) => {
     Galleries.should_save = false;
-    eachOf(imageIds, (id, key, next) => {
-      if (key === imageIds.length - 1) Galleries.should_save = true;
-      Images.update(id, { remoteId: null }, () => {
-        Galleries.addItem(Galleries.BASE_GALLERY_ID, id, (success, errMsg) => {
-          if (!success) next(errMsg);
-          else next();
-        });
+
+    Galleries.get(Galleries.BASE_GALLERY_ID, (gallery) => {
+      eachOf(imageIds, (id, key, next) => {
+        if (gallery.images.indexOf(id) !== -1) next();
+        else {
+          if (key === imageIds.length - 1) Galleries.should_save = true;
+          Galleries.addItem(Galleries.BASE_GALLERY_ID, id, (success, errMsg) => {
+            if (!success) next(errMsg);
+            else next();
+          });
+        }
+      }, (err) => {
+        if (err) cb(err);
+        else cb(null, 'All images saved');
       });
-    }, (err) => {
-      if (err) cb(err);
-      else cb(null, 'All images saved');
     });
   },
 
