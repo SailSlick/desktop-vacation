@@ -63,11 +63,10 @@ class Group extends React.Component {
     const db_update = (typeof groupId !== 'number');
     groupId = (typeof groupId === 'string') ? groupId : this.props.groupId;
     filter = filter || this.props.filter;
-    let offline = true;
+    const offline = !Host.isAuthed();
 
     // Null the group ID if we're looking at the base group
     if (groupId === '1') groupId = null;
-    if (Host.isAuthed()) offline = false;
     Groups.get(groupId, offline, (err, res, group) => {
       if (err) console.error(`group get ${err}: ${res}`);
       if (!group) {
@@ -150,7 +149,7 @@ class Group extends React.Component {
 
   // eslint-disable-next-line class-methods-use-this
   saveAll(ids) {
-    Groups.save(ids, (err, msg) => {
+    Groups.saveImages(ids, (err, msg) => {
       if (err) danger(err);
       else success(msg);
     });

@@ -99,12 +99,14 @@ const Images = {
 
   download: (remoteId, gid, cb) => {
     image_db.findOne({ remoteId }, (existingDoc) => {
-      if (existingDoc) {
+      if (existingDoc && existingDoc.location) {
         cb(null, existingDoc);
       } else {
         Sync.downloadImage(remoteId, gid, (err, location) => {
           if (err) console.error(err);
-          else {
+          else if (existingDoc) {
+            Images.update(existingDoc.$loki, { location }, doc => cb(null, doc));
+          } else {
             console.log(`Adding image at ${location}`);
             Images.addRemoteId(location, remoteId, (doc) => {
               cb(null, doc);
@@ -117,14 +119,14 @@ const Images = {
 
   getOrDownload: (id, gid, next) => {
     Images.getRemoteId(id, (image) => {
-      if (image) {
-        next(null, image);
+      if (image && image.location) {
+        next(null, image, false);
       } else {
         // image not on client, download it
         Images.download(id, gid, (err, doc) => {
           if (err) {
             console.error(err);
-            next(null);
+            next(err);
           } else next(null, doc, true);
         });
       }

@@ -119,7 +119,7 @@ const Galleries = {
 
   getName: (name, cb) => gallery_db.findOne({ name }, cb),
 
-  groupOfflineGet: cb => gallery_db.findMany({ offline: true }, cb),
+  getOfflineGroups: cb => gallery_db.findMany({ offline: true }, cb),
 
   getMany: (ids, cb) => gallery_db.findMany({ $loki: { $in: ids } }, cb),
 

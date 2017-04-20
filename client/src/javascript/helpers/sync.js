@@ -153,13 +153,12 @@ const Sync = {
           // Split them into removed, unsynced and new
           const removedGalleries = subgals.filter(gal =>
             gal.remoteId && !remoteGallery.subgalleries.some(galId => galId === gal.remoteId)
-            && !gal.group
           );
           const newGalleries = remoteGallery.subgalleries.filter(remoteGid =>
             !subgals.some(gal => gal.remoteId === remoteGid) &&
             !gallery.removed.some(remoteRemGid => remoteRemGid === remoteGid)
           );
-          let unsyncedGalleries = subgals.filter(gal => !gal.remoteId && !gal.group);
+          let unsyncedGalleries = subgals.filter(gal => !gal.remoteId);
 
           // Don't upload everything if syncing base
           if (gallery.$loki === Galleries.BASE_GALLERY_ID) unsyncedGalleries = [];
@@ -308,7 +307,6 @@ const Sync = {
   downloadImage: (id, gid, cb) => {
     if (!gid) gid = '';
     const imageUrl = Host.server_uri.concat(`/image/${id}/${gid}`);
-    console.log('Downloading image to disk');
     const options = {
       uri: imageUrl,
       jar: Host.cookie_jar
