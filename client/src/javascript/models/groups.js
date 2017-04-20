@@ -101,31 +101,28 @@ const Groups = {
         subgal.thumbnail = null;
         // get thumbnail
         if (subgal.images && subgal.images.length !== 0) {
-          Images.getOrDownload(subgal.images[0], subgal.remoteId, (thumbErr, image) => {
+          Images.getOrDownload(subgal.images[0], subgal.remoteId, (thumbErr, image, download) => {
             if (image) {
               subgal.thumbnail = image.location;
-              Galleries.addItem(group.$loki, image.$loki, () => galNext(null, subgal));
+              if (download) {
+                Galleries.addItem(group.$loki, image.$loki, () => galNext(null, subgal));
+              }
             }
           });
         } else galNext(null, subgal);
       } else galNext(null, subgal);
     }, (galMapErr, galResults) => {
-      // group.subgalleries = galResults;
       map(group.images, (id, next) => {
         Images.getOrDownload(id, group.remoteId, (getErr, image, download) => {
-          if (download) downloads = true;
-          if (typeof id !== 'number') Galleries.addItem(group.$loki, image.$loki, () => next(getErr, image));
+          if (download) {
+            downloads = true;
+            Galleries.addItem(group.$loki, image.$loki, () => next(getErr, image));
+          }
         });
       }, (mapErr, result) => {
         if (mapErr) warning(error);
         Galleries.should_save = true;
         if (downloads) document.dispatchEvent(Galleries.gallery_update_event);
-        // if (downloads && group.$loki) {
-        //   Galleries.update(group.$loki, { images: group.images }, (updatedGroup) => {
-        //     cb(error, msg, updatedGroup);
-        //   });
-        // }
-        // group.images = result;
         const toReturn = { subgalleries: galResults, images: result, $loki: group.$loki };
         cb(error, msg, toReturn);
       });
