@@ -84,7 +84,7 @@ class GalleryCard extends React.Component {
 
   componentDidMount() {
     // Download thumbnail now if necessary
-    if (!this.state.thumbnail) {
+    if (!this.state.thumbnail && this.props.thumbRemoteId) {
       Sync.downloadThumbnail(this.props.thumbRemoteId, null, (err, thumbnail) => {
         if (err) danger(err);
         else this.setState({ thumbnail });
