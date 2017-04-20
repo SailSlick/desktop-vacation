@@ -307,6 +307,7 @@ const Sync = {
   downloadImage: (id, gid, cb) => {
     if (!gid) gid = '';
     const imageUrl = Host.server_uri.concat(`/image/${id}/${gid}`);
+    console.log('Downloading image to disk');
     const options = {
       uri: imageUrl,
       jar: Host.cookie_jar
