@@ -119,7 +119,7 @@ describe('Group model', () => {
     Nock(domain)
       .get('/group/')
       .reply(403, { status: 403, error }, headers);
-    Groups.get(null, (err, msg, data) => {
+    Groups.get(null, false, (err, msg, data) => {
       err.should.be.ok;
       msg.should.be.ok;
       should.not.exist(data);
@@ -131,7 +131,7 @@ describe('Group model', () => {
     Nock(domain)
       .get('/group/')
       .reply(200, { status: 200, message: 'if you want to go far, book a flight', data: {} }, headers);
-    Groups.get(null, (err, msg, data) => {
+    Groups.get(null, false, (err, msg, data) => {
       should.not.exist(err);
       msg.should.be.ok;
       data.should.be.ok;
@@ -143,7 +143,7 @@ describe('Group model', () => {
     Nock(domain)
       .get(`/group/${testGallery.$loki}`)
       .reply(200, { status: 200, message: 'you don\'t get to 1 billion friends without a hoodie', data: {} }, headers);
-    Groups.get(testGallery.$loki, (err, msg, data) => {
+    Groups.get(testGallery.$loki, false, (err, msg, data) => {
       should.not.exist(err);
       msg.should.be.ok;
       data.should.be.ok;

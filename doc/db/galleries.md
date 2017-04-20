@@ -21,6 +21,8 @@ whether the gallery is a group or not
 | images       | Array    | ObjectIds of images contained within this gallery                |
 | removed      | Array    | List of galleries/images are removed                             |
 | metadata     | Object   | See below for structure                                          |
+| group        | Boolean  | Whether or not the gallery is a group (clientside)               |
+| offline      | Boolean  | Whether or not the group is offline or not (clientside)          |
 
 ### Metadata Structure
 

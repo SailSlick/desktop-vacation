@@ -6,26 +6,32 @@ import { success, danger } from '../helpers/notifier';
 import Groups from '../models/groups';
 import Sync from '../helpers/sync';
 
-const ActionMenu = ({ simple, group, setSlideshow, upload, onRemove, groupConvert, groupMenu }) => {
+const ActionMenu = (
+  { simple, group, offline, setSlideshow, upload, onRemove, groupConvert, groupMenu, download }
+) => {
   if (simple) {
     return <figcaption style={{ display: 'none' }} />;
   }
   let index = 0;
+  let slideshow = (
+    <MenuItem onClick={setSlideshow}>
+      <Glyphicon glyph="film" />
+      Slideshow
+    </MenuItem>
+  );
   if (group) index = 1;
+  if (group && offline) slideshow = null;
 
   return [(
     <figcaption className="figure-caption rounded-circle">
       ...
       <div className="dropdown-menu img-menu">
-        <MenuItem onClick={setSlideshow}>
-          <Glyphicon glyph="film" />
-          Slideshow
-        </MenuItem>
-        <MenuItem divider />
+        {slideshow}
         <MenuItem onClick={onRemove}>
           <Glyphicon glyph="remove" />
           Remove
         </MenuItem>
+        <MenuItem divider />
         <MenuItem onClick={upload}>
           <Glyphicon glyph="upload" />
           Sync
@@ -40,9 +46,10 @@ const ActionMenu = ({ simple, group, setSlideshow, upload, onRemove, groupConver
     <figcaption className="figure-caption rounded-circle">
       ...
       <div className="dropdown-menu img-menu">
-        <MenuItem onClick={setSlideshow}>
-          <Glyphicon glyph="film" />
-          Slideshow
+        {slideshow}
+        <MenuItem onClick={download}>
+          <Glyphicon glyph="save" />
+          Download
         </MenuItem>
         <MenuItem divider />
         <MenuItem onClick={groupMenu}>
@@ -61,7 +68,9 @@ ActionMenu.propTypes = {
   upload: React.PropTypes.func.isRequired,
   onRemove: React.PropTypes.func.isRequired,
   groupConvert: React.PropTypes.func.isRequired,
-  groupMenu: React.PropTypes.func.isRequired
+  groupMenu: React.PropTypes.func.isRequired,
+  download: React.PropTypes.func.isRequired,
+  offline: React.PropTypes.bool.isRequired
 };
 
 class GalleryCard extends React.Component {
@@ -80,6 +89,7 @@ class GalleryCard extends React.Component {
     this.groupConvert = this.groupConvert.bind(this);
     this.groupMenu = this.groupMenu.bind(this);
     this.hideModals = this.hideModals.bind(this);
+    this.downloadGroup = this.downloadGroup.bind(this);
   }
 
   componentDidMount() {
@@ -127,6 +137,14 @@ class GalleryCard extends React.Component {
     this.setState({ groupManagerModal: false });
   }
 
+  // download a group for offline viewing.
+  downloadGroup() {
+    Groups.downloadGroup(this.props.remoteId, (err) => {
+      if (err) danger(err);
+      else success('Group downloaded');
+    });
+  }
+
   render() {
     return (
       <figure className="figure img-card gallery-card rounded">
@@ -140,6 +158,8 @@ class GalleryCard extends React.Component {
           onRemove={this.remove}
           groupConvert={this.groupConvert}
           groupMenu={this.groupMenu}
+          download={this.downloadGroup}
+          offline={this.props.offline}
         />
 
         <Modal show={this.state.groupManagerModal} onHide={this.hideModals}>
@@ -173,6 +193,7 @@ GalleryCard.propTypes = {
   onClick: React.PropTypes.func.isRequired,
   onRemove: React.PropTypes.func.isRequired,
   group: React.PropTypes.bool,
+  offline: React.PropTypes.bool,
   simple: React.PropTypes.bool,
   remoteId: React.PropTypes.string,
   uid: React.PropTypes.string,
@@ -184,6 +205,7 @@ GalleryCard.defaultProps = {
   thumbRemoteId: '',
   simple: false,
   group: false,
+  offline: false,
   remoteId: '',
   uid: '',
   users: [],

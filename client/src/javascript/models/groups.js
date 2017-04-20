@@ -8,7 +8,6 @@ import { warning } from '../helpers/notifier';
 
 const server_uri = Host.server_uri;
 const cookie_jar = Host.cookie_jar;
-const BASE_GALLERY_ID = 1;
 
 function requestHandler(err, body, cb) {
   if (!body || err) return cb(500, 'server down');
@@ -102,32 +101,51 @@ const Groups = {
         subgal.thumbnail = null;
         // get thumbnail
         if (subgal.images && subgal.images.length !== 0) {
-          Images.getOrDownload(subgal.images[0], subgal.remoteId, (thumbErr, image) => {
-            if (image) {
+          Images.getOrDownload(subgal.images[0], subgal.remoteId, (thumbErr, image, download) => {
+            if (thumbErr) galNext(thumbErr);
+            else {
               subgal.thumbnail = image.location;
-              galNext(null, subgal);
+              if (download) {
+                Galleries.addItem(group.$loki, image.$loki, () => galNext(null, subgal));
+              } else galNext(null, subgal);
             }
           });
         } else galNext(null, subgal);
       } else galNext(null, subgal);
     }, (galMapErr, galResults) => {
-      group.subgalleries = galResults;
       map(group.images, (id, next) => {
         Images.getOrDownload(id, group.remoteId, (getErr, image, download) => {
-          if (download) downloads = true;
-          next(getErr, image);
+          if (getErr) next(getErr);
+          else if (download) {
+            downloads = true;
+            Galleries.addItem(group.$loki, image.$loki, () => next(getErr, image));
+          } else next(getErr, image);
         });
       }, (mapErr, result) => {
         if (mapErr) warning(error);
-        group.images = result;
         Galleries.should_save = true;
         if (downloads) document.dispatchEvent(Galleries.gallery_update_event);
-        cb(error, msg, group);
+        const toReturn = { subgalleries: galResults, images: result, $loki: group.$loki };
+        cb(error, msg, toReturn);
       });
     });
   },
 
-  get: (gid, cb) => {
+  get: (gid, offline, cb) => {
+    if (offline) {
+      // check if you want a specific offline group
+      if (gid) {
+        return Galleries.getMongo(gid, (group) => {
+          cb(null, null, group);
+        });
+      }
+      // go through the db and check for groups that are offline/downloaded
+      return Galleries.getOfflineGroups((groups) => {
+        if (groups.length === 0) cb('No offline groups', null, null);
+        const allGroups = { subgalleries: groups, images: [] };
+        cb(null, null, allGroups);
+      });
+    }
     const options = {
       uri: server_uri.concat(`/group/${gid || ''}`),
       method: 'GET',
@@ -143,10 +161,13 @@ const Groups = {
             Galleries.getMongo(group.remoteId, (cliGroup) => {
               if (!cliGroup) {
                 Galleries.add(group.name, (addedGallery) => {
-                  Galleries.convertToGroup(addedGallery.$loki, group.remoteId, (convertedGroup) => {
-                    group.$loki = convertedGroup.$loki;
-                    Groups.getGroupImages(group, error, msg, cb);
-                  });
+                  Galleries.convertToGroup(
+                    addedGallery.$loki,
+                    group.remoteId,
+                    (convertedGroup) => {
+                      group.$loki = convertedGroup.$loki;
+                      Groups.getGroupImages(group, error, msg, cb);
+                    });
                 });
               } else {
                 group.$loki = cliGroup.$loki;
@@ -202,7 +223,7 @@ const Groups = {
   },
 
   leaveGroup: (gid, id, cb) => {
-    Host.getIndex(1, (doc) => {
+    Host.getIndex(Host.userId, (doc) => {
       Groups.removeUser(gid, doc.username, (err, msg) => {
         Galleries.remove(id, (ret) => {
           if (ret) return cb(500, ret);
@@ -261,17 +282,23 @@ const Groups = {
     });
   },
 
-  save: (imageIds, cb) => {
+  saveImages: (imageIds, cb) => {
     Galleries.should_save = false;
-    eachOf(imageIds, (id, key, next) => {
-      if (key === imageIds.length - 1) Galleries.should_save = true;
-      Galleries.addItem(1, id, (success, errMsg) => {
-        if (!success) next(errMsg);
-        else next();
+
+    Galleries.get(Galleries.BASE_GALLERY_ID, (gallery) => {
+      eachOf(imageIds, (id, key, next) => {
+        if (gallery.images.indexOf(id) !== -1) next();
+        else {
+          if (key === imageIds.length - 1) Galleries.should_save = true;
+          Galleries.addItem(Galleries.BASE_GALLERY_ID, id, (success, errMsg) => {
+            if (!success) next(errMsg);
+            else next();
+          });
+        }
+      }, (err) => {
+        if (err) cb(err);
+        else cb(null, 'All images saved');
       });
-    }, (err) => {
-      if (err) cb(err);
-      else cb(null, 'All images saved');
     });
   },
 
@@ -321,7 +348,7 @@ const Groups = {
               if (error) cb(error, msg);
               else {
                 // check if in base gallery, If not remove from fs
-                Galleries.get(BASE_GALLERY_ID, (gallery) => {
+                Galleries.get(Galleries.BASE_GALLERY_ID, (gallery) => {
                   Galleries.should_save = false;
                   map(clientIds, (rmId, next) => {
                     if (gallery.images.indexOf(rmId) === -1) {
@@ -352,6 +379,25 @@ const Groups = {
     });
   },
 
+  convertToOffline: (group, cb) => {
+    const thumbnail = group.images[0].location;
+    const images = group.images.map(image => image.$loki);
+    Galleries.update(group.$loki, { offline: true, images, thumbnail }, (doc) => {
+      if (!doc) cb('Update to Offline failed');
+      else cb();
+    });
+  },
+
+  downloadGroup: (gid, cb) => {
+    Groups.get(gid, false, (err, res, dlGroup) => {
+      if (err) {
+        console.error(`group get ${err}: ${res}`);
+        cb('Download failed');
+      // group has been downloaded in full quality, change to offline, save all images
+      } else Groups.convertToOffline(dlGroup, cb);
+    });
+  },
+
   // Returns:
   //   - Subgalleries with thumbnail locations
   //   - Images with full details
@@ -371,7 +417,13 @@ const Groups = {
         });
         return x;
       });
-      Galleries.filter(subgalleries, gallery.images, filter, cb);
+      if (typeof gallery.images[0] === 'number') {
+        map(gallery.images, (image_id, next) => Images.get(image_id, image => next(null, image)),
+          (err_img, images) => {
+            Galleries.filter(subgalleries, images, filter, cb);
+          }
+        );
+      } else Galleries.filter(subgalleries, gallery.images, filter, cb);
     }
   }
 };

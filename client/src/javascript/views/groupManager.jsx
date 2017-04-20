@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, FormGroup, FormControl, ControlLabel, HelpBlock, InputGroup, Button, Grid, ListGroup, ListGroupItem, Row, Col } from 'react-bootstrap';
+import { Form, FormGroup, FormControl, ControlLabel, HelpBlock, Button, Grid, Table, Row, Col, Glyphicon } from 'react-bootstrap';
 import Groups from '../models/groups';
 import Host from '../models/host';
 import { success, danger } from '../helpers/notifier';
@@ -66,16 +66,17 @@ class GroupManager extends React.Component {
 
   render() {
     const users = this.props.users.map(user =>
-      <ListGroupItem>
-        <InputGroup>
-          <p>{user}</p>
-          <InputGroup.Button
-            onClick={_ => this.removeUser({ user })}
+      <tr key={user} >
+        <td colSpan="2">{user}</td>
+        <td>
+          <Button
+            bsStyle="link"
+            onClick={e => e.preventDefault() || this.removeUser(user)}
           >
-            Remove User
-          </InputGroup.Button>
-        </InputGroup>
-      </ListGroupItem>
+            <Glyphicon glyph={'trash'} />
+          </Button>
+        </td>
+      </tr>
     );
 
     let management_buttons = (
@@ -120,10 +121,12 @@ class GroupManager extends React.Component {
       <Grid fluid>
         <Row>
           <Col sm={5} xs={12}>
-            <h3><ControlLabel>Group Users</ControlLabel></h3>
-            <ListGroup>
-              {users}
-            </ListGroup>
+            <Table>
+              <thead>
+                <tr><td><h4>Group Users:</h4></td></tr>
+              </thead>
+              <tbody>{users}</tbody>
+            </Table>
           </Col>
           {management_buttons}
         </Row>

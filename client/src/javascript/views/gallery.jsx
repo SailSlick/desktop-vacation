@@ -92,7 +92,6 @@ class Gallery extends React.Component {
     const db_update = (typeof dbId !== 'number');
     dbId = (!db_update) ? dbId : this.props.dbId;
     filter = filter || this.props.filter;
-
     Galleries.get(dbId, gallery =>
       Galleries.expand(gallery, filter, (subgalleries, images) => {
         this.setState({
@@ -231,7 +230,10 @@ class Gallery extends React.Component {
     let rating = this.state.rating;
     let tags = this.state.tags;
 
-    if (typeof field === 'number') rating = field;
+    if (typeof field === 'number') {
+      if (rating === field) rating = 0;
+      else rating = field;
+    }
     if (typeof field === 'string') {
       field = field.trim().toLowerCase();
       if (field === '') return danger('Empty tag');
@@ -246,7 +248,8 @@ class Gallery extends React.Component {
     const metadata = { rating, tags };
     return Galleries.updateMetadata(this.props.dbId, metadata, (doc) => {
       if (!doc) return danger('Updating metadata failed');
-      return success('Metadata updated');
+      success('Metadata updated');
+      return this.setState({ tags, rating });
     });
   }
 

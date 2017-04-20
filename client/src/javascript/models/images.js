@@ -102,15 +102,16 @@ const Images = {
 
   download: (remoteId, gid, cb) => {
     image_db.findOne({ remoteId }, (existingDoc) => {
-      if (existingDoc) {
-        cb(null, existingDoc.$loki);
+      if (existingDoc && existingDoc.location) {
+        cb(null, existingDoc);
       } else {
         Sync.downloadImage(remoteId, gid, (err, location) => {
           if (err) console.error(err);
-          else {
-            console.log(`Adding image at ${location}`);
+          else if (existingDoc) {
+            Images.update(existingDoc.$loki, { location }, doc => cb(null, doc));
+          } else {
             Images.addRemoteId(location, remoteId, (doc) => {
-              cb(null, doc.$loki);
+              cb(null, doc);
             });
           }
         });
@@ -120,23 +121,15 @@ const Images = {
 
   getOrDownload: (id, gid, next) => {
     Images.getRemoteId(id, (image) => {
-      if (image) {
-        next(null, image);
+      if (image && image.location) {
+        next(null, image, false);
       } else {
         // image not on client, download it
-        Images.download(id, gid, (err, lokiId) => {
+        Images.download(id, gid, (err, doc) => {
           if (err) {
             console.error(err);
-            next(null);
-          } else {
-            Images.get(lokiId, (doc) => {
-              if (!doc) {
-                console.error('Couldn\'t find doc');
-                next(null);
-              }
-              next(null, doc, true);
-            });
-          }
+            next(err);
+          } else next(null, doc, true);
         });
       }
     });
