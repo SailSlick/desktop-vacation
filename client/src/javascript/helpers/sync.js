@@ -325,7 +325,7 @@ const Sync = {
     // Fail silently if not able to download because user isn't logged in
     if (!Host.isAuthed()) return cb(null, '');
 
-    gid = (gid && `/${gid}`) || '';
+    gid = (gid) ? `/${gid}` : '';
     const imageUrl = Host.server_uri.concat(`/image/${id}${gid}/thumb`);
     console.log('Downloading thumbnail to disk');
     const options = {
@@ -348,10 +348,10 @@ const Sync = {
     return req;
   },
 
-  clearThumbnail: (remoteId) => {
+  clearThumbnail: (id) => {
     const thumbPath = path.join(
       thumbCache,
-      `${remoteId}.jpeg`
+      `${id}.jpeg`
     );
     if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
   },
@@ -360,8 +360,7 @@ const Sync = {
     if (!Host.isAuthed()) {
       return cb('Can\'t sync, try signing in!', null);
     }
-    if (!gid) gid = '';
-    else gid = `/${gid}`;
+    gid = (gid) ? `/${gid}` : '';
     const imageUrl = Host.server_uri.concat(`/image/${id}${gid}`);
     console.log('Downloading image to disk');
     const options = {

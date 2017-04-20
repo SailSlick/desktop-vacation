@@ -80,7 +80,7 @@ class Image extends React.Component {
 
   expand() {
     // Download full image if necessary
-    if (!this.state.src) {
+    if (!this.props.src) {
       Sync.downloadImage(this.props.remoteId, null, (err, src) => {
         if (err) danger(err);
         else this.setState({ src });
