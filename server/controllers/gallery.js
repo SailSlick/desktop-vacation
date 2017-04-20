@@ -150,7 +150,6 @@ module.exports = {
   remove: (req, res, next) => {
     const uid = req.session.uid;
     const gid = req.params.gid;
-
     return unsync(uid, gid, (error) => {
       if (error === 'incorrect permissions') return next({ status: 403, error });
       if (error) return next({ status: 500, error });
@@ -167,22 +166,20 @@ module.exports = {
       return next({ status: 400, error: 'invalid groupname' });
     }
 
-    return userModel.getBaseGallery(uid, baseGalleryId => (
-      galleryModel.create(groupname, baseGalleryId, uid, (errStatus, ret) => {
-        if (errStatus) {
-          return next({ status: errStatus, error: ret });
-        }
-        return galleryModel.get(groupname, uid, (cb, doc) => {
-          userModel.get(username, (err, data) => {
-            if (err) return next({ status: 500, message: 'creation failed' });
-            data.groups.push(doc._id);
-            return userModel.update(username, data, () => {
-              next({ status: 200, message: 'group created', gid: doc._id });
-            });
+    return galleryModel.create(groupname, null, uid, (errStatus, ret) => {
+      if (errStatus) {
+        return next({ status: errStatus, error: ret });
+      }
+      return galleryModel.get(groupname, uid, (cb, doc) => {
+        userModel.get(username, (err, data) => {
+          if (err) return next({ status: 500, message: 'creation failed' });
+          data.groups.push(doc._id);
+          return userModel.update(username, data, () => {
+            next({ status: 200, message: 'group created', gid: doc._id });
           });
         });
-      })
-    ));
+      });
+    });
   },
 
   convert: (req, res, next) => {

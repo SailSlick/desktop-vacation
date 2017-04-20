@@ -119,7 +119,7 @@ const Galleries = {
 
   getName: (name, cb) => gallery_db.findOne({ name }, cb),
 
-  groupOfflineGet: cb => gallery_db.findMany({ group: true, offline: true }, cb),
+  groupOfflineGet: cb => gallery_db.findMany({ offline: true }, cb),
 
   getMany: (ids, cb) => gallery_db.findMany({ $loki: { $in: ids } }, cb),
 
@@ -194,8 +194,7 @@ const Galleries = {
       }),
     (err_gal, subgalleries) =>
       // Expand Images
-      map(gallery.images, (image_id, next) =>
-          Images.get(image_id, image => next(null, image)),
+      map(gallery.images, (image_id, next) => Images.get(image_id, image => next(null, image)),
         (err_img, images) => {
           subgalleries = subgalleries.filter(x => !x.group);
           Galleries.filter(subgalleries, images, filter, cb);

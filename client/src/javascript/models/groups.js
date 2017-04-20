@@ -8,7 +8,6 @@ import { warning } from '../helpers/notifier';
 
 const server_uri = Host.server_uri;
 const cookie_jar = Host.cookie_jar;
-const BASE_GALLERY_ID = 1;
 
 function requestHandler(err, body, cb) {
   if (!body || err) return cb(500, 'server down');
@@ -105,24 +104,30 @@ const Groups = {
           Images.getOrDownload(subgal.images[0], subgal.remoteId, (thumbErr, image) => {
             if (image) {
               subgal.thumbnail = image.location;
-              galNext(null, subgal);
+              Galleries.addItem(group.$loki, image.$loki, () => galNext(null, subgal));
             }
           });
         } else galNext(null, subgal);
       } else galNext(null, subgal);
     }, (galMapErr, galResults) => {
-      group.subgalleries = galResults;
+      // group.subgalleries = galResults;
       map(group.images, (id, next) => {
         Images.getOrDownload(id, group.remoteId, (getErr, image, download) => {
           if (download) downloads = true;
-          next(getErr, image);
+          Galleries.addItem(group.$loki, image.$loki, () => next(getErr, image));
         });
       }, (mapErr, result) => {
         if (mapErr) warning(error);
-        group.images = result;
         Galleries.should_save = true;
         if (downloads) document.dispatchEvent(Galleries.gallery_update_event);
-        cb(error, msg, group);
+        // if (downloads && group.$loki) {
+        //   Galleries.update(group.$loki, { images: group.images }, (updatedGroup) => {
+        //     cb(error, msg, updatedGroup);
+        //   });
+        // }
+        // group.images = result;
+        const toReturn = { subgalleries: galResults, images: result, $loki: group.$loki };
+        cb(error, msg, toReturn);
       });
     });
   },
@@ -172,8 +177,8 @@ const Groups = {
     }
     // go through the db and check for groups that are offline/downloaded
     return Galleries.groupOfflineGet((groups) => {
-      if (!groups) cb('No offline groups', null, null);
-      const allGroups = { groups, images: [] };
+      if (groups.length === 0) cb('No offline groups', null, null);
+      const allGroups = { subgalleries: groups, images: [] };
       cb(null, null, allGroups);
     });
   },
@@ -219,7 +224,7 @@ const Groups = {
   },
 
   leaveGroup: (gid, id, cb) => {
-    Host.getIndex(1, (doc) => {
+    Host.getIndex(Host.userId, (doc) => {
       Groups.removeUser(gid, doc.username, (err, msg) => {
         Galleries.remove(id, (ret) => {
           if (ret) return cb(500, ret);
@@ -279,12 +284,17 @@ const Groups = {
   },
 
   save: (imageIds, cb) => {
+    console.log("In Group save", imageIds)
     Galleries.should_save = false;
     eachOf(imageIds, (id, key, next) => {
       if (key === imageIds.length - 1) Galleries.should_save = true;
-      Galleries.addItem(1, id, (success, errMsg) => {
-        if (!success) next(errMsg);
-        else next();
+      Images.get(id, () => {
+        Images.update(id, { remoteId: null }, () => {
+          Galleries.addItem(Galleries.BASE_GALLERY_ID, id, (success, errMsg) => {
+            if (!success) next(errMsg);
+            else next();
+          });
+        });
       });
     }, (err) => {
       if (err) cb(err);
@@ -338,7 +348,7 @@ const Groups = {
               if (error) cb(error, msg);
               else {
                 // check if in base gallery, If not remove from fs
-                Galleries.get(BASE_GALLERY_ID, (gallery) => {
+                Galleries.get(Galleries.BASE_GALLERY_ID, (gallery) => {
                   Galleries.should_save = false;
                   map(clientIds, (rmId, next) => {
                     if (gallery.images.indexOf(rmId) === -1) {
@@ -369,33 +379,41 @@ const Groups = {
     });
   },
 
+  convertToOffline: (group, cb) => {
+    Galleries.update(group.$loki, { offline: true }, (doc) => {
+      if (!doc) cb('Update to Offline failed');
+      else {
+        Groups.save(doc.Images, (saveErr) => {
+          if (saveErr) cb(saveErr);
+          else cb();
+        });
+      }
+    });
+  },
+
   downloadGroup: (gid, cb) => {
     // check what parts of the group are on the client
     Galleries.getMongo(gid, (group) => {
       // nothing on client, download everything in full quality
       if (!group) {
         Groups.get(gid, false, (err, res, dlGroup) => {
+          console.log("group not client dlGroup", group, dlGroup)
+          // dlGroup.$loki =
           if (err) {
             console.error(`group get ${err}: ${res}`);
             cb('Download failed');
-          } else {
-            // group has been downloaded in full quality, change to offline
-            Galleries.updateOne(dlGroup.$loki, { offline: true }, (doc) => {
-              if (doc) cb();
-              else cb('Update to Offline failed');
-            });
-          }
+          // group has been downloaded in full quality, change to offline, save all images
+          } else Groups.convertToOffline(dlGroup, cb);
         });
       } else {
         // there is some sort of copy on the client, make sure all the images are full quality
-        Groups.getGroupImages(group, null, null, (error) => {
+        Groups.getGroupImages(group, null, null, (error, res, updatedGroup) => {
+          console.log("group on client updatedGroup",group,  updatedGroup)
           if (error) cb(error);
+          // group full images downloaded. change to offline
           else {
-            // group full images downloaded. change to offline
-            Galleries.updateOne(group.$loki, { offline: true }, (doc) => {
-              if (doc) cb();
-              else cb('Update to Offline failed');
-            });
+            updatedGroup.$loki = group.$loki;
+            Groups.convertToOffline(updatedGroup, cb);
           }
         });
       }
@@ -421,7 +439,13 @@ const Groups = {
         });
         return x;
       });
-      Galleries.filter(subgalleries, gallery.images, filter, cb);
+      if (typeof gallery.images[0] === 'number') {
+        map(gallery.images, (image_id, next) => Images.get(image_id, image => next(null, image)),
+          (err_img, images) => {
+            Galleries.filter(subgalleries, images, filter, cb);
+          }
+        );
+      } else Galleries.filter(subgalleries, gallery.images, filter, cb);
     }
   }
 };

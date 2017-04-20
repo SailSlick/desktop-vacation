@@ -69,7 +69,7 @@ ActionMenu.propTypes = {
   onRemove: React.PropTypes.func.isRequired,
   groupConvert: React.PropTypes.func.isRequired,
   groupMenu: React.PropTypes.func.isRequired,
-  download: React.PropTypes.bool.isRequired,
+  download: React.PropTypes.func.isRequired,
   offline: React.PropTypes.bool.isRequired
 };
 

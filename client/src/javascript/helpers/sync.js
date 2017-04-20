@@ -148,15 +148,18 @@ const Sync = {
 
         // Get all the subgalleries
         return Galleries.getMany(gallery.subgalleries, (subgalleriesFull) => {
+          const subgals = subgalleriesFull.filter(x => !x.group);
+
           // Split them into removed, unsynced and new
-          const removedGalleries = subgalleriesFull.filter(gal =>
+          const removedGalleries = subgals.filter(gal =>
             gal.remoteId && !remoteGallery.subgalleries.some(galId => galId === gal.remoteId)
+            && !gal.group
           );
           const newGalleries = remoteGallery.subgalleries.filter(remoteGid =>
-            !subgalleriesFull.some(gal => gal.remoteId === remoteGid) &&
+            !subgals.some(gal => gal.remoteId === remoteGid) &&
             !gallery.removed.some(remoteRemGid => remoteRemGid === remoteGid)
           );
-          let unsyncedGalleries = subgalleriesFull.filter(gal => !gal.remoteId);
+          let unsyncedGalleries = subgals.filter(gal => !gal.remoteId && !gal.group);
 
           // Don't upload everything if syncing base
           if (gallery.$loki === Galleries.BASE_GALLERY_ID) unsyncedGalleries = [];
@@ -197,7 +200,8 @@ const Sync = {
     // Get remoteIds for images and galleries
     Galleries.getMany(gallery.subgalleries, subgalleriesFull =>
       Images.getMany(gallery.images, (imagesFull) => {
-        const subgalleries = subgalleriesFull.map(x => x.remoteId);
+        let subgalleries = subgalleriesFull.filter(x => !x.group);
+        subgalleries = subgalleries.map(x => x.remoteId);
         const images = imagesFull.map(x => x.remoteId);
         const options = {
           form: {
@@ -235,6 +239,7 @@ const Sync = {
     if (isSaveController) Galleries.should_save = false;
 
     Galleries.get(gid, (gallery) => {
+      if (gallery.group) return cb();
       // Has this gallery been synced already?
       if (gallery.remoteId) {
         return Sync.syncGallery(gallery, (err) => {

@@ -92,7 +92,6 @@ class Gallery extends React.Component {
     const db_update = (typeof dbId !== 'number');
     dbId = (!db_update) ? dbId : this.props.dbId;
     filter = filter || this.props.filter;
-
     Galleries.get(dbId, gallery =>
       Galleries.expand(gallery, filter, (subgalleries, images) => {
         this.setState({

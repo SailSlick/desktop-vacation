@@ -107,7 +107,7 @@ const Images = {
           else {
             console.log(`Adding image at ${location}`);
             Images.addRemoteId(location, remoteId, (doc) => {
-              cb(null, doc.$loki);
+              cb(null, doc);
             });
           }
         });
@@ -116,27 +116,28 @@ const Images = {
   },
 
   getOrDownload: (id, gid, next) => {
-    Images.getRemoteId(id, (image) => {
-      if (image) {
-        next(null, image);
-      } else {
-        // image not on client, download it
-        Images.download(id, gid, (err, lokiId) => {
-          if (err) {
-            console.error(err);
-            next(null);
-          } else {
-            Images.get(lokiId, (doc) => {
-              if (!doc) {
-                console.error('Couldn\'t find doc');
-                next(null);
-              }
-              next(null, doc, true);
-            });
-          }
-        });
-      }
-    });
+    if (typeof id !== 'number') {
+      Images.getRemoteId(id, (image) => {
+        if (image) {
+          next(null, image);
+        } else {
+          // image not on client, download it
+          Images.download(id, gid, (err, doc) => {
+            if (err) {
+              console.error(err);
+              next(null);
+            } else next(null, doc, true);
+          });
+        }
+      });
+    } else {
+      Images.get(id, (doc) => {
+        if (!doc) {
+          console.error('Image not found', id);
+          next(null);
+        } else next(null, doc, true);
+      });
+    }
   }
 };
 
