@@ -24,11 +24,7 @@ function errorHandler(cb) {
   };
 }
 
-const thumbCache = path.join(
-  DbConn.getUserDataFolder(),
-  'thumbnails'
-);
-if (!fs.existsSync(thumbCache)) fs.mkdirSync(thumbCache);
+let thumbCache;
 
 const Sync = {
   uploadImages: (imageIds, cb, disableSaving) => {
@@ -537,5 +533,13 @@ const Sync = {
     return request(options, errorHandler(cb));
   }
 };
+
+document.addEventListener('database_loaded', () => {
+  thumbCache = path.join(
+    DbConn.getUserDataFolder(),
+    'thumbnails'
+  );
+  if (!fs.existsSync(thumbCache)) fs.mkdirSync(thumbCache);
+}, false);
 
 export default Sync;
