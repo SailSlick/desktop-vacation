@@ -1,7 +1,7 @@
 const progressFinishEvent = new Event('progress_finished');
 
 export function updateProgressBar(size, message) {
-  if (!message) message = '';
+ message = message || '';
   document.dispatchEvent(new CustomEvent(
     'progress_update',
     { detail: { size, message } }

@@ -481,7 +481,6 @@ class Main extends React.Component {
           <PrimaryContent page={this.state.page} parent={this} />
         </Grid>
 
-
         <Modal show={this.state.newGalleryModal} onHide={this.hideModals}>
           <Modal.Header closeButton>
             <Modal.Title>Adding New Gallery</Modal.Title>
