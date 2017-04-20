@@ -114,7 +114,7 @@ const Groups = {
       map(group.images, (id, next) => {
         Images.getOrDownload(id, group.remoteId, (getErr, image, download) => {
           if (download) downloads = true;
-          Galleries.addItem(group.$loki, image.$loki, () => next(getErr, image));
+          if (typeof id !== 'number') Galleries.addItem(group.$loki, image.$loki, () => next(getErr, image));
         });
       }, (mapErr, result) => {
         if (mapErr) warning(error);
@@ -284,7 +284,6 @@ const Groups = {
   },
 
   save: (imageIds, cb) => {
-    console.log("In Group save", imageIds)
     Galleries.should_save = false;
     eachOf(imageIds, (id, key, next) => {
       if (key === imageIds.length - 1) Galleries.should_save = true;
@@ -392,31 +391,12 @@ const Groups = {
   },
 
   downloadGroup: (gid, cb) => {
-    // check what parts of the group are on the client
-    Galleries.getMongo(gid, (group) => {
-      // nothing on client, download everything in full quality
-      if (!group) {
-        Groups.get(gid, false, (err, res, dlGroup) => {
-          console.log("group not client dlGroup", group, dlGroup)
-          // dlGroup.$loki =
-          if (err) {
-            console.error(`group get ${err}: ${res}`);
-            cb('Download failed');
-          // group has been downloaded in full quality, change to offline, save all images
-          } else Groups.convertToOffline(dlGroup, cb);
-        });
-      } else {
-        // there is some sort of copy on the client, make sure all the images are full quality
-        Groups.getGroupImages(group, null, null, (error, res, updatedGroup) => {
-          console.log("group on client updatedGroup",group,  updatedGroup)
-          if (error) cb(error);
-          // group full images downloaded. change to offline
-          else {
-            updatedGroup.$loki = group.$loki;
-            Groups.convertToOffline(updatedGroup, cb);
-          }
-        });
-      }
+    Groups.get(gid, false, (err, res, dlGroup) => {
+      if (err) {
+        console.error(`group get ${err}: ${res}`);
+        cb('Download failed');
+      // group has been downloaded in full quality, change to offline, save all images
+      } else Groups.convertToOffline(dlGroup, cb);
     });
   },
 

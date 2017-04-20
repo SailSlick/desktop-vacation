@@ -116,28 +116,19 @@ const Images = {
   },
 
   getOrDownload: (id, gid, next) => {
-    if (typeof id !== 'number') {
-      Images.getRemoteId(id, (image) => {
-        if (image) {
-          next(null, image);
-        } else {
-          // image not on client, download it
-          Images.download(id, gid, (err, doc) => {
-            if (err) {
-              console.error(err);
-              next(null);
-            } else next(null, doc, true);
-          });
-        }
-      });
-    } else {
-      Images.get(id, (doc) => {
-        if (!doc) {
-          console.error('Image not found', id);
-          next(null);
-        } else next(null, doc, true);
-      });
-    }
+    Images.getRemoteId(id, (image) => {
+      if (image) {
+        next(null, image);
+      } else {
+        // image not on client, download it
+        Images.download(id, gid, (err, doc) => {
+          if (err) {
+            console.error(err);
+            next(null);
+          } else next(null, doc, true);
+        });
+      }
+    });
   }
 };
 

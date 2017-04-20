@@ -75,7 +75,6 @@ class Group extends React.Component {
         return '';
       }
       return Groups.expand(group, filter, (subgalleries, images) => {
-        console.log("aFTER EXPAND", subgalleries, images)
         this.setState({
           subgalleries,
           images,
