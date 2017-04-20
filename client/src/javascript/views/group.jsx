@@ -98,7 +98,10 @@ class Group extends React.Component {
     let rating = this.state.rating;
     let tags = this.state.tags;
 
-    if (typeof field === 'number') rating = field;
+    if (typeof field === 'number') {
+      if (rating === field) rating = 0;
+      else rating = field;
+    }
     if (typeof field === 'object') tags = field;
     if (typeof field === 'string') {
       field = field.trim();
@@ -111,7 +114,8 @@ class Group extends React.Component {
     const metadata = { rating, tags };
     return Groups.updateMetadata(this.props.groupId, this.props.dbId, metadata, (doc) => {
       if (!doc) return danger('Updating metadata failed');
-      return success('Metadata updated');
+      success('Metadata updated');
+      return this.setState({ tags, rating });
     });
   }
 
