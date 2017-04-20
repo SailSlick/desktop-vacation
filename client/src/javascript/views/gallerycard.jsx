@@ -93,9 +93,7 @@ class GalleryCard extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.thumbnail) {
-      this.setState({ thumbnail: nextProps.thumbnail });
-    }
+    if (nextProps.thumbnail) this.setState({ thumbnail: nextProps.thumbnail });
   }
 
   setSlideshow() {

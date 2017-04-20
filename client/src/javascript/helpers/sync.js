@@ -320,7 +320,7 @@ const Sync = {
       thumbCache,
       `${id}.jpeg`
     );
-    if (fs.existsSync(thumbPath)) { return cb(null, thumbPath); }
+    if (fs.existsSync(thumbPath)) return cb(null, thumbPath);
 
     // Fail silently if not able to download because user isn't logged in
     if (!Host.isAuthed()) return cb(null, '');

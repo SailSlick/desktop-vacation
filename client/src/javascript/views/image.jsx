@@ -58,7 +58,7 @@ class Image extends React.Component {
 
   setAsWallpaper() {
     // Download full image if necessary
-    if (!this.state.src) {
+    if (!this.props.src) {
       Sync.downloadImage(this.props.remoteId, null, (err, src) => {
         if (err) danger(err);
         else {
@@ -67,7 +67,7 @@ class Image extends React.Component {
         }
       });
     } else {
-      Wallpaper.set(this.state.src);
+      Wallpaper.set(this.props.src);
     }
   }
 
