@@ -162,7 +162,10 @@ class Gallery extends React.Component {
   tagAll(op, value, cb) {
     const numItems = this.state.selection.length;
     Galleries.should_save = false;
-    eachOf(this.state.selection, (id, index, next) => {
+    value = value.trim().toLowerCase();
+    if (value.length === 0) return danger('Empty tag');
+    if (value.indexOf(',') !== -1) return danger('Tags can\'t have commas');
+    return eachOf(this.state.selection, (id, index, next) => {
       if (index === numItems - 1) Galleries.should_save = true;
       Images.get(id, (image) => {
         if (op === 'add') {
@@ -232,7 +235,7 @@ class Gallery extends React.Component {
       else rating = field;
     }
     if (typeof field === 'string') {
-      field = field.trim();
+      field = field.trim().toLowerCase();
       if (field === '') return danger('Empty tag');
       if (field.indexOf(',') !== -1) return danger('Tags can\'t have commas');
       if (toRemove) tags = tags.filter(val => val !== field);

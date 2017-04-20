@@ -104,7 +104,7 @@ class Group extends React.Component {
     }
     if (typeof field === 'object') tags = field;
     if (typeof field === 'string') {
-      field = field.trim();
+      field = field.trim().toLowerCase();
       if (field.length === 0) return danger('Empty tag');
       if (field.indexOf(',') !== -1) return danger('Tags can\'t have commas');
       if (toRemove) tags = tags.filter(val => val !== field);
